@@ -1,6 +1,12 @@
+---
+scope: The ABI/C++ type system atomicassets uses to describe and carry attribute data - FORMAT, ATOMIC_ATTRIBUTE, ATTRIBUTE_MAP, and FORMAT_TYPE
+depends-on: [reference/atomicassets/serialization.md]
+key-modules: ["atomicassets-contract (v2.0.0-rc4): src/atomicassets.cpp, include/atomicassets.hpp"]
+---
+
 # AtomicAssets attribute type system
 
-Validated behavior of the ABI/C++ types the `atomicassets` contract uses to describe and carry attribute data: the `FORMAT` schema-line struct, the `ATOMIC_ATTRIBUTE` variant, the `ATTRIBUTE_MAP` map type, and the V2-only `FORMAT_TYPE` metadata struct. This document covers the type system and its ABI/JSON representation; the byte-level encoding those types eventually produce is covered in `reference/atomicassets/serialization.md`, which is the file to read for wire format, not this one. Raw-vs-patched ABI mechanics are covered in `reference/contract-releases.md`; this file only notes where that concern touches these specific types. Full table shapes and scoping for `schemas`/`schematypes`/`templates`/`assets` are covered in `reference/atomicassets/structure.md`; this file focuses on the `FORMAT`/`FORMAT_TYPE`/`ATOMIC_ATTRIBUTE`/`ATTRIBUTE_MAP` types themselves. Contract citations below are against tag `v2.0.0-rc4` of `atomicassets-contract` (the release pinned for both testnets).
+The ABI/C++ types the `atomicassets` contract uses to describe and carry attribute data: the `FORMAT` schema-line struct, the `ATOMIC_ATTRIBUTE` variant, the `ATTRIBUTE_MAP` map type, and the V2-only `FORMAT_TYPE` metadata struct. This document covers the type system and its ABI/JSON representation; the byte-level encoding those types eventually produce is covered in `reference/atomicassets/serialization.md`, which is the file to read for wire format, not this one. Raw-vs-patched ABI mechanics are covered in `reference/contract-releases.md`; this file only notes where that concern touches these specific types. Full table shapes and scoping for `schemas`/`schematypes`/`templates`/`assets` are covered in `reference/atomicassets/structure.md`; this file focuses on the `FORMAT`/`FORMAT_TYPE`/`ATOMIC_ATTRIBUTE`/`ATTRIBUTE_MAP` types themselves. Contract citations below are against tag `v2.0.0-rc4` of `atomicassets-contract` (the release pinned for both testnets).
 
 ## FORMAT declares one attribute's name and wire type
 
@@ -11,9 +17,9 @@ struct FORMAT {
 };
 ```
 
-A schema is a `vector<FORMAT>`, one line per attribute, and the position of a line in that vector is itself meaningful (see `reference/atomicassets/serialization.md`). `check_format` enforces three rules on a candidate `vector<FORMAT>`: every `name` is non-empty and at most 64 characters; every `type` matches one of the allowed type strings below; no two lines share a `name`; and at least one line must be exactly `{"name": "name", "type": "string"}`. That last rule is a distinct 64-character limit from `check_name_length`, which instead caps the *value* stored under an attribute literally named `name` (any schema, not just the required line). The two checks share a number but apply to different things: one to the schema's declared attribute-name string, the other to the data's `name`-valued string at write time.
+A schema is a `vector<FORMAT>`, one line per attribute, and the position of a line in that vector is itself meaningful (see `reference/atomicassets/serialization.md`). `check_format` enforces three rules on a candidate `vector<FORMAT>`: every `name` is non-empty and at most 64 characters; every `type` matches one of the allowed type strings below; no two lines share a `name`; and at least one line must be exactly `{"name": "name", "type": "string"}`. That last rule is a distinct 64-character limit from `check_name_length`, which instead caps the *value* stored under an attribute literally named `name`, in every schema that defines one, rather than only the schema's own required `name` line. The two checks share a number but apply to different things: one to the schema's declared attribute-name string, the other to the data's `name`-valued string at write time.
 
-Source: `include/atomicdata.hpp` lines 35-38 (struct); `include/checkformat.hpp` lines 32-97 (`check_format`), especially lines 43-44 and 95-96 (name length and required `name` line); `src/atomicassets.cpp` lines 1895-1905 (`check_name_length`).
+Source: `include/atomicdata.hpp:35-38` (struct), `include/checkformat.hpp:32-97` (`check_format`), `include/checkformat.hpp:43-44` (name length), `include/checkformat.hpp:95-96` (required `name` line), `src/atomicassets.cpp:1895-1905` (`check_name_length`)
 
 ## Allowed format type strings
 
@@ -21,12 +27,12 @@ Source: `include/atomicdata.hpp` lines 35-38 (struct); `include/checkformat.hpp`
 
 `int8`, `int16`, `int32`, `int64`, `uint8`, `uint16`, `uint32`, `uint64`, `fixed8`, `fixed16`, `fixed32`, `fixed64`, `bool`, `ipfs`, `bytes`, `float`, `image`, `string`, `double`.
 
-Two of these names are worth flagging precisely, because the validator's accepted list and the codec's implemented list disagree by one entry each:
+Two names diverge between the validator's accepted list and the codec's implemented list:
 
-- `bytes` passes `check_format` (it matches the `bytes`/`float`/`image` five-character prefix branch), but neither `serialize_attribute` nor `deserialize_attribute` has a case for the literal string `"bytes"`. A schema that somehow stored `"bytes"` as a FORMAT type would fail the very first attempt to serialize or deserialize an attribute of that type, with `check(false, "No type could be matched - bytes")`.
-- `byte` (singular) rides along in the `||` of one branch of each codec function: `serialize_attribute` pairs it with `fixed8` (one raw byte, no varint) and `deserialize_attribute` pairs it with `bool` (read one raw byte back). That `"byte"` branch is unreachable dead code. `check_format` has no branch that accepts the bare four-character string `"byte"` (it is too short to match the five-character `bytes`/`float`/`image` prefix check, and not a match for the four-character `bool`/`ipfs` check either), so a schema attribute can never be declared with type `"byte"`. Array recursion never produces it either: `fixed8[]` and `bool[]` recurse with the base type string sliced off the `[]` suffix, which is `"fixed8"` and `"bool"` respectively, and each dispatches to its own branch. No call path ever passes the literal `"byte"` into either codec function.
+- `bytes` passes `check_format` (it matches the `bytes`/`float`/`image` five-character prefix branch), but neither `serialize_attribute` nor `deserialize_attribute` has a case for the literal string `"bytes"`. A schema that somehow stored `"bytes"` as a FORMAT type would fail the first attempt to serialize or deserialize an attribute of that type, with `check(false, "No type could be matched - bytes")`.
+- `byte` (singular) rides along in the `||` of one branch of each codec function: `serialize_attribute` pairs it with `fixed8`, `deserialize_attribute` pairs it with `bool`. `check_format` has no branch that accepts the bare four-character string `"byte"`, so a schema attribute can never be declared with that type, and no call path passes the literal `"byte"` into either codec function. That branch is unreachable dead code.
 
-Source: `include/checkformat.hpp` lines 10-30 (type list comment), lines 50-87 (accepted base types and the single `[]` suffix rule); `include/atomicdata.hpp` lines 266-268 (`serialize_attribute` `fixed8`/`byte` case), lines 475-477 (`deserialize_attribute` `bool`/`byte` case).
+Source: `include/checkformat.hpp:10-30` (type list comment), `include/checkformat.hpp:50-87` (accepted base types and the single `[]` suffix rule), `include/atomicdata.hpp:266-268` (`serialize_attribute` `fixed8`/`byte` case), `include/atomicdata.hpp:475-477` (`deserialize_attribute` `bool`/`byte` case)
 
 ## ATOMIC_ATTRIBUTE is a variant over 22 alternatives, in a fixed order
 
@@ -44,7 +50,7 @@ The eleven `*_VEC` alternatives (`INT8_VEC` through `STRING_VEC`) are named type
 
 There is no dedicated boolean-array alternative: a `bool[]` attribute's value is supplied as `UINT8_VEC`, the same alternative used for `uint8[]` and `fixed8[]`.
 
-Source: `include/atomicdata.hpp` lines 11-31 (typedefs, variant, and the ABI-bug comment); `atomicassets.abi` `variants` and `types` sections (alternative names and order, `ATOMIC_ATTRIBUTE` type alias); `include/atomicdata.hpp` lines 240-331 (which FORMAT type checks which variant alternative on encode).
+Source: `include/atomicdata.hpp:11-31` (typedefs, variant, and the ABI-bug comment), `atomicassets.abi` `variants` and `types` sections (alternative names and order, `ATOMIC_ATTRIBUTE` type alias), `include/atomicdata.hpp:240-331` (which FORMAT type checks which variant alternative on encode)
 
 ## ATTRIBUTE_MAP pairs an attribute name with its ATOMIC_ATTRIBUTE value
 
@@ -56,13 +62,13 @@ typedef std::map <std::string, ATOMIC_ATTRIBUTE> ATTRIBUTE_MAP;
 
 In the ABI, `ATTRIBUTE_MAP` is generated as `pair_string_ATOMIC_ATTRIBUTE[]` (an array of two-field structs) rather than as a JSON object, because EOSIO/Antelope ABI maps serialize as arrays of key/value pairs, not native JSON objects. Each pair's fields, and the variant field inside each pair, follow standard Antelope ABI JSON conventions: a variant value is a two-element JSON array of `[alternative_name, value]`, and the raw (unpatched) ABI names the pair's fields `first`/`second` rather than `key`/`value`. For example, an unpatched-ABI `ATTRIBUTE_MAP` entry for a string attribute named `rarity` is `{"first": "rarity", "second": ["string", "common"]}`.
 
-Source: `include/atomicdata.hpp` line 33 (`ATTRIBUTE_MAP` typedef); `atomicassets.abi` `types` section (`ATTRIBUTE_MAP` aliased to `pair_string_ATOMIC_ATTRIBUTE[]`) and `structs` section (`pair_string_ATOMIC_ATTRIBUTE` fields `first`/`second` in the raw ABI, `key`/`value` in the patched ABI).
+Source: `include/atomicdata.hpp:33` (`ATTRIBUTE_MAP` typedef), `atomicassets.abi` `types` section (`ATTRIBUTE_MAP` aliased to `pair_string_ATOMIC_ATTRIBUTE[]`), `atomicassets.abi` `structs` section (`pair_string_ATOMIC_ATTRIBUTE` fields `first`/`second` in the raw ABI, `key`/`value` in the patched ABI)
 
 ## The raw-vs-patched ABI concern applies directly to ATTRIBUTE_MAP
 
 `reference/contract-releases.md` documents that `make build`'s raw CDT 4.1 ABI and `make release`'s patched ABI differ in exactly two ways: `vector<uint8_t>` renders as `bytes` in the raw ABI versus `uint8[]` in the patched one, and pair fields render as `first`/`second` in the raw ABI versus `key`/`value` in the patched one. Both differences land squarely on `ATTRIBUTE_MAP`: its pair wrapper is exactly the `first`/`second` vs `key`/`value` case, and its `UINT8_VEC` variant alternative is exactly the `bytes` vs `uint8[]` case. The raw ABI generated from this source names both `INT8_VEC` and `UINT8_VEC` as `bytes` (confirmed directly against the built `atomicassets.abi`'s `types` section), which is the same ambiguity `reference/contract-releases.md` describes: the patch verifier cannot distinguish a legitimately-`bytes` `vector<int8_t>` from a `vector<uint8_t>` that should become `uint8[]`. A tool that reads the patched ABI and needs to build an `int8[]`-typed attribute value must still address it by its variant alternative name `INT8_VEC`, since the patch only ever relabels the `UINT8_VEC` alternative to `uint8[]`.
 
-Source: `atomicassets.abi` `structs` section (`pair_string_ATOMIC_ATTRIBUTE` fields `first`/`second` in the raw ABI); `atomicassets.abi` `types` section (`INT8_VEC` and `UINT8_VEC` both aliasing `bytes` in the raw ABI); `reference/contract-releases.md` (raw vs patched ABI mechanics, not duplicated here).
+Source: `atomicassets.abi` `structs` section (`pair_string_ATOMIC_ATTRIBUTE` fields `first`/`second` in the raw ABI), `atomicassets.abi` `types` section (`INT8_VEC` and `UINT8_VEC` both aliasing `bytes` in the raw ABI), `reference/contract-releases.md` (raw vs patched ABI mechanics, not duplicated here)
 
 ## FORMAT_TYPE is new in V2, and never reaches the binary codec
 
@@ -76,4 +82,4 @@ struct FORMAT_TYPE {
 
 `FORMAT_TYPE` and its action `setschematyp` do not exist in the V1 contract source at all. In V2, `setschematyp` writes a `vector<FORMAT_TYPE>` into a schema-scoped `schematypes` table, keyed by `schema_name` alongside the existing `schemas` table. The contract enforces only two rules on `schema_format_type`: names must be unique within the vector, and every `name` must match an existing `FORMAT.name` in that schema. `mediatype` and `info` are free-form strings with no contract-side validation. Per the action's own comment, this exists to describe a schema attribute (for example labeling what a "Rarity" attribute means) or to tag a media type for an IPFS-backed attribute (for example marking a hash as a `.glb` or `.png` file) for downstream tooling to interpret. `FORMAT_TYPE` rows never pass through `atomicdata::serialize`/`deserialize`. They are plain ABI-serialized table rows, not custom-binary-encoded `vector<uint8_t>` blobs, so `reference/atomicassets/serialization.md`'s codec has no bearing on them at all.
 
-Source: `include/atomicdata.hpp` lines 40-44 (struct, present in V2 only); `include/atomicassets.hpp` lines 109-114 (`setschematyp` action declaration), lines 373-379 (`schema_types_s` / `schematypes` table); `src/atomicassets.cpp` lines 514-560 (`setschematyp` implementation and its validation rules); confirmed absent from the V1 contract source tree (`include/atomicassets.hpp`, `include/atomicassets-interface.hpp`, `src/atomicassets.cpp`).
+Source: `include/atomicdata.hpp:40-44` (struct, present in V2 only), `include/atomicassets.hpp:109-114` (`setschematyp` action declaration), `include/atomicassets.hpp:373-379` (`schema_types_s` / `schematypes` table), `src/atomicassets.cpp:514-560` (`setschematyp` implementation and its validation rules); confirmed absent from the V1 contract source tree (`include/atomicassets.hpp`, `include/atomicassets-interface.hpp`, `src/atomicassets.cpp`)

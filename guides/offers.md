@@ -1,8 +1,14 @@
+---
+scope: The atomicassets createoffer/acceptoffer trade primitive, and how AtomicMarket sales are built on it
+depends-on: [reference/atomicassets/actions.md]
+key-modules: ["atomicmarket-contract (v2.0.0-rc2): src/atomicmarket.cpp", "atomicassets-contract (v2.0.0-rc4): src/atomicassets.cpp"]
+---
+
 # Offers: the native two-sided trade flow
 
 `atomicassets` offers are the contract's only built-in trade primitive: a sender proposes swapping some of their assets for some of a recipient's, the recipient accepts or declines, and either side can back out before that happens. AtomicMarket sales and buyoffers are built on top of this primitive rather than moving assets directly (sales use an offer with memo `"sale"`, buyoffers use memos `"buyoffer"` and `"tbuyoffer"`); see "How AtomicMarket sales use offers" below for how the two connect. AtomicMarket auctions are the exception: they do not use offers at all. A seller escrows the asset by a direct AtomicAssets `transfer` to the `atomicmarket` contract with the memo `"auction"`, which the contract's `receive_asset_transfer` handler picks up. Behavior here is unchanged between V1 and V2. AtomicAssets line citations below are against tag `v2.0.0-rc4` of `atomicassets-contract` (the release pinned for both testnets).
 
-Each action's data shape is plain JSON first, then the same call through `@wharfkit/session`'s `session.transact()`. Only asset ids need the string treatment: they are assigned from a counter starting at 2^40, past JavaScript's safe-integer range, so pass them as strings in action data and expect `@wharfkit/antelope` to return them as strings too. `template_id` is an `int32_t`, and offer ids are a small contract-wide `uint64` counter (a live `offers` row reads `offer_id: 7`); both stay well inside the safe-integer range and serialize as bare JSON numbers, as the numeric `offer_id` examples below do. See `reference/wharfkit.md`.
+Each action's data shape is plain JSON first, then the same call through `@wharfkit/session`'s `session.transact()`. Only asset ids need the string treatment: see `reference/atomicmarket/v2-changes.md` ("Large integers serialize as strings") for why. `template_id` is an `int32_t`, and offer ids are a small contract-wide `uint64` counter (a live `offers` row reads `offer_id: 7`); both stay well inside the safe-integer range and serialize as bare JSON numbers, as the numeric `offer_id` examples below do. See `reference/wharfkit.md`.
 
 ## Create an offer: createoffer
 
@@ -41,7 +47,7 @@ await session.transact({
 
 Ownership and transferability are checked at creation time only; they are re-checked again at `acceptoffer`, not continuously. See "What invalidates an offer" below.
 
-Source: `atomicassets-contract/src/atomicassets.cpp:1185-1273`.
+Source: `atomicassets-contract src/atomicassets.cpp:1185-1273`
 
 ## Accept an offer: acceptoffer
 
@@ -70,7 +76,7 @@ Accepting re-verifies ownership of every listed asset, then runs both transfers 
 - RAM payer: split, not uniform. Assets moving from recipient to sender use the offer's current RAM payer as the scope payer for any new scope the sender needs; assets moving from sender to recipient have the recipient cover their own new scope. In practice this means accepting an offer that requires you to hold an asset type for the first time can implicitly charge your own RAM, not the offer creator's.
 - Fails when: the sender or recipient no longer owns one of the listed assets (see below).
 
-Source: `atomicassets-contract/src/atomicassets.cpp:1299-1350`; shared transfer logic at `src/atomicassets.cpp:1665-1761` (`internal_transfer`).
+Source: `atomicassets-contract src/atomicassets.cpp:1299-1350`, `atomicassets-contract src/atomicassets.cpp:1665-1761` (`internal_transfer`, shared transfer logic)
 
 ## Decline an offer: declineoffer
 
@@ -93,7 +99,7 @@ await session.transact({
 - RAM payer: not applicable; the row is erased and its RAM released to whoever paid for it.
 - Fails when: no offer with `offer_id` exists.
 
-Source: `atomicassets-contract/src/atomicassets.cpp:1358-1368`.
+Source: `atomicassets-contract src/atomicassets.cpp:1358-1368`
 
 ## Cancel an offer: canceloffer
 
@@ -116,7 +122,7 @@ await session.transact({
 - RAM payer: not applicable; the row is erased.
 - Fails when: no offer with `offer_id` exists.
 
-Source: `atomicassets-contract/src/atomicassets.cpp:1280-1290`.
+Source: `atomicassets-contract src/atomicassets.cpp:1280-1290`
 
 ## Reassign the RAM payer: payofferram
 
@@ -143,7 +149,7 @@ The action erases the offer row and re-emplaces an identical copy paid for by `p
 - RAM payer: `payer`, after the call.
 - Fails when: no offer with `offer_id` exists.
 
-Source: `atomicassets-contract/src/atomicassets.cpp:1377-1395`.
+Source: `atomicassets-contract src/atomicassets.cpp:1377-1395`
 
 ## What invalidates an offer
 
@@ -154,7 +160,7 @@ Source: `atomicassets-contract/src/atomicassets.cpp:1377-1395`.
 
 Either way, `acceptoffer` fails with `"Offer sender doesn't own at least one of the provided assets"` (or the recipient equivalent), and the offer row is left untouched, since the failed transaction makes no state changes. The contract appends the offending id to that string as a ` (ID: <asset_id>)` suffix (the same suffix `createoffer` and `transfer` add to their ownership and transferability errors), so a match on the message should allow for the trailing id. A stale offer is not pruned automatically: it stays in the `offers` table, discoverable by anyone reading it, until its sender calls `canceloffer`, its recipient calls `declineoffer`, or a failed `acceptoffer` prompts one of them to clean it up. Indexers and UIs that show pending offers should not assume a listed offer is still fulfillable.
 
-Source: `atomicassets-contract/src/atomicassets.cpp:1313-1325` (ownership re-check in `acceptoffer`), `src/atomicassets.cpp:1096-1177` (`burnasset` erase).
+Source: `atomicassets-contract src/atomicassets.cpp:1313-1325` (ownership re-check in `acceptoffer`), `atomicassets-contract src/atomicassets.cpp:1096-1177` (`burnasset` erase)
 
 ## How AtomicMarket sales use offers
 
@@ -174,9 +180,9 @@ AtomicMarket instant sales are a thin wrapper around this same offer mechanism, 
 
 `ram_payer` here is neither the sale's seller nor AtomicMarket itself: a third-party resource payer took over the offer's RAM with `payofferram`, which is common for services that sponsor sellers' RAM.
 
-Fee application, royalty logging, and settlement-time behavior belong to the AtomicMarket contract, not this one; see `reference/atomicmarket/v2-changes.md`, particularly "Marketplace attribution fields on the shared contract" (a sale's taker side and offer linkage) and "Collection fees apply at execution time".
+Fee application, royalty logging, and settlement-time behavior belong to the AtomicMarket contract, not this one; see `reference/atomicmarket/v2-changes.md`, particularly "Marketplace attribution" (a sale's taker side and offer linkage) and "Execution-time fees and trace-only royalty logs".
 
-Source: `atomicmarket-contract/src/atomicmarket.cpp:744-827` (`announcesale`), `:896-981` (`purchasesale`, cancelled-offer guard at `:934-935`), `:1950-2009` (`receive_asset_offer`, the `lognewoffer` handler).
+Source: `atomicmarket-contract src/atomicmarket.cpp:744-827` (`announcesale`), `atomicmarket-contract src/atomicmarket.cpp:896-981` (`purchasesale`, cancelled-offer guard at `:934-935`), `atomicmarket-contract src/atomicmarket.cpp:1950-2009` (`receive_asset_offer`, the `lognewoffer` handler)
 
 ## See also
 

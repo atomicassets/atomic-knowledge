@@ -1,3 +1,9 @@
+---
+scope: The full fee model for a sale, auction, or buyoffer settlement on atomicmarket - marketplace fees, fee bounds, collection fee timing, and the V2 royalty split engine
+depends-on: [reference/atomicmarket/tables.md, reference/atomicmarket/marketplaces.md]
+key-modules: ["atomicmarket-contract (v2.0.0-rc2): src/atomicmarket.cpp, include/atomicmarket.hpp"]
+---
+
 # AtomicMarket fees and royalties
 
 The full fee model applied to a sale, auction, or buyoffer settlement on the `atomicmarket` contract: the maker and taker marketplace fees, the protocol-configured market fee bounds, the AtomicAssets collection fee and when it is read, and the V2 royalty split engine that divides the collection's share among founders, template owners, and attribute-matched recipients.
@@ -28,7 +34,7 @@ Source: `src/atomicmarket.cpp:2689-2957` (`distribute_collection_fee` category s
 
 ## The royalty log actions are trace-only and dust always reconciles
 
-`logroyfound`, `logroytempl`, `logroyattr`, and `logroydust` are inline actions the contract sends to itself (`require_auth(get_self())`, empty bodies) with no `require_recipient`: a payout recipient's contract can never assert inside a notification handler and block someone else's settlement. That also means a plain notification-driven indexer never observes them; only a trace-reading pipeline (state history / an EOS SHiP consumer) captures them. Every recipient's payout inside `distribute_collection_fee` is accumulated in memory and written to the `balances` table exactly once per recipient, and any integer-division remainder from splitting a share across recipients or rules is added to the collection author's payout and reported through `logroydust`, so `sum(all logroy* payout amounts for one settlement) == the collection fee actually applied` always holds exactly, to the unit.
+`logroyfound`, `logroytempl`, `logroyattr`, and `logroydust` are inline actions the contract sends to itself (`require_auth(get_self())`, empty bodies) with no `require_recipient`: a payout recipient's contract can never assert inside a notification handler and block someone else's settlement. That also means a plain notification-driven indexer never observes them; only a trace-reading pipeline (state history / an EOS SHiP consumer) captures them. Every recipient's payout inside `distribute_collection_fee` is accumulated in memory and written to the `balances` table exactly once per recipient, and any integer-division remainder from splitting a share across recipients or rules is added to the collection author's payout and reported through `logroydust`, so `sum(all logroy* payout amounts for one settlement) == the collection fee actually applied` always holds exactly, to the unit. Indexers should store these logged amounts rather than recomputing the split from the royalty config tables, which can diverge through rounding or config changes between listing and settlement under the execution-time fee model. The contract repo's `docs/api-integration.md` documents the full indexer interface, and the VeRT suite is an executable reference for every flow.
 
 Source: `src/atomicmarket.cpp:2085-2117` (`logroyfound`/`logroytempl`/`logroyattr`/`logroydust` action bodies), `src/atomicmarket.cpp:2960-2986` (dust accrual and `logroydust` emission)
 

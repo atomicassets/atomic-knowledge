@@ -1,8 +1,14 @@
+---
+scope: Complete table reference for the atomicassets contract
+depends-on: [reference/atomicassets/structure.md]
+key-modules: ["atomicassets-contract (v2.0.0-rc4): src/atomicassets.cpp, include/atomicassets.hpp"]
+---
+
 # AtomicAssets tables
 
-Complete table reference for the `atomicassets` contract, baselined on tag `v2.0.0-rc4` of `atomicassets-contract` (the release pinned for both `wax-testnet` and `jungle4-testnet` in the atomichub monorepo's `contracts/chain-config.json`). Struct and typedef citations are to `include/atomicassets.hpp`; behavior citations are to `src/atomicassets.cpp`. "Changed in V2" notes compare against the V1 source (`contracts/atomicassets-contract` in the atomichub monorepo).
+Complete table reference for the `atomicassets` contract, baselined on tag `v2.0.0-rc4` of `atomicassets-contract` (the release pinned for both `wax-testnet` and `jungle4-testnet`). Struct and typedef citations are to `include/atomicassets.hpp`; behavior citations are to `src/atomicassets.cpp`. "Changed in V2" notes compare against the V1 `atomicassets-contract` source.
 
-WAX mainnet was still running V1 at the time of writing (a live `tokenconfigs` read there returns `version: "1.2.3"`), so the V2-only tables below (`authorswaps`, `schematypes`, `templates2`) do not exist on mainnet yet. A repository clone at an uncommitted working-tree commit (branch `dev-production-3`) additionally contains a `holders` table from an abandoned custodial-rentals design that was descoped before `v2.0.0-rc1` shipped; that table does not exist in any tagged V2 release and is not documented here. See `reference/atomicassets/actions.md` for the mechanism (`setrampayer`/`setlastpayer`) that shipped in its place.
+Live-chain status: see `reference/atomicassets/v2-upgrade.md` ("Deployment status"); the V2-only tables below (`authorswaps`, `schematypes`, `templates2`) do not exist on WAX mainnet yet. An abandoned custodial-rentals design left a `holders` table on unreleased development branches; it ships in no tagged release and is not documented here. See `reference/atomicassets/actions.md` ("RAM-payer reassignment (replaces descoped custodial rentals)").
 
 Every table below is defined in `include/atomicassets.hpp:337-468`, and every scoped (non-self) table is fetched through a `get_*` helper at `include/atomicassets.hpp:476-490`.
 
@@ -25,7 +31,7 @@ Secondary indexes: none.
 
 A row exists only while a swap is pending; `acceptauswap` and `rejectauswap` both erase it. Changed in V2: this table does not exist in V1 (collection authorship there is fixed at creation).
 
-Source: include/atomicassets.hpp:337-345; src/atomicassets.cpp:357-449 (`createauswap`, `acceptauswap`, `rejectauswap`).
+Source: `include/atomicassets.hpp:337-345`, `src/atomicassets.cpp:357-449` (`createauswap`, `acceptauswap`, `rejectauswap`)
 
 ## collections
 
@@ -47,9 +53,9 @@ Secondary indexes: none.
 | `market_fee` | `double` | `0 <= market_fee <= 0.15`. Read live by AtomicMarket at settlement time, not snapshotted at listing time. |
 | `serialized_data` | `vector<uint8_t>` | The collection's own attribute data (name, description, images, and so on), encoded against the single, contract-wide format in `config.collection_format`, not a per-collection format. |
 
-`authorized_accounts` and `notify_accounts` are both capped at 24 partly because `check_has_collection_auth` and `notify_collection_accounts` read them through a bounded low-level partial-row read (`partial_read_collection`) rather than deserializing the whole row (which can run several KB with a large `serialized_data`), to save CPU on these frequently-invoked checks.
+See `reference/atomicassets/structure.md` ("Authorization and the 24-account cap") for why both lists are capped at 24.
 
-Source: include/atomicassets.hpp:348-359; src/atomicassets.cpp:91-166 (`createcol`), 1804-1856 (`partial_read_collection`).
+Source: `include/atomicassets.hpp:348-359`, `src/atomicassets.cpp:91-166` (`createcol`), `src/atomicassets.cpp:1804-1856` (`partial_read_collection`)
 
 Live chain example (`wax.greymass.com get_table_rows`, `code=atomicassets`, `scope=atomicassets`, `table=collections`, one row, byte fields elided):
 
@@ -75,7 +81,7 @@ Secondary indexes: none.
 
 Append-only: `extendschema` is the only action that changes an existing row, and it can only add lines to the end of `format`, never remove or reorder them.
 
-Source: include/atomicassets.hpp:363-369; src/atomicassets.cpp:450-513 (`createschema`, `extendschema`).
+Source: `include/atomicassets.hpp:363-369`, `src/atomicassets.cpp:450-513` (`createschema`, `extendschema`)
 
 Live chain example (`scope=farmersworld`, `table=schemas`, `lower_bound=memberships`):
 
@@ -103,7 +109,7 @@ Secondary indexes: none.
 
 Written only by `setschematyp`, which fully replaces the row's `format_type` vector on every call (not additive). Never passes through `atomicdata::serialize`/`deserialize`; these are plain ABI-serialized rows, not custom-binary blobs. Changed in V2: this table does not exist in V1.
 
-Source: include/atomicassets.hpp:373-379; src/atomicassets.cpp:514-565 (`setschematyp`).
+Source: `include/atomicassets.hpp:373-379`, `src/atomicassets.cpp:514-565` (`setschematyp`)
 
 ## templates
 
@@ -125,7 +131,7 @@ Secondary indexes: none.
 | `issued_supply` | `uint32_t` | Incremented by every `mintasset` against this template; must stay `< max_supply` when `max_supply > 0`. Also the value `deltemplate` requires to be exactly 0. |
 | `immutable_serialized_data` | `vector<uint8_t>` | Set once at `createtempl`/`createtempl2`; no action changes it afterward. |
 
-Source: include/atomicassets.hpp:383-394; src/atomicassets.cpp:566-696 (create/lock/reduce/delete actions), 1613-1689 (`internal_create_template`).
+Source: `include/atomicassets.hpp:383-394`, `src/atomicassets.cpp:566-696` (create/lock/reduce/delete actions), `src/atomicassets.cpp:1613-1689` (`internal_create_template`)
 
 Live chain example (`scope=farmersworld`, `table=templates`, `lower_bound=260638`, byte field elided):
 
@@ -152,7 +158,7 @@ Secondary indexes: none.
 
 A row exists only while the template's mutable data is non-empty: `settempldata` erases the row when called with an empty map, and `createtempl2` only creates one when given non-empty `mutable_data`. Its absence means "no mutable template data set for this template," not "empty bytes for it." Changed in V2: this table (and the whole idea of mutable template data) does not exist in V1; `createtempl` there is the only creation action, and every template's data is fixed forever.
 
-Source: include/atomicassets.hpp:398-405; src/atomicassets.cpp:583-599 (`createtempl2`), 846-913 (`settempldata`).
+Source: `include/atomicassets.hpp:398-405`, `src/atomicassets.cpp:583-599` (`createtempl2`), `src/atomicassets.cpp:846-913` (`settempldata`)
 
 ## assets
 
@@ -175,7 +181,7 @@ Secondary indexes: none.
 | `immutable_serialized_data` | `vector<uint8_t>` | Set once at `mintasset`; never changed by any later action; copied verbatim on every transfer. |
 | `mutable_serialized_data` | `vector<uint8_t>` | Set at `mintasset`; the only one of the two data fields an authorized editor can change later, via `setassetdata`. |
 
-Source: include/atomicassets.hpp:409-421; src/atomicassets.cpp:697-788 (`mintasset`), 796-845 (`setassetdata`), 1096-1177 (`burnasset`), 1665-1761 (`internal_transfer`).
+Source: `include/atomicassets.hpp:409-421`, `src/atomicassets.cpp:697-788` (`mintasset`), `src/atomicassets.cpp:796-845` (`setassetdata`), `src/atomicassets.cpp:1096-1177` (`burnasset`), `src/atomicassets.cpp:1665-1761` (`internal_transfer`)
 
 Live chain example (`scope=farmersworld`, `table=assets`, one row, byte fields elided):
 
@@ -204,7 +210,7 @@ Secondary indexes: `sender` (`sender.value`, index name `sender`), `recipient` (
 | `memo` | `string` | Up to 256 characters. |
 | `ram_payer` | `name` | Who currently pays for this row's RAM; reassignable to any account via `payofferram` regardless of that account's relationship to the offer. |
 
-Source: include/atomicassets.hpp:424-442; src/atomicassets.cpp:1185-1401 (`createoffer` through `payofferram`).
+Source: `include/atomicassets.hpp:424-442`, `src/atomicassets.cpp:1185-1401` (`createoffer` through `payofferram`)
 
 Live chain example (`scope=atomicassets`, `table=offers`, one row):
 
@@ -228,7 +234,7 @@ Secondary indexes: none.
 | `owner` | `name` | The account the balance belongs to. Also the primary key. |
 | `quantities` | `vector<asset>` | One entry per announced token symbol. An entry is added by `announcedepo` (as a zero amount) or incremented by a deposit; an entry is removed entirely once its amount reaches exactly zero via `withdraw`, and the whole row is erased if that was the last entry. A given (owner, symbol) pair that hits zero this way needs `announcedepo` called again before it can receive further deposits, even if the row still exists for other symbols. |
 
-Source: include/atomicassets.hpp:445-451; src/atomicassets.cpp:990-1039 (`announcedepo`), 1040-1078 (`withdraw`), 1402-1444 (`receive_token_transfer`), 1768-1801 (`internal_decrease_balance`).
+Source: `include/atomicassets.hpp:445-451`, `src/atomicassets.cpp:990-1039` (`announcedepo`), `src/atomicassets.cpp:1040-1078` (`withdraw`), `src/atomicassets.cpp:1402-1444` (`receive_token_transfer`), `src/atomicassets.cpp:1768-1801` (`internal_decrease_balance`)
 
 Live chain example (`scope=atomicassets`, `table=balances`, three rows):
 
@@ -254,7 +260,7 @@ Secondary indexes: none.
 | `collection_format` | `vector<FORMAT>` | The single, contract-wide format every collection's `serialized_data` is encoded against. Extendable only via `admincoledit` (contract-authorization gated), append-only. |
 | `supported_tokens` | `vector<extended_symbol>` | `(contract, symbol)` pairs eligible for `announcedepo`/deposit/withdraw. Extendable only via `addconftoken`; enforces symbol-level uniqueness, not pair-level, so one symbol can only ever be backed by one contract at a time. |
 
-Source: include/atomicassets.hpp:454-461; src/atomicassets.cpp:8-12 (`init`), 18-69 (`admincoledit`, `addconftoken`).
+Source: `include/atomicassets.hpp:454-461`, `src/atomicassets.cpp:8-12` (`init`), `src/atomicassets.cpp:18-69` (`admincoledit`, `addconftoken`)
 
 Live chain example (`scope=atomicassets`, `table=config`):
 
@@ -277,9 +283,9 @@ Secondary indexes: none.
 | `standard` | `name` | Constant `atomicassets`, set at `init` and never changed by any action. |
 | `version` | `string` | Contract-reported semver: defaults to `2.0.0` at `init` for this source tree, overwritten manually via `setversion`. Not auto-updated by `setcode`; it reflects whatever the deploying operator last set. |
 
-Live-chain caveat: a `get_table_rows` read against WAX mainnet's `atomicassets` account returns `version: "1.2.3"`, and its `get_abi` returns the 35-action V1 list, confirming WAX mainnet is still on V1. Re-check `tokenconfigs.version` (or `get_abi`) on any chain before assuming a V2-only table or action is live there; `version` is only as accurate as the operator's last `setversion` call, so treat `get_abi`'s actual action/table list as the authoritative check when the two could disagree.
+Live-chain status: see `reference/atomicassets/v2-upgrade.md` ("Deployment status").
 
-Source: include/atomicassets.hpp:464-468; src/atomicassets.cpp:8-12 (`init`), 41-49 (`setversion`).
+Source: `include/atomicassets.hpp:464-468`, `src/atomicassets.cpp:8-12` (`init`), `src/atomicassets.cpp:41-49` (`setversion`)
 
 ## Table scoping summary
 
@@ -297,4 +303,4 @@ Source: include/atomicassets.hpp:464-468; src/atomicassets.cpp:8-12 (`init`), 41
 | Config | `config` | `get_self()` | singleton | none |
 | Token/version info | `tokenconfigs` | `get_self()` | singleton | none |
 
-Source: include/atomicassets.hpp:337-495 (table and table-fetch definitions).
+Source: `include/atomicassets.hpp:337-495` (table and table-fetch definitions)

@@ -1,6 +1,12 @@
-# Contract releases and deployment
+---
+scope: AtomicAssets/AtomicMarket contract build, ABI patching, and on-chain deploy resource requirements
+depends-on: []
+key-modules:
+    - atomicassets-contract
+    - atomicmarket-contract
+---
 
-Validated behavior of the AtomicAssets and AtomicMarket contract build and release pipeline, and of deploying contract code on chain.
+# Contract releases and deployment
 
 ## Raw vs patched ABI
 

@@ -1,6 +1,11 @@
-# atomicassets-api HTTP API
+---
+scope: atomicassets-api HTTP API behavior - Swagger reference, list-endpoint pagination limits, buyoffer lifecycle states
+depends-on: []
+key-modules:
+    - "atomicassets-api (main): src/api/server.ts, src/api/namespaces/*/openapi.ts"
+---
 
-Validated behavior of the hosted atomicassets-api (eosio-contract-api) HTTP endpoints, such as the reference deployment at wax.api.atomicassets.io.
+# atomicassets-api HTTP API
 
 ## Interactive reference (Swagger UI)
 
@@ -8,7 +13,7 @@ Each deployment serves a live Swagger UI at `/docs` that lists every endpoint, p
 
 There is no standalone OpenAPI JSON published: `/openapi.json` and `/docs/swagger.json` both return 404. The full OpenAPI 3.0 document is only reachable embedded inside the Swagger UI bootstrap at `/docs/swagger-ui-init.js`, which is a JavaScript file, not a clean spec URL. For code generation, the durable source of truth is the per-namespace spec definitions in the atomicassets-api repo (`src/api/namespaces/{atomicassets,atomicmarket,atomictools}/openapi.ts`), which the server assembles into the document Swagger renders. Note the served document's title is `EOSIO Contract API`, the software's historical name.
 
-Source: live probes of `https://wax.api.atomicassets.io/docs/` (200), `/openapi.json` and `/docs/swagger.json` (404), `/docs/swagger-ui-init.js` (200, carries the `openapi: 3.0.0` document); atomicassets-api `src/api/server.ts` (`swagger.setup` mounted at `/docs`, no JSON spec route) and `src/api/namespaces/*/openapi.ts`.
+Source: `atomicassets-api src/api/server.ts` (`swagger.setup` mounted at `/docs`, no JSON spec route), `atomicassets-api src/api/namespaces/*/openapi.ts`, live probes of `https://wax.api.atomicassets.io/docs/` (200), `/openapi.json` and `/docs/swagger.json` (404), `/docs/swagger-ui-init.js` (200, carries the `openapi: 3.0.0` document)
 
 ## List endpoints cap limit at 100
 

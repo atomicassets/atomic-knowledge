@@ -1,8 +1,14 @@
+---
+scope: AtomicMarket instant-sale lifecycle - announce, escrow, purchase, cancel, and Delphi-priced sales
+depends-on: [reference/atomicmarket/actions.md, reference/atomicmarket/fees-and-royalties.md, guides/offers.md]
+key-modules: ["atomicmarket-contract (v2.0.0-rc2): src/atomicmarket.cpp", "atomicassets-contract (v2.0.0-rc4): src/atomicassets.cpp"]
+---
+
 # Working with sales
 
 The full lifecycle of an AtomicMarket instant sale (V2 baseline): announcing, escrowing the asset through an AtomicAssets offer, purchasing, cancelling, and Delphi Oracle-priced sales that list in one token and settle in another.
 
-A sale is a lazy-accept escrow: `announcesale` only records a row, it never moves the asset. The asset stays in the seller's wallet until a buyer calls `purchasesale`, which accepts the underlying AtomicAssets offer and transfers the asset in the same transaction. See `reference/atomicmarket/v2-changes.md` ("Overlapping listings are valid chain state") for what this implies for indexers and for stale or overlapping listings.
+A sale is a lazy-accept escrow: `announcesale` only records a row, it never moves the asset. The asset stays in the seller's wallet until a buyer calls `purchasesale`, which accepts the underlying AtomicAssets offer and transfers the asset in the same transaction. Multiple live sale rows for the same asset are therefore valid chain state, typically a stale listing left by a previous owner after a transfer or an earlier purchase, or listings from one seller covering different asset bundles that share an asset. An indexer showing several listings for one asset is faithfully mirroring the chain; reconcilers should not delete them as drift.
 
 Purchases and bids draw on the buyer's AtomicMarket balance rather than moving tokens directly. See `guides/deposits.md` for the transfer-with-memo deposit flow and balance mechanics; this guide only shows where a step requires a sufficient balance.
 
@@ -52,7 +58,7 @@ Failure modes asserted in source:
 - `maker_marketplace` must be a registered marketplace (the empty string is the contract's seeded default and always valid).
 - The seller must own every listed asset, the ids must be unique, and if the asset belongs to a template, the template must be transferable.
 
-Source: `src/atomicmarket.cpp:744-827` (`announcesale`), `src/atomicmarket.cpp:2120-2163` (`get_collection_and_check_assets`)
+Source: `atomicmarket-contract src/atomicmarket.cpp:744-827` (`announcesale`), `atomicmarket-contract src/atomicmarket.cpp:2120-2163` (`get_collection_and_check_assets`)
 
 ## Escrow the asset: create the AtomicAssets offer
 
@@ -98,7 +104,7 @@ Failure modes asserted in source:
 - No unclaimed sale row exists with this sender as seller for this exact asset id set.
 - The matched sale row already has an offer (`offer_id != -1`): a sale can only be activated once.
 
-Source: `src/atomicmarket.cpp:1950-2013` (`receive_asset_offer`)
+Source: `atomicmarket-contract src/atomicmarket.cpp:1950-2013` (`receive_asset_offer`)
 
 ## Purchase a sale
 
@@ -140,7 +146,7 @@ Failure modes asserted in source:
 - `taker_marketplace` must be a registered marketplace.
 - For a Delphi sale, `intended_delphi_median` must exactly match a datapoint currently in the oracle's `datapoints` table for the configured pair: a stale median (the classic "confirmed too slowly" case) throws rather than settling at a different price.
 - The buyer's balance must cover the computed settlement price (see `guides/deposits.md`).
-- A legacy pre-V2 bundle sale (`asset_ids.size() > 1`) cannot be purchased at all: calling `purchasesale` on one cancels the listing (and its offer, if any) without charging the buyer. See `reference/atomicmarket/v2-changes.md` for the full legacy-row behavior table.
+- A legacy pre-V2 bundle sale (`asset_ids.size() > 1`) cannot be purchased at all: calling `purchasesale` on one cancels the listing (and its offer, if any) without charging the buyer. See `reference/atomicmarket/actions.md` ("Sales") for how every other action treats a legacy bundle row.
 
 Optionally guard against the sale changing between when a buyer reads it and when the purchase lands, by placing `assertsale` before `purchasesale` in the same transaction:
 
@@ -153,9 +159,9 @@ Optionally guard against the sale changing between when a buyer reads it and whe
 }
 ```
 
-`assertsale` requires no authorization and throws if the sale's current asset ids, listing price, or settlement symbol differ from what is asserted. V2 fixed a defensive bug here: `assertsale` (like `assertauct` and `acceptbuyo`) now uses the length-checking 4-iterator `is_permutation` overload rather than V1's 3-iterator version, which never checked the asserted list's length against the stored one. See `reference/atomicmarket/v2-changes.md` ("Defensive guards in the V2 contract").
+`assertsale` requires no authorization and throws if the sale's current asset ids, listing price, or settlement symbol differ from what is asserted. V2 fixed a defensive bug here. See `reference/atomicmarket/v2-changes.md` ("Defensive guards in the V2 contract") for the 3-iterator vs 4-iterator `is_permutation` fix behind `assertsale`'s length check.
 
-Source: `src/atomicmarket.cpp:896-1015` (`purchasesale`, `assertsale`), `src/atomicmarket.cpp:2468-2515` (`calc_settlement_price`)
+Source: `atomicmarket-contract src/atomicmarket.cpp:896-1015` (`purchasesale`, `assertsale`), `atomicmarket-contract src/atomicmarket.cpp:2468-2515` (`calc_settlement_price`)
 
 ## Cancel a sale
 
@@ -180,11 +186,11 @@ Authorization: normally the seller. `cancelsale` also accepts no authorization a
 
 - it has an offer that no longer exists (the seller cancelled it directly through AtomicAssets), or
 - the seller no longer owns at least one of the listed assets, or
-- it is a legacy pre-V2 bundle row (more than one asset id): every such row is unconditionally invalid under V2, since bundle listings can never be re-activated or purchased. See `reference/atomicmarket/v2-changes.md` for the full legacy-row cancellation rules.
+- it is a legacy pre-V2 bundle row (more than one asset id): every such row is unconditionally invalid under V2, since bundle listings can never be re-activated or purchased. See `reference/atomicmarket/actions.md` ("Sales", "Auctions", "Buyoffers") for how each action's own legacy-row handling differs.
 
 When the sale has a live offer, cancelling it also sends a `declineoffer` to AtomicAssets as a convenience, so the escrow offer does not linger after the listing is gone.
 
-Source: `src/atomicmarket.cpp:838-885` (`cancelsale`)
+Source: `atomicmarket-contract src/atomicmarket.cpp:838-885` (`cancelsale`)
 
 ## Delphi (oracle) sales
 
@@ -216,9 +222,9 @@ curl -X POST https://wax.greymass.com/v1/chain/get_table_rows \
   -d '{"code":"delphioracle","scope":"delphioracle","table":"pairs","json":true,"limit":1,"lower_bound":"waxpusd","upper_bound":"waxpusd"}'
 ```
 
-The mainnet deployment queried above currently reports version `1.3.3` (V1) in its live `config`; re-check the live `version` field before relying on it. The `config` and oracle `pairs`/`datapoints` table layouts are unchanged between V1 and V2, so the read above illustrates the shape correctly either way; only the settlement-side behavior documented below (single-asset listings, execution-time fees) differs.
+The mainnet deployment queried above currently reports version `1.3.3` (V1); see `reference/atomicmarket/tables.md` ("config") for the live-version caveat. The `config` and oracle `pairs`/`datapoints` table layouts are unchanged between V1 and V2, so the read above illustrates the shape correctly either way; only the settlement-side behavior documented below (single-asset listings, execution-time fees) differs.
 
-Source: `src/atomicmarket.cpp:120-166` (`adddelphi`), `include/delphioracle-interface.hpp:1-67`
+Source: `atomicmarket-contract src/atomicmarket.cpp:120-166` (`adddelphi`), `atomicmarket-contract include/delphioracle-interface.hpp:1-67`
 
 ### How the median converts a listing price to a settlement price
 
@@ -235,4 +241,4 @@ curl -X POST https://wax.greymass.com/v1/chain/get_table_rows \
   -d '{"code":"delphioracle","scope":"waxpusd","table":"datapoints","json":true,"limit":1,"reverse":true}'
 ```
 
-Source: `src/atomicmarket.cpp:2468-2515` (`calc_settlement_price`)
+Source: `atomicmarket-contract src/atomicmarket.cpp:2468-2515` (`calc_settlement_price`)

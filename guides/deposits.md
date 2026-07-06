@@ -1,3 +1,9 @@
+---
+scope: AtomicMarket's internal balances ledger - depositing, what consumes a balance, withdrawing, RAM, and supported tokens
+depends-on: [reference/atomicmarket/actions.md, reference/atomicmarket/ram.md]
+key-modules: ["atomicmarket-contract (v2.0.0-rc2): src/atomicmarket.cpp", "atomicassets-contract (v2.0.0-rc4): src/atomicassets.cpp"]
+---
+
 # Balances and deposits
 
 How AtomicMarket's internal token balance system works: depositing, what consumes a deposited balance, withdrawing, RAM, and which tokens are accepted. Baseline is AtomicMarket V2 (`atomicmarket-contract`); the balance mechanics below are unchanged from V1 unless noted.
@@ -37,7 +43,7 @@ await session.transact({
 });
 ```
 
-Source: `src/atomicmarket.cpp` L1870-1882 (`receive_token_transfer`), `include/atomicmarket.hpp` L349-354; `src/atomicmarket.cpp` L2993-3026 (`internal_add_balance`).
+Source: `atomicmarket-contract src/atomicmarket.cpp:1870-1882` (`receive_token_transfer`), `atomicmarket-contract include/atomicmarket.hpp:349-354`, `atomicmarket-contract src/atomicmarket.cpp:2993-3026` (`internal_add_balance`)
 
 ## What consumes deposited balance
 
@@ -49,7 +55,7 @@ These actions deduct from the caller's deposited balance rather than accepting a
 
 Declining, cancelling, or being outbid always credits the balance back rather than transferring tokens out. Every one of these paths goes through the same `internal_add_balance` / `internal_decrease_balance` pair that deposits and withdrawals use.
 
-Source: `src/atomicmarket.cpp` L947-950 (`purchasesale` balance deduction), L1242-1252 (`auctionbid` refund and deduction), L1450 (`createbuyo` deduction), L1667 (`createtbuyo` deduction).
+Source: `atomicmarket-contract src/atomicmarket.cpp:947-950` (`purchasesale` balance deduction), `atomicmarket-contract src/atomicmarket.cpp:1242-1252` (`auctionbid` refund and deduction), `atomicmarket-contract src/atomicmarket.cpp:1450` (`createbuyo` deduction), `atomicmarket-contract src/atomicmarket.cpp:1667` (`createtbuyo` deduction)
 
 ## Withdrawing tokens
 
@@ -78,13 +84,13 @@ await session.transact({
 });
 ```
 
-Source: `src/atomicmarket.cpp` L472-481 (`withdraw`), `include/atomicmarket.hpp` L133-136; `src/atomicmarket.cpp` L2522-2545 (`internal_withdraw_tokens`), L3034-3070 (`internal_decrease_balance`), L2359-2372 (`require_get_supported_token_contract`).
+Source: `atomicmarket-contract src/atomicmarket.cpp:472-481` (`withdraw`), `atomicmarket-contract include/atomicmarket.hpp:133-136`, `atomicmarket-contract src/atomicmarket.cpp:2522-2545` (`internal_withdraw_tokens`), `atomicmarket-contract src/atomicmarket.cpp:3034-3070` (`internal_decrease_balance`), `atomicmarket-contract src/atomicmarket.cpp:2359-2372` (`require_get_supported_token_contract`)
 
 ## RAM for balance rows
 
-Opening a new `balances` row always pays RAM from the `atomicmarket` contract account itself (`balances.emplace(get_self(), ...)`), never from the depositor. Depositing for the first time costs the depositor no RAM. RAM ownership never moves off the contract once the row exists, but not because every `modify` uses `same_payer`: `internal_add_balance`'s `modify` re-specifies `get_self()` as the payer, and only `internal_decrease_balance` (and the `migratebal` merge) modify with `same_payer`. Since `get_self()` is already the row's payer, the effect is the same either way, so the contract's own RAM stake grows with the number of distinct depositors it has ever held a balance for; a fully-withdrawn row is erased (see "Withdrawing tokens") and can be re-opened by a future deposit at the contract's expense again.
+Opening a new `balances` row always pays RAM from the `atomicmarket` contract account itself, so depositing for the first time costs the depositor no RAM, and the contract's own stake grows with the number of distinct depositors it has held a balance for. See `reference/atomicmarket/ram.md` ("The contract pays RAM for every balances row") for the full payer mechanics.
 
-Source: `src/atomicmarket.cpp` L2993-3026 (`internal_add_balance`, `get_self()` payer on the `modify` at L3014), L3034-3070 (`internal_decrease_balance`, `same_payer`), `include/atomicmarket.hpp` L519-526 (`balances_s` table and typedef).
+Source: `atomicmarket-contract src/atomicmarket.cpp:2993-3026` (`internal_add_balance`), `atomicmarket-contract include/atomicmarket.hpp:519-526` (`balances_s` table and typedef)
 
 ## Supported tokens
 
@@ -124,4 +130,4 @@ await session.transact({
 });
 ```
 
-Source: `src/atomicmarket.cpp` L97-112 (`addconftoken`), `include/atomicmarket.hpp` L638-653 (`config_s` singleton, which carries `supported_tokens`) and L454-457 (the `TOKEN` struct itself), `src/atomicmarket.cpp` L2399-2428 (`is_token_supported`, `is_symbol_supported`).
+Source: `atomicmarket-contract src/atomicmarket.cpp:97-112` (`addconftoken`), `atomicmarket-contract include/atomicmarket.hpp:638-653` (`config_s` singleton, which carries `supported_tokens`), `atomicmarket-contract include/atomicmarket.hpp:454-457` (the `TOKEN` struct itself), `atomicmarket-contract src/atomicmarket.cpp:2399-2428` (`is_token_supported`, `is_symbol_supported`)

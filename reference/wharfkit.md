@@ -1,10 +1,34 @@
+---
+scope: "@wharfkit/antelope client library behavior for table reads, authority checks, and payer unwrapping"
+depends-on: []
+key-modules:
+    - "@wharfkit/antelope"
+---
+
 # @wharfkit/antelope client behavior
 
-Validated behavior of the @wharfkit/antelope client library relevant to Atomic integrations. Version-pinned facts below were verified against 1.1.1; re-check them on upgrade.
+Version-pinned facts below were verified against 1.1.1; re-check them on upgrade.
 
 ## Typed get_table_rows is not a drop-in for dynamic reads
 
-@wharfkit/antelope's typed `client.v1.chain.get_table_rows` is not a transparent drop-in for dynamic, string-driven table reads. It infers `key_type` only when bounds are passed as typed instances (UInt64 → i64, UInt128 → i128, Checksum256 → sha256, Checksum160 → ripemd160); otherwise `key_type` defaults to `name`, so numeric bounds passed as plain strings or numbers are silently interpreted as account names and return wrong ranges. For tables with numeric primary keys, always pass `key_type: 'i64'` explicitly or use typed bounds. Typed endpoints such as `get_account` also strict-decode responses into structs, which is less forgiving than raw JSON access; for fully dynamic reads, the raw `client.call({ path, params })` escape hatch remains available. Migrating from eosjs is safe with respect to key material: both libraries produce identical modern string forms (`PUB_K1_`, `PVT_K1_`, `SIG_K1_`), so stored keys and signature comparisons carry over, but never convert to legacy `EOS`-prefixed forms. WharfKit's `PrivateKey.signMessage(bytes)` is defined as a signature over `sha256(message)`, matching the common eosjs-era message-signing convention.
+@wharfkit/antelope's typed `client.v1.chain.get_table_rows` is not a transparent drop-in for dynamic, string-driven table reads. It infers `key_type` only when bounds are passed as typed instances (UInt64 → i64, UInt128 → i128, Checksum256 → sha256, Checksum160 → ripemd160); otherwise `key_type` defaults to `name`, so numeric bounds passed as plain strings or numbers are silently interpreted as account names and return wrong ranges. For tables with numeric primary keys, always pass `key_type: 'i64'` explicitly or use typed bounds.
+
+```
+// correct
+client.v1.chain.get_table_rows({
+    code, scope, table,
+    lower_bound: UInt64.from(assetId),
+    key_type: 'i64',
+});
+
+// avoid
+client.v1.chain.get_table_rows({
+    code, scope, table,
+    lower_bound: assetId.toString(), // key_type inferred as 'name', wrong index
+});
+```
+
+Typed endpoints such as `get_account` also strict-decode responses into structs, which is less forgiving than raw JSON access; for fully dynamic reads, the raw `client.call({ path, params })` escape hatch remains available. Migrating from eosjs is safe with respect to key material: both libraries produce identical modern string forms (`PUB_K1_`, `PVT_K1_`, `SIG_K1_`), so stored keys and signature comparisons carry over, but never convert to legacy `EOS`-prefixed forms. WharfKit's `PrivateKey.signMessage(bytes)` is defined as a signature over `sha256(message)`, matching the common eosjs-era message-signing convention.
 
 ## hasPermission does not recurse into account weights
 

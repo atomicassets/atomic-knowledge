@@ -1,10 +1,16 @@
+---
+scope: Table reference for the atomicmarket contract - sales, auctions, buyoffers, template buyoffers, marketplaces, balances, config, counters, bonus fees, and royalty split tables
+depends-on: [reference/atomicmarket/fees-and-royalties.md]
+key-modules: ["atomicmarket-contract (v2.0.0-rc2): src/atomicmarket.cpp, include/atomicmarket.hpp"]
+---
+
 # AtomicMarket tables
 
-Complete table reference for the `atomicmarket` contract, baselined on the V2 source. Every entry cites its declaration in `include/atomicmarket.hpp` (paths relative to the atomicmarket-contract repo). "Changed in V2" notes compare against the V1 source (`contracts/atomicmarket-contract` in the atomichub monorepo).
+Every entry cites its declaration in `include/atomicmarket.hpp` (paths relative to the atomicmarket-contract repo), baselined on the V2 source. "Changed in V2" notes compare against the V1 `atomicmarket-contract` source.
 
-For marketplace attribution, execution-time collection fees, and trace-only royalty logs, see `reference/atomicmarket/v2-changes.md`, `reference/atomicmarket/v2-changes.md`, `reference/atomicmarket/fees-and-royalties.md`, `reference/atomicmarket/marketplaces.md`, and `reference/atomicmarket/ram.md`. This page stays brief on those topics and cross-links instead of repeating them.
+See `reference/atomicmarket/marketplaces.md` ("Registering a marketplace with regmarket") for marketplace attribution and `reference/atomicmarket/fees-and-royalties.md` ("The collection fee applies at execution time, not at listing time") for execution-time collection fees and ("The royalty log actions are trace-only and dust always reconciles") for trace-only royalty logs. This page stays brief on those topics and cross-links instead of repeating them.
 
-A live read against WAX mainnet, jungle4 testnet, and wax-testnet public RPC nodes currently returns `config.version = "1.3.3"` on all three, meaning the royalty tables below are not yet observable on any publicly reachable chain even though the atomichub frontend's per-chain flags mark `atomicmarket_v2_enabled: true` for jungle4 and wax-testnet. Treat the V2-only tables as source-verified but not live-chain-verified; re-check the live `config.version` before relying on chain-observability claims.
+See `reference/atomicassets/v2-upgrade.md` ("Deployment status") for the live-chain read confirming the royalty tables below are source-verified but not yet observable on any publicly reachable chain.
 
 ## sales
 
@@ -20,13 +26,13 @@ An instant-sale listing. Created empty of any escrow: the seller still owns the 
 | `offer_id` | int64_t | The backing AtomicAssets offer id, or `-1` if the seller has not yet created it (the sale is announced but not active). |
 | `listing_price` | asset | The listing price in `listing_price.symbol` (which may differ from `settlement_symbol` for a Delphi-priced listing). |
 | `settlement_symbol` | symbol | The symbol the sale actually settles in. |
-| `maker_marketplace` | name | The marketplace attributed as maker (the lister's referring marketplace). See `reference/atomicmarket/marketplaces.md` for why the taker marketplace is never stored here. |
+| `maker_marketplace` | name | The marketplace attributed as maker (the lister's referring marketplace). See `reference/atomicmarket/marketplaces.md` ("Maker and taker attribution across the listing and settlement actions") for why the taker marketplace is never stored here. |
 | `collection_name` | name | The listed asset's collection. |
 | `collection_fee` | double | The collection fee read at announcement time, for indexing only; not necessarily the fee applied at settlement. |
 
 Changed in V2: `announcesale` now rejects any `asset_ids` with more than one entry, retiring bundle sales; the row shape itself is unchanged from V1.
 
-Source: include/atomicmarket.hpp:529-547
+Source: `include/atomicmarket.hpp:529-547`
 
 ## auctions
 
@@ -46,7 +52,7 @@ An auction listing. The assets move into contract custody once the seller sends 
 | `claimed_by_seller` | bool | Whether `auctclaimsel` has run for this auction. |
 | `claimed_by_buyer` | bool | Whether `auctclaimbuy` has run for this auction. |
 | `maker_marketplace` | name | The marketplace attributed as maker. |
-| `taker_marketplace` | name | The marketplace attributed as taker, set by the winning bid. Only meaningful when `current_bidder` is non-empty; otherwise it is just the unset default (see `reference/atomicmarket/v2-changes.md`). |
+| `taker_marketplace` | name | The marketplace attributed as taker, set by the winning bid. Only meaningful when `current_bidder` is non-empty; otherwise it is just the unset default. |
 | `collection_name` | name | The auctioned asset's collection. |
 | `collection_fee` | double | The collection fee read at announcement time, for indexing only. |
 
@@ -54,7 +60,7 @@ A row is erased once both `claimed_by_seller` and `claimed_by_buyer` are true (o
 
 Changed in V2: `announceauct` now rejects any `asset_ids` with more than one entry, retiring bundle auctions; the row shape itself is unchanged from V1.
 
-Source: include/atomicmarket.hpp:550-572
+Source: `include/atomicmarket.hpp:550-572`
 
 ## buyoffers
 
@@ -76,7 +82,7 @@ A standing offer from `buyer` to buy specific assets from `recipient`, with the 
 
 Changed in V2: `createbuyo` now rejects any `asset_ids` with more than one entry, retiring bundle buyoffers; the row shape itself is unchanged from V1.
 
-Source: include/atomicmarket.hpp:575-589
+Source: `include/atomicmarket.hpp:575-589`
 
 ## tbuyoffers
 
@@ -94,7 +100,7 @@ A standing offer to buy any asset minted from a specific template, fulfillable b
 | `collection_name` | name | The template's collection. |
 | `collection_fee` | double | The collection fee read at creation time, for indexing only. |
 
-Source: include/atomicmarket.hpp:591-603
+Source: `include/atomicmarket.hpp:591-603`
 
 ## marketplaces
 
@@ -107,28 +113,28 @@ Every registered marketplace name usable in a `maker_marketplace`/`taker_marketp
 | `marketplace_name` | name | The registered marketplace name; primary key. |
 | `creator` | name | The account whose internal balance receives this marketplace's maker/taker cut. |
 
-The empty-string name (`""`) is always present after `init` runs, seeded with `creator = DEFAULT_MARKETPLACE_CREATOR` (`fees.atomic`); `setdefmktcr` can redirect it. See `reference/atomicmarket/marketplaces.md` for how this default marketplace shows up in listing rows that omit a marketplace.
+The empty-string name (`""`) is always present after `init` runs, seeded with `creator = DEFAULT_MARKETPLACE_CREATOR` (`fees.atomic`); `setdefmktcr` can redirect it. See `reference/atomicmarket/marketplaces.md` ("The default marketplace and redirecting its fee recipient") for how this default marketplace shows up in listing rows that omit a marketplace.
 
-Source: include/atomicmarket.hpp:605-612
+Source: `include/atomicmarket.hpp:605-612`
 
 ## balances
 
 Scope: `get_self()`. Primary key: `owner.value`.
 
-The internal token ledger every settlement, deposit, and escrow moves through. A withdrawal (`withdraw`) is the only action that turns a balance into a real on-chain token transfer out of the contract. See `reference/atomicmarket/ram.md` for who pays this row's RAM and why a fully-withdrawn balance leaves no row behind.
+The internal token ledger every settlement, deposit, and escrow moves through. A withdrawal (`withdraw`) is the only action that turns a balance into a real on-chain token transfer out of the contract. See `reference/atomicmarket/ram.md` ("The contract pays RAM for every balances row") for who pays this row's RAM and why a fully-withdrawn balance leaves no row behind.
 
 | Column | Type | Meaning |
 | --- | --- | --- |
 | `owner` | name | The account this balance row belongs to; primary key. |
 | `quantities` | vector\<asset\> | One entry per token symbol the owner currently holds a nonzero balance of. A symbol's entry is removed once its amount reaches zero, and the whole row is erased once `quantities` is empty. |
 
-Source: include/atomicmarket.hpp:519-526
+Source: `include/atomicmarket.hpp:519-526`
 
 ## config
 
 Singleton, scope: `get_self()`. Table name `config`, one row.
 
-Contract-wide configuration, mutated only by the admin actions in `reference/atomicmarket/actions.md`.
+Contract-wide configuration, mutated only by the admin actions. See `reference/atomicmarket/actions.md` ("Admin").
 
 | Column | Type | Meaning |
 | --- | --- | --- |
@@ -146,9 +152,9 @@ Contract-wide configuration, mutated only by the admin actions in `reference/ato
 | `atomicassets_account` | name | The linked AtomicAssets contract account. Not settable through any action in this source; fixed at compile time to `atomicassets::ATOMICASSETS_ACCOUNT` (`atomicassets`). |
 | `delphioracle_account` | name | The linked Delphi Oracle contract account. Not settable through any action in this source; fixed at compile time to `delphioracle::DELPHIORACLE_ACCOUNT` (`delphioracle`). |
 
-Live reads against WAX mainnet, jungle4 testnet, and wax-testnet public RPC nodes (`get_table_rows` with `code=atomicmarket`, `scope=atomicmarket`, `table=config`) currently all return `version: "1.3.3"` and the V1 default field set; re-check before relying on it.
+See `reference/atomicassets/v2-upgrade.md` ("Deployment status") for the live read confirming `version` still reads `"1.3.3"` (the V1 default field set) on public WAX mainnet, jungle4 testnet, and wax-testnet RPC nodes; re-check before relying on it.
 
-Source: include/atomicmarket.hpp:638-653
+Source: `include/atomicmarket.hpp:638-653`
 
 ## counters
 
@@ -174,13 +180,13 @@ Counter names observed in source, each consumed at exactly one call site:
 
 `applicable_counter_names` on a bonus fee (see `bonusfees` below) must reference one of these names to have any effect on a payout, since `internal_payout_sale` only checks the counter name it was called with against each bonus fee's configured ranges.
 
-Source: include/atomicmarket.hpp:615-622
+Source: `include/atomicmarket.hpp:615-622`
 
 ## bonusfees
 
 Scope: `get_self()`. Primary key: `bonusfee_id`.
 
-Extra fee cuts layered on top of the maker/taker/collection split, scoped to a range of ids on one or more of the counters above. See `reference/atomicmarket/fees-and-royalties.md` for how bonus fees stack with the other fee layers and why the settlement-time seller-remainder check is the only backstop against several bonus fees combined.
+Extra fee cuts layered on top of the maker/taker/collection split, scoped to a range of ids on one or more of the counters above. See `reference/atomicmarket/fees-and-royalties.md` ("Bonus fees are additive marketplace incentives layered on top") for how bonus fees stack with the other fee layers and why the settlement-time seller-remainder check is the only backstop against several bonus fees combined.
 
 | Column | Type | Meaning |
 | --- | --- | --- |
@@ -192,7 +198,7 @@ Extra fee cuts layered on top of the maker/taker/collection split, scoped to a r
 
 `COUNTER_RANGE` (a private struct, not its own table): `counter_name: name`, `start_id: uint64_t`, `end_id: uint64_t`. A listing's relevant counter id falls in range when `start_id <= id < end_id`.
 
-Source: include/atomicmarket.hpp:625-635 (bonusfees_s), include/atomicmarket.hpp:448-452 (COUNTER_RANGE)
+Source: `include/atomicmarket.hpp:625-635` (bonusfees_s), `include/atomicmarket.hpp:448-452` (COUNTER_RANGE)
 
 ## royaltyconf
 
@@ -209,9 +215,9 @@ Per-collection royalty split configuration: how a collection's fee is divided be
 | `split_templates` | uint32_t | Relative weight of the template category. |
 | `split_attributes` | uint32_t | Relative weight of the attributes category. |
 
-The three split weights are relative, not fractions of 1: at settlement, only the categories that actually have a payee for the specific asset are kept, and their weights are renormalized against each other. See `reference/atomicmarket/fees-and-royalties.md` for the full settlement-time distribution mechanics and why the royalty log actions, not this table, are the source of truth for what was actually paid.
+The three split weights are relative, not fractions of 1: at settlement, only the categories that actually have a payee for the specific asset are kept, and their weights are renormalized against each other. See `reference/atomicmarket/fees-and-royalties.md` ("The royalty split engine divides the collection fee among founders, templates, and attributes") for the full settlement-time distribution mechanics, and ("The royalty log actions are trace-only and dust always reconciles") for why the royalty log actions, not this table, are the source of truth for what was actually paid.
 
-Source: include/atomicmarket.hpp:477-490
+Source: `include/atomicmarket.hpp:477-490`
 
 ## royaltytemp
 
@@ -224,7 +230,7 @@ Per-template royalty recipients within a collection's split config.
 | `template_id` | int32_t | The template this row's recipients apply to; primary key (cast to `uint32_t` then `uint64_t` for the key, never negative in a valid row). |
 | `recipients` | vector\<ROYALTYPAIR\> | `{recipient, weight}` pairs paid when the template category matches a settled asset of this template. |
 
-Source: include/atomicmarket.hpp:493-499
+Source: `include/atomicmarket.hpp:493-499`
 
 ## royaltyattr
 
@@ -242,8 +248,8 @@ One row per attribute royalty rule. A rule matches a settled asset when the asse
 | `recipients` | vector\<ROYALTYPAIR\> | `{recipient, weight}` pairs paid out of this rule's share. |
 | `lookup_hash` | checksum256 | `hash_attribute_royalty(source, field, value)`; the `byhash` secondary index key. |
 
-Source: include/atomicmarket.hpp:502-517
+Source: `include/atomicmarket.hpp:502-517`
 
 ## Rentals
 
-No rental table exists in either the V1 or the V2 source examined for this page. A custodial rental feature was explored during V2 development and descoped before shipping; this page can only confirm the absence of any rent-prefixed table in both source trees, not the history of the descope itself.
+No rental table exists in either the V1 or the V2 source. See `reference/atomicmarket/actions.md` for the corresponding action-side confirmation and the descope note.

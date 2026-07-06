@@ -1,6 +1,12 @@
+---
+scope: Domain-to-file routing table and entry point for agents working in this repository
+depends-on: []
+key-modules: []
+---
+
 # AGENTS.md
 
-This repository holds validated knowledge for building integrations with the Atomic NFT ecosystem on WAX/Antelope chains: the AtomicAssets and AtomicMarket contracts, the atomicassets-api (eosio-contract-api) indexer, the hosted API, and chain/client-library behavior. Every statement was validated against contract or indexer source code or live chain reads before inclusion.
+Start here. Identify the domain the task touches, then read the matching file below in full; see README.md for what this repository covers and how facts are validated.
 
 ## Routing table
 

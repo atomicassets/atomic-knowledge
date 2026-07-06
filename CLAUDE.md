@@ -1,6 +1,12 @@
+---
+scope: Claude Code entry point; points to AGENTS.md for domain routing
+depends-on: []
+key-modules: []
+---
+
 # CLAUDE.md
 
-This repository is validated, source-cited knowledge for the Atomic NFT ecosystem on WAX/Antelope chains: the AtomicAssets and AtomicMarket contracts, the atomicassets-api (eosio-contract-api) indexer, and chain/client-library behavior. Every statement was checked against contract or indexer source code or live chain reads before inclusion.
+This file orients Claude Code sessions in this repository. See README.md for what it covers and how facts are validated.
 
 Read AGENTS.md for the routing table.
 

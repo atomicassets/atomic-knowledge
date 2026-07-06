@@ -1,8 +1,14 @@
+---
+scope: AtomicMarket buyoffers - creating, accepting, declining, and cancelling asset and template buyoffers
+depends-on: [reference/atomicmarket/actions.md, guides/deposits.md, reference/api.md]
+key-modules: ["atomicmarket-contract (v2.0.0-rc2): src/atomicmarket.cpp", "atomicassets-contract (v2.0.0-rc4): src/atomicassets.cpp"]
+---
+
 # Buyoffers
 
 How to create, accept, decline, and cancel AtomicMarket buyoffers, for both single assets and templates. Baseline is AtomicMarket V2 (`atomicmarket-contract`); "Changed in V2" notes call out where V1 behaved differently. Lifecycle-state facts for the indexer and hosted API (LISTED/CANCELED/SOLD, no row cleanup, `state` filtering) are validated in `reference/api.md` and `guides/querying-the-api.md`; this guide cross-links them rather than repeating them. Deposit and balance mechanics are covered in `guides/deposits.md`.
 
-A buyoffer is a buyer-initiated, escrowed offer: the price is deducted from the buyer's deposited balance immediately at creation (see `guides/deposits.md`), before the counterparty has agreed to anything. WAX mainnet currently runs AtomicMarket V1 (`config.version` reports `1.3.3`, verified via a live `get_table_rows` read against `atomicmarket`/`atomicmarket`/`config`); re-check the live `version` field before relying on it, since the V1 behavior noted below is the live behavior only for as long as mainnet stays on V1.
+A buyoffer is a buyer-initiated, escrowed offer: the price is deducted from the buyer's deposited balance immediately at creation (see `guides/deposits.md`), before the counterparty has agreed to anything. WAX mainnet currently runs AtomicMarket V1; see `reference/atomicmarket/tables.md` ("config") for the live-version check. The V1 behavior noted below is the live behavior only for as long as mainnet stays on V1.
 
 ## Asset buyoffers
 
@@ -43,7 +49,7 @@ await session.transact({
 
 Changed in V2: V1's `createbuyo` accepted any number of `asset_ids` (bundle buyoffers). V2 rejects anything but exactly one.
 
-Source: `src/atomicmarket.cpp` L1425-1491 (`createbuyo`), `include/atomicmarket.hpp` L247-254.
+Source: `atomicmarket-contract src/atomicmarket.cpp:1425-1491` (`createbuyo`), `atomicmarket-contract include/atomicmarket.hpp:247-254`
 
 ### Accepting a buyoffer
 
@@ -88,9 +94,9 @@ await session.transact({
 });
 ```
 
-Changed in V2: V1's `acceptbuyo` used the 3-iterator `std::is_permutation` overload (no length check on the second range) and dereferenced `--offers.end()` without checking the table was non-empty first. V2 uses the length-checking 4-iterator overload and guards the empty-table case explicitly; see `reference/atomicmarket/v2-changes.md` ("Defensive guards in the V2 contract").
+Changed in V2: see `reference/atomicmarket/v2-changes.md` ("Defensive guards in the V2 contract") for the `is_permutation` and empty-table guard fixes in `acceptbuyo`.
 
-Source: `src/atomicmarket.cpp` L1533-1626 (`acceptbuyo`), `include/atomicmarket.hpp` L260-265.
+Source: `atomicmarket-contract src/atomicmarket.cpp:1533-1626` (`acceptbuyo`), `atomicmarket-contract include/atomicmarket.hpp:260-265`
 
 ### Declining a buyoffer
 
@@ -116,7 +122,7 @@ await session.transact({
 });
 ```
 
-Source: `src/atomicmarket.cpp` L1634-1649 (`declinebuyo`), `include/atomicmarket.hpp` L267-270.
+Source: `atomicmarket-contract src/atomicmarket.cpp:1634-1649` (`declinebuyo`), `atomicmarket-contract include/atomicmarket.hpp:267-270`
 
 ### Cancelling a buyoffer
 
@@ -139,15 +145,15 @@ await session.transact({
 });
 ```
 
-Source: `src/atomicmarket.cpp` L1501-1513 (`cancelbuyo`), `include/atomicmarket.hpp` L256-258.
+Source: `atomicmarket-contract src/atomicmarket.cpp:1501-1513` (`cancelbuyo`), `atomicmarket-contract include/atomicmarket.hpp:256-258`
 
 ### What makes a buyoffer invalid
 
 `createbuyo` checks that the recipient owns every asset id at creation time (`get_collection_and_check_assets` looks each one up in the recipient's own asset scope and throws if any is missing). That check does not run again later. If the recipient transfers the asset away after the buyoffer exists, the row stays on chain but becomes unfulfillable in practice: `acceptbuyo` requires the recipient to create a matching AtomicAssets offer for an asset they no longer own, which AtomicAssets itself rejects. AtomicMarket has no permissionless invalidation action for buyoffers analogous to `cancelsale`'s "anyone can cancel an invalid sale" path; the buyoffer simply sits there until the buyer cancels it.
 
-A separate, unrelated "invalid" case is legacy V1 bundle buyoffers (more than one asset id, created before V2 removed the capability): calling `acceptbuyo` on one does not trade anything. It cancels the buyoffer and refunds the buyer, exactly like `declinebuyo`. See `reference/atomicmarket/v2-changes.md` ("Bundle listings under V2 (legacy retirement)").
+A separate, unrelated "invalid" case is legacy V1 bundle buyoffers (more than one asset id, created before V2 removed the capability): calling `acceptbuyo` on one does not trade anything. It cancels the buyoffer and refunds the buyer, exactly like `declinebuyo`. See `reference/atomicmarket/v2-changes.md` ("Bundle listing retirement").
 
-Source: `src/atomicmarket.cpp` L2120-2163 (`get_collection_and_check_assets`), L1547-1554 (legacy bundle handling inside `acceptbuyo`).
+Source: `atomicmarket-contract src/atomicmarket.cpp:2120-2163` (`get_collection_and_check_assets`), `atomicmarket-contract src/atomicmarket.cpp:1547-1554` (legacy bundle handling inside `acceptbuyo`)
 
 ## Template buyoffers
 
@@ -186,13 +192,18 @@ await session.transact({
 });
 ```
 
-Source: `src/atomicmarket.cpp` L1651-1701 (`createtbuyo`), `include/atomicmarket.hpp` L281-287.
+Source: `atomicmarket-contract src/atomicmarket.cpp:1651-1701` (`createtbuyo`), `atomicmarket-contract include/atomicmarket.hpp:281-287`
 
 ### Fulfilling a template buyoffer
 
 The seller creates an AtomicAssets `createoffer` to `atomicmarket` offering exactly one asset of the buyoffer's template, asking nothing back, memo exactly `"tbuyoffer"`, then calls `fulfilltbuyo` in the same transaction. `fulfilltbuyo` verifies the offered asset's `template_id` matches, and like `acceptbuyo`, reads the highest-id row in AtomicAssets' `offers` table rather than taking an `offer_id` parameter, then checks that row's sender, recipient, asset ids, and memo.
 
-**Security consideration for marketplaces**: because the accepted offer is whichever row is currently last in AtomicAssets' `offers` table at the moment `fulfilltbuyo` runs, not a specific id the caller names, an injected offer can land last if nothing prevents another offer row from being inserted between the seller's `createoffer` and the `fulfilltbuyo` call within the same transaction. This is not a mis-settlement risk. `fulfilltbuyo` re-checks the last offer's sender, recipient, asset ids, and memo (`acceptbuyo` does the same), so a foreign offer cannot silently settle the buyoffer: it would need to carry the same single `asset_id` from the same seller to `atomicmarket` with the memo `"tbuyoffer"`, which is impossible while that asset is still committed to the intended offer. If a different offer ends up last, those checks fail and the whole transaction reverts. The real risk is therefore liveness, not theft: an interposed offer turns a valid fulfillment into a reverted or griefable one. For a normal wallet-signed transaction from an externally-owned account there is no exposure at all: the two actions execute back to back with nothing in between. A marketplace that runs the seller side through a smart contract account, whose own inline actions or `on_notify` handlers might create another AtomicAssets offer mid-transaction, should still guarantee that no other action in the same transaction creates an AtomicAssets offer after the intended one, so its own settlements do not spuriously revert.
+**Security consideration for marketplaces**: this is a liveness and griefing risk, not theft, and it is safe for a normal wallet-signed transaction. `fulfilltbuyo` accepts whichever offer is last in AtomicAssets' `offers` table when it runs, not a specific id, so an offer injected between the seller's `createoffer` and `fulfilltbuyo` can land last instead. Both actions re-check the last offer's sender, recipient, asset ids, and memo, so a foreign offer cannot silently settle the buyoffer: it would need the same `asset_id` from the same seller with memo `"tbuyoffer"`, impossible while that asset is committed to the intended offer; any mismatch reverts the transaction. An externally-owned wallet runs the two actions back to back, so there is no exposure. A marketplace whose seller side is a smart contract must ensure nothing else in the transaction creates an AtomicAssets offer after the intended one, or its settlements will spuriously revert.
+
+```
+// correct: the seller's transaction contains exactly one AtomicAssets createoffer (the one fulfilltbuyo expects) and nothing else can insert another offer before it
+// avoid: an inline action or on_notify handler on the seller's contract account creating a second AtomicAssets offer ahead of fulfilltbuyo
+```
 
 ```json
 {
@@ -235,7 +246,7 @@ await session.transact({
 });
 ```
 
-Source: `src/atomicmarket.cpp` L1717-1794 (`fulfilltbuyo`), `include/atomicmarket.hpp` L308-314.
+Source: `atomicmarket-contract src/atomicmarket.cpp:1717-1794` (`fulfilltbuyo`), `atomicmarket-contract include/atomicmarket.hpp:308-314`
 
 ### Cancelling a template buyoffer
 
@@ -258,7 +269,7 @@ await session.transact({
 });
 ```
 
-Source: `src/atomicmarket.cpp` L1703-1715 (`canceltbuyo`), `include/atomicmarket.hpp` L294-296.
+Source: `atomicmarket-contract src/atomicmarket.cpp:1703-1715` (`canceltbuyo`), `atomicmarket-contract include/atomicmarket.hpp:294-296`
 
 ### Lifecycle states in the indexer and API
 

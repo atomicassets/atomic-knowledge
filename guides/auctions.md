@@ -1,3 +1,9 @@
+---
+scope: AtomicMarket auction lifecycle - announce, escrow transfer, bid, claim, and cancel
+depends-on: [reference/atomicmarket/actions.md, guides/deposits.md]
+key-modules: ["atomicmarket-contract (v2.0.0-rc2): src/atomicmarket.cpp", "atomicassets-contract (v2.0.0-rc4): src/atomicassets.cpp"]
+---
+
 # Working with auctions
 
 The full lifecycle of an AtomicMarket auction (V2 baseline): announcing, transferring the asset into escrow, bidding, ending, claiming, and cancelling.
@@ -54,7 +60,7 @@ curl -X POST https://wax.greymass.com/v1/chain/get_table_rows \
 
 - The seller must own the asset, ids must be unique, and if the asset belongs to a template, the template must be transferable.
 
-Source: `src/atomicmarket.cpp:1027-1113` (`announceauct`), `include/atomicmarket.hpp:638-652` (`config_s` defaults)
+Source: `atomicmarket-contract src/atomicmarket.cpp:1027-1113` (`announceauct`), `atomicmarket-contract include/atomicmarket.hpp:638-652` (`config_s` defaults)
 
 ## Transfer the asset into escrow
 
@@ -96,7 +102,7 @@ Failure modes asserted in source:
 - `asset_ids` must contain exactly one id: a transfer of more than one asset can no longer activate an auction (only a legacy pre-V2 bundle auction row could ever match one, and those can only be cancelled; see below).
 - No non-finished auction announced by this sender exists for this exact asset id set.
 
-Source: `src/atomicmarket.cpp:1889-1943` (`receive_asset_transfer`)
+Source: `atomicmarket-contract src/atomicmarket.cpp:1889-1943` (`receive_asset_transfer`)
 
 ## Bid on an auction
 
@@ -153,7 +159,7 @@ Optionally guard against the auction's asset ids changing between when a bidder 
 
 `assertauct` requires no authorization and throws if the auction's current asset ids differ from what is asserted.
 
-Source: `src/atomicmarket.cpp:1183-1265` (`auctionbid`), `src/atomicmarket.cpp:1404-1415` (`assertauct`), `include/atomicmarket.hpp:638-652` (`config_s` defaults)
+Source: `atomicmarket-contract src/atomicmarket.cpp:1183-1265` (`auctionbid`), `atomicmarket-contract src/atomicmarket.cpp:1404-1415` (`assertauct`), `atomicmarket-contract include/atomicmarket.hpp:638-652` (`config_s` defaults)
 
 ## Auction end and claiming
 
@@ -206,7 +212,7 @@ await session.transact({
 });
 ```
 
-Authorization: the seller. `auctclaimsel` runs the same internal payout path as a sale (`internal_payout_sale`): the winning bid is split between the seller, the maker/taker marketplaces, and the collection, with the collection fee applied at execution time (see `reference/atomicmarket/v2-changes.md`, "Collection fees apply at execution time"). If the buyer has already claimed the asset, the auction row is erased; otherwise it is left in place with `claimed_by_seller = true` until the buyer also claims.
+Authorization: the seller. `auctclaimsel` runs the same internal payout path as a sale (`internal_payout_sale`): the winning bid is split between the seller, the maker/taker marketplaces, and the collection, with the collection fee applied at execution time (see `reference/atomicmarket/v2-changes.md`, "Execution-time fees and trace-only royalty logs"). If the buyer has already claimed the asset, the auction row is erased; otherwise it is left in place with `claimed_by_seller = true` until the buyer also claims.
 
 Failure modes asserted in source:
 
@@ -215,7 +221,7 @@ Failure modes asserted in source:
 - It cannot already be claimed by the seller.
 - On a legacy pre-V2 bundle auction that ended with no claims yet, either claim action dissolves it instead (bid refunded, assets returned to seller) rather than completing a trade; a bundle auction that was already partially claimed before V2 removed bundles completes normally through these actions. See `reference/atomicmarket/v2-changes.md` for the full behavior table.
 
-Source: `src/atomicmarket.cpp:1273-1392` (`auctclaimbuy`, `auctclaimsel`)
+Source: `atomicmarket-contract src/atomicmarket.cpp:1273-1392` (`auctclaimbuy`, `auctclaimsel`)
 
 ## Cancel an auction
 
@@ -245,4 +251,4 @@ Authorization: normally the seller, and only before any bid has landed: once an 
 
 If assets were already transferred into escrow, cancelling returns them to the seller.
 
-Source: `src/atomicmarket.cpp:1125-1173` (`cancelauct`)
+Source: `atomicmarket-contract src/atomicmarket.cpp:1125-1173` (`cancelauct`)

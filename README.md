@@ -6,10 +6,12 @@ Every statement in this repository was validated against contract or indexer sou
 
 ## What it covers
 
-- **Contracts**, AtomicAssets and AtomicMarket behavior: listing semantics, fee application, royalty logging, upgrade compatibility, and defensive guards.
-- **Indexer**, atomicassets-api (formerly eosio-contract-api) operational behavior: handler dependencies, drain gating, data freshness, migrations, and CI.
-- **API**, the hosted atomicassets-api endpoints (e.g. wax.api.atomicassets.io): pagination limits, lifecycle states, and query semantics.
-- **Chain and clients**: nodeos RPC behavior, error semantics, and @wharfkit/antelope client-library behavior.
+| Area | Behavior documented |
+| --- | --- |
+| Contracts | AtomicAssets and AtomicMarket: listing semantics, fee application, royalty logging, upgrade compatibility, and defensive guards |
+| Indexer | atomicassets-api (formerly eosio-contract-api) operation: handler dependencies, drain gating, data freshness, migrations, and CI |
+| API | The hosted atomicassets-api endpoints (e.g. wax.api.atomicassets.io): pagination limits, lifecycle states, and query semantics |
+| Chain and clients | nodeos RPC behavior, error semantics, and @wharfkit/antelope client-library behavior |
 
 ## Organization
 

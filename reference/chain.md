@@ -1,6 +1,10 @@
-# Chain RPC behavior
+---
+scope: nodeos RPC error semantics for WAX/Antelope chain reads relevant to Atomic integrations
+depends-on: []
+key-modules: []
+---
 
-Validated nodeos RPC behavior on WAX (Antelope) relevant to Atomic integrations.
+# Chain RPC behavior
 
 ## Error 3060002 means the account does not exist
 

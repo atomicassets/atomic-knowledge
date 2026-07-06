@@ -1,3 +1,9 @@
+---
+scope: Who pays RAM for each atomicmarket table row, the voluntary pay*ram re-homing actions, and sizing implications for a high-volume marketplace or dapp
+depends-on: [reference/atomicmarket/tables.md]
+key-modules: ["atomicmarket-contract (v2.0.0-rc2): src/atomicmarket.cpp, include/atomicmarket.hpp"]
+---
+
 # AtomicMarket RAM
 
 Who pays the RAM for each `atomicmarket` table row, the voluntary `pay*ram` actions that let a third party take over that cost, and the sizing implications for a high-volume marketplace or dapp.
