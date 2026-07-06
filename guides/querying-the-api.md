@@ -10,6 +10,8 @@ Workflow patterns for reading Atomic data, combining facts from the `reference/`
 
 For the full endpoint, parameter, and schema listing, use the deployment's Swagger UI (`https://wax.api.atomicassets.io/docs/` on the WAX reference deployment); see `reference/api.md` ("Interactive reference (Swagger UI)"), which also covers why no standalone OpenAPI JSON is published.
 
+The examples here use WAX mainnet hosts. The `atomicassets` and `atomicmarket` contract accounts have the same names on WAX testnet, so only the RPC host changes: point `get_table_rows` and other chain reads at a testnet node such as `https://waxtestnet.greymass.com`.
+
 ## Paginate list endpoints under the limit cap
 
 List endpoints such as `/atomicmarket/v1/sales` and `/atomicmarket/v1/buyoffers` reject `limit` values above the server's cap (100 on the reference deployment at wax.api.atomicassets.io) with HTTP 400 and `{"success": false, "message": "Invalid value for parameter limit"}`; the value is not clamped. Bound `limit` to 100 and advance with `page`:
