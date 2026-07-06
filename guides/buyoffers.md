@@ -262,4 +262,4 @@ Source: `src/atomicmarket.cpp` L1703-1715 (`canceltbuyo`), `include/atomicmarket
 
 ### Lifecycle states in the indexer and API
 
-Template buyoffer rows in eosio-contract-api are never deleted; `state` (LISTED=0, CANCELED=1, SOLD=2) is the only signal that an offer is no longer active, and the `/v1/template_buyoffers` endpoint returns all three states unless you filter. See `reference/api.md` ("Template buyoffers keep all lifecycle states") and `guides/querying-the-api.md` ("Filter template buyoffers by state") for the validated details; not repeated here.
+Template buyoffer rows in atomicassets-api are never deleted; `state` (LISTED=0, CANCELED=1, SOLD=2) is the only signal that an offer is no longer active, and the `/v1/template_buyoffers` endpoint returns all three states unless you filter. See `reference/api.md` ("Template buyoffers keep all lifecycle states") and `guides/querying-the-api.md` ("Filter template buyoffers by state") for the validated details; not repeated here.

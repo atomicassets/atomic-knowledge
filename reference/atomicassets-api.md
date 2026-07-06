@@ -1,6 +1,12 @@
-# eosio-contract-api indexer
+# atomicassets-api indexer
 
-Validated operational behavior of the eosio-contract-api / atomicassets-api indexer (filler): handler configuration, drain gating, data freshness, database migrations, and CI.
+Validated operational behavior of the atomicassets-api indexer (filler): handler configuration, drain gating, data freshness, database migrations, and CI.
+
+## Name
+
+The canonical repository is `atomicassets/atomicassets-api` and its package name is `atomicassets-api`. The same software was historically named `eosio-contract-api` (originally by pink.network), and that name is still visible in the wild: docker image tags, older deployments, and the running server's own OpenAPI document, whose title is `EOSIO Contract API`. Treat `eosio-contract-api` and `atomicassets-api` as the same project.
+
+Source: `atomicassets/atomicassets-api` `package.json` (`name`, `repository.url`); the deployed OpenAPI title `EOSIO Contract API` (`src/api/server.ts` `DocumentationServer`).
 
 ## The delphioracle handler is required everywhere
 

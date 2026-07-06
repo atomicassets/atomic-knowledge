@@ -7,7 +7,7 @@ description: Use when building or debugging an integration with AtomicAssets/Ato
 
 ## When to use
 
-Use this skill whenever the task touches the Atomic NFT ecosystem on WAX/Antelope chains: listing or trading through the AtomicMarket contract, reading AtomicAssets state, calling atomicassets-api endpoints, running or extending the eosio-contract-api indexer, deploying contract releases, or reading chain tables and accounts through @wharfkit/antelope or raw RPC.
+Use this skill whenever the task touches the Atomic NFT ecosystem on WAX/Antelope chains: listing or trading through the AtomicMarket contract, reading AtomicAssets state, calling atomicassets-api endpoints, running or extending the atomicassets-api indexer, deploying contract releases, or reading chain tables and accounts through @wharfkit/antelope or raw RPC.
 
 ## Steps
 
@@ -34,7 +34,7 @@ Use this skill whenever the task touches the Atomic NFT ecosystem on WAX/Antelop
 | AtomicAssets backing tokens: deposit/backasset flow, balances table, burnasset recovery | `reference/atomicassets/backing-tokens.md` |
 | AtomicAssets V2 upgrade and indexer/chain compatibility | `reference/atomicassets/v2-upgrade.md` |
 | Calling atomicassets-api HTTP endpoints: pagination limits, buyoffer lifecycle states | `reference/api.md` |
-| Running or extending the eosio-contract-api indexer: handler configuration, drain gating, data freshness, migrations, CI | `reference/eosio-contract-api.md` |
+| Running or extending the atomicassets-api indexer (also known as eosio-contract-api): handler configuration, drain gating, data freshness, migrations, CI | `reference/atomicassets-api.md` |
 | Building or deploying contract releases: ABI artifacts, setcode resource needs, deploy permissions | `reference/contract-releases.md` |
 | @wharfkit/antelope client behavior: table reads, authority checks, show_payer, eosjs migration | `reference/wharfkit.md` |
 | Chain RPC error semantics: account-not-found and error classification | `reference/chain.md` |

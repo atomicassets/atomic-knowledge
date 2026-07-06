@@ -20,7 +20,7 @@ This repository holds validated knowledge for building integrations with the Ato
 | AtomicAssets backing tokens: deposit/backasset flow, balances table, burnasset recovery | `reference/atomicassets/backing-tokens.md` |
 | AtomicAssets V2 upgrade and indexer/chain compatibility | `reference/atomicassets/v2-upgrade.md` |
 | Calling atomicassets-api HTTP endpoints: pagination limits, buyoffer lifecycle states | `reference/api.md` |
-| Running or extending the eosio-contract-api indexer: handler configuration, drain gating, data freshness, migrations, CI | `reference/eosio-contract-api.md` |
+| Running or extending the atomicassets-api indexer (also known as eosio-contract-api): handler configuration, drain gating, data freshness, migrations, CI | `reference/atomicassets-api.md` |
 | Building or deploying contract releases: ABI artifacts, setcode resource needs, deploy permissions | `reference/contract-releases.md` |
 | @wharfkit/antelope client behavior: table reads, authority checks, show_payer, eosjs migration | `reference/wharfkit.md` |
 | Chain RPC error semantics: account-not-found and error classification | `reference/chain.md` |

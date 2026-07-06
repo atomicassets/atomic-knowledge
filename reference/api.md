@@ -2,6 +2,14 @@
 
 Validated behavior of the hosted atomicassets-api (eosio-contract-api) HTTP endpoints, such as the reference deployment at wax.api.atomicassets.io.
 
+## Interactive reference (Swagger UI)
+
+Each deployment serves a live Swagger UI at `/docs` that lists every endpoint, parameter, and response schema for that chain. On the WAX reference deployment it is `https://wax.api.atomicassets.io/docs/`. The per-namespace paths (`/atomicassets/docs`, `/atomicmarket/docs`, `/atomictools/docs`) redirect to the same merged UI. Swap the host for another chain's endpoint to get that chain's docs.
+
+There is no standalone OpenAPI JSON published: `/openapi.json` and `/docs/swagger.json` both return 404. The full OpenAPI 3.0 document is only reachable embedded inside the Swagger UI bootstrap at `/docs/swagger-ui-init.js`, which is a JavaScript file, not a clean spec URL. For code generation, the durable source of truth is the per-namespace spec definitions in the atomicassets-api repo (`src/api/namespaces/{atomicassets,atomicmarket,atomictools}/openapi.ts`), which the server assembles into the document Swagger renders. Note the served document's title is `EOSIO Contract API`, the software's historical name.
+
+Source: live probes of `https://wax.api.atomicassets.io/docs/` (200), `/openapi.json` and `/docs/swagger.json` (404), `/docs/swagger-ui-init.js` (200, carries the `openapi: 3.0.0` document); atomicassets-api `src/api/server.ts` (`swagger.setup` mounted at `/docs`, no JSON spec route) and `src/api/namespaces/*/openapi.ts`.
+
 ## List endpoints cap limit at 100
 
 The AtomicMarket API (eosio-contract-api) validates the `limit` query parameter on list endpoints such as `/atomicmarket/v1/buyoffers` and `/atomicmarket/v1/sales` against a maximum that defaults to 100; requests above the cap are rejected with HTTP 400 and `{"success": false, "message": "Invalid value for parameter limit"}` rather than being clamped. The cap is an operator-configurable server setting (`limits` in the API config), so the reference deployment at wax.api.atomicassets.io enforces 100. Pagination code must therefore bound `limit` to 100 and use `page`, and counting code must treat a non-2xx response as an error: an HTTP client helper that returns undefined or empty on failure will silently turn an over-limit request into a zero count.
