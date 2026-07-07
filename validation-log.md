@@ -16,9 +16,9 @@ This log traces how every fact in `reference/` and `guides/` was checked before 
 
 A page's `key-modules` frontmatter names the specific baseline(s) it draws from; entries below carry the same pin unless noted otherwise.
 
-## Caveat: V2 is not yet live on WAX mainnet
+## Caveat: V2 is live on WAX testnet, not on WAX mainnet
 
-At the time these pages were written, WAX mainnet still runs the V1 `atomicassets` and `atomicmarket` contracts (confirmed by live `get_abi` and `get_table_rows` reads; see `reference/atomicassets/v2-upgrade.md`). That makes most V2 contract-behavior facts in this repository `source-read`: they are correct readings of the rc4/rc2 source, but nobody has watched them execute against a live V2 chain, because no publicly reachable one exists yet. Where a page's tier is `source-read`, that is the reason; it is not a lesser form of confidence in the reading, only an honest statement that chain execution has not confirmed it. Hosted-API facts (pagination, lifecycle states) and chain-RPC facts (error codes, serialization) are checked against the live V1 deployment and nodeos, which is what makes those `live-chain`: V1 and V2 share the indexer and RPC layer for everything these facts describe.
+WAX mainnet still runs the V1 `atomicassets` and `atomicmarket` contracts (confirmed by live `get_abi` and `get_table_rows` reads; see `reference/atomicassets/v2-upgrade.md`). WAX testnet runs the full V2 contracts: the V2 tables are present and populated, and jungle4 carries the V2 code with unseeded tables. Many V2 contract-behavior facts in this repository are therefore still tiered `source-read` because they were written from the rc4/rc2 source, but the create, trade, and read integrator flows have now been executed end-to-end against live V2 on wax-testnet (the cold-validation harness, `packages/testnet-e2e/cold-validation.md`): a full asset lifecycle, a sale settling founders/template/attribute royalties that sum exactly to the collection fee, and a full read reconstruction over both the API and chain tables. Facts confirmed by those runs are tiered `live-chain`/`both` and noted per page below. A `source-read` tier means only that chain execution has not confirmed that specific fact, not lesser confidence in the reading. Hosted-API facts (pagination, lifecycle states) and chain-RPC facts (error codes, serialization) are checked against the live deployment and nodeos; V1 and V2 share the indexer and RPC layer for everything those facts describe.
 
 ## Pages
 
@@ -34,9 +34,9 @@ At the time these pages were written, WAX mainnet still runs the V1 `atomicasset
 | `reference/atomicassets/serialization.md` | `atomicassets-contract` (v2.0.0-rc4): `include/atomicdata.hpp`, `include/checkformat.hpp` | source-read | One entry confirms identical serialize/deserialize logic between the V1 and V2 source trees. |
 | `reference/atomicassets/structure.md` | `atomicassets-contract` (v2.0.0-rc4): `src/atomicassets.cpp`, `include/atomicassets.hpp` | source-read | Foundational data-model page; every section cites header and implementation ranges. |
 | `reference/atomicassets/tables.md` | `atomicassets-contract` (v2.0.0-rc4): `src/atomicassets.cpp`, `include/atomicassets.hpp` | source-read | One table per section, each with its own `Source:` line. |
-| `reference/atomicassets/v2-upgrade.md` | `atomicassets-contract` (v2.0.0-rc4) source; live `get_abi`/`get_table_rows` reads against `wax.greymass.com` | both | The additive-upgrade mechanics are source-read; the deployment-status section is two explicit `Source: live chain read` citations against WAX mainnet, checked against `atomicassets` and `atomicmarket` `config`/`tokenconfigs`. |
+| `reference/atomicassets/v2-upgrade.md` | `atomicassets-contract` (v2.0.0-rc4) source; live `get_abi`/`get_table_rows` reads against WAX mainnet, jungle4, and wax-testnet | both | The additive-upgrade mechanics are source-read; the deployment-status section is live-chain, cross-checked across all three chains (mainnet V1, jungle4 and wax-testnet V2). Records that `config.version` reads `1.3.3` even on the V2 deployments, so table presence, not the version string, is the authoritative V2 check. |
 | `reference/atomicmarket/actions.md` | `atomicmarket-contract` (v2.0.0-rc2): `src/atomicmarket.cpp`, `include/atomicmarket.hpp` | source-read | Every action cites header and implementation line ranges. |
-| `reference/atomicmarket/fees-and-royalties.md` | `atomicmarket-contract` (v2.0.0-rc2): `src/atomicmarket.cpp`, `include/atomicmarket.hpp` | source-read | Cites `internal_payout_sale`, fee-bound actions, and the royalty split/log actions by line range. |
+| `reference/atomicmarket/fees-and-royalties.md` | `atomicmarket-contract` (v2.0.0-rc2): `src/atomicmarket.cpp`, `include/atomicmarket.hpp`; live wax-testnet sale settlement | both | Cites `internal_payout_sale`, fee-bound actions, and the royalty split/log actions by line range. The four-layer fee stack, the founders/template/attribute split summing exactly to the collection fee, the standing 2% WAX bonus fee, and the `/sales/{id}/logs` payout read are live-chain-confirmed by a cold-validation trade run on wax-testnet. |
 | `reference/atomicmarket/marketplaces.md` | `atomicmarket-contract` (v2.0.0-rc2): `src/atomicmarket.cpp`, `include/atomicmarket.hpp` | source-read | Cites `regmarket`, `is_valid_marketplace`, and the maker/taker crediting logic inside `internal_payout_sale`. |
 | `reference/atomicmarket/ram.md` | `atomicmarket-contract` (v2.0.0-rc2): `src/atomicmarket.cpp`, `include/atomicmarket.hpp` | source-read | Cites the internal balance helpers and each `pay*ram` action by line range. |
 | `reference/atomicmarket/tables.md` | `atomicmarket-contract` (v2.0.0-rc2): `include/atomicmarket.hpp` | source-read | One table per section, each with its own header line-range citation. |
@@ -54,7 +54,7 @@ At the time these pages were written, WAX mainnet still runs the V1 `atomicasset
 
 ## Tier distribution
 
-21 source-read, 1 live-chain, 5 both. 27 pages total.
+20 source-read, 1 live-chain, 6 both. 27 pages total.
 
 ## Pages with an ambiguous tier signal
 

@@ -9,7 +9,7 @@ key-modules:
 
 ## Interactive reference (Swagger UI)
 
-Each deployment serves a live Swagger UI at `/docs` that lists every endpoint, parameter, and response schema for that chain. On the WAX reference deployment it is `https://wax.api.atomicassets.io/docs/`. The per-namespace paths (`/atomicassets/docs`, `/atomicmarket/docs`, `/atomictools/docs`) redirect to the same merged UI. Swap the host for another chain's endpoint to get that chain's docs.
+Each deployment serves a live Swagger UI at `/docs` that lists every endpoint, parameter, and response schema for that chain. On the WAX mainnet reference deployment it is `https://wax.api.atomicassets.io/docs/`, and on the WAX testnet reference deployment `https://test.wax.api.atomicassets.io/docs/`. The per-namespace paths (`/atomicassets/docs`, `/atomicmarket/docs`, `/atomictools/docs`) redirect to the same merged UI. Swap the host for another chain's endpoint to get that chain's docs; each host indexes exactly one chain, so mainnet and testnet data never mix.
 
 There is no standalone OpenAPI JSON published: `/openapi.json` and `/docs/swagger.json` both return 404. The full OpenAPI 3.0 document is only reachable embedded inside the Swagger UI bootstrap at `/docs/swagger-ui-init.js`, which is a JavaScript file, not a clean spec URL. For code generation, the durable source of truth is the per-namespace spec definitions in the atomicassets-api repo (`src/api/namespaces/{atomicassets,atomicmarket,atomictools}/openapi.ts`), which the server assembles into the document Swagger renders. Note the served document's title is `EOSIO Contract API`, the software's historical name.
 
@@ -22,3 +22,16 @@ The AtomicMarket API (eosio-contract-api) validates the `limit` query parameter 
 ## Template buyoffers keep all lifecycle states
 
 AtomicMarket template buyoffers in eosio-contract-api follow a three-state lifecycle: `lognewtbuyo` inserts a row in state 0 (LISTED), `canceltbuyo` flips it to 1 (CANCELED), and `fulfilltbuyo` flips it to 2 (SOLD), setting the seller and inserting the fulfilled asset rows. Rows are never deleted or archived: no maintenance job cleans up CANCELED or SOLD offers, so they persist indefinitely as state markers. The `/v1/template_buyoffers` endpoint applies no state filter by default: without an explicit `state` query parameter it returns offers in all three states, so clients that only want active offers must pass `state=0`. Socket notifications are emitted only for new offers; cancellation and fulfillment produce no broadcast. The filler and API state enums both encode LISTED=0, CANCELED=1, SOLD=2 and map 1:1.
+
+## The `state` field means something different on each listing endpoint
+
+Every AtomicMarket listing endpoint returns a numeric `state`, but the enum differs by listing type, and template buyoffers are the odd one out. The four API state enums are:
+
+- **Sales** (`/v1/sales`, `/v1/sales/{id}`): `WAITING=0`, `LISTED=1`, `CANCELED=2`, `SOLD=3`, `INVALID=4`. A completed purchase reads `state=3`.
+- **Auctions** (`/v1/auctions`): `WAITING=0`, `LISTED=1`, `CANCELED=2`, `SOLD=3`, `INVALID=4` (INVALID = the auction ended with no bid).
+- **Buyoffers** (`/v1/buyoffers`): `PENDING=0`, `DECLINED=1`, `CANCELED=2`, `ACCEPTED=3`, `INVALID=4`.
+- **Template buyoffers** (`/v1/template_buyoffers`): `LISTED=0`, `CANCELED=1`, `SOLD=2` (see the section above).
+
+Sales, auctions, and buyoffers share the value `0` for a not-yet-active listing (assets/funds not escrowed) and `2` for CANCELED, but the "settled" value is `3` (SOLD / ACCEPTED), not the `2` a template buyoffer uses. Do not carry a `SOLD=2` assumption from the template-buyoffer enum across to the other three endpoints.
+
+Source: `atomicassets-api src/api/namespaces/atomicmarket/index.ts` (`SaleApiState`, `AuctionApiState`, `BuyofferApiState`, `TemplateBuyofferApiState`)

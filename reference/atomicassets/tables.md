@@ -109,6 +109,8 @@ Secondary indexes: none.
 
 Written only by `setschematyp`, which fully replaces the row's `format_type` vector on every call (not additive). Never passes through `atomicdata::serialize`/`deserialize`; these are plain ABI-serialized rows, not custom-binary blobs. Changed in V2: this table does not exist in V1.
 
+Do not treat the API's `mediatype`/`info` fields as evidence of a `schematypes` row. The atomicassets-api includes `mediatype` and `info` on every attribute of a schema's `format` in its HTTP response even when the on-chain `schematypes` table has no row for that schema: with no descriptor set it defaults `mediatype` to the attribute's own `name` and `info` to `null`. To know whether a real `FORMAT_TYPE` descriptor was set, read the `schematypes` table on chain rather than inferring it from the API's schema response.
+
 Source: `include/atomicassets.hpp:373-379`, `src/atomicassets.cpp:514-565` (`setschematyp`)
 
 ## templates

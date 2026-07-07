@@ -10,7 +10,7 @@ Workflow patterns for reading Atomic data, combining facts from the `reference/`
 
 For the full endpoint, parameter, and schema listing, use the deployment's Swagger UI (`https://wax.api.atomicassets.io/docs/` on the WAX reference deployment); see `reference/api.md` ("Interactive reference (Swagger UI)"), which also covers why no standalone OpenAPI JSON is published.
 
-The examples here use WAX mainnet hosts. The `atomicassets` and `atomicmarket` contract accounts have the same names on WAX testnet, so only the RPC host changes: point `get_table_rows` and other chain reads at a testnet node such as `https://waxtestnet.greymass.com`.
+The examples here use WAX mainnet hosts. The `atomicassets` and `atomicmarket` contract accounts have the same names on WAX testnet, but switching chains means swapping two hosts, not one. Point chain reads (`get_table_rows`) at a testnet node such as `https://waxtestnet.greymass.com`, and point HTTP API reads at the testnet reference deployment `https://test.wax.api.atomicassets.io` (the same atomicassets-api software indexing the testnet chain). The mainnet API host `wax.api.atomicassets.io` has no testnet data, so a testnet integrator that changes only the RPC node and keeps the mainnet API host reads an unrelated chain.
 
 ## Paginate list endpoints under the limit cap
 
@@ -45,6 +45,7 @@ When reading contract tables directly over `/v1/chain/get_table_rows`, three beh
 - **Numeric keys need `key_type: 'i64'`.** @wharfkit/antelope's typed `client.v1.chain.get_table_rows` infers `key_type` only from typed bound instances; plain string or number bounds fall back to `key_type: 'name'` and are silently misread as account names, returning wrong ranges. Pass `key_type: 'i64'` explicitly (or typed bounds) for tables keyed by numeric ids. See `reference/wharfkit.md` ("Typed get_table_rows is not a drop-in for dynamic reads").
 - **`show_payer` shapes differ by transport.** The raw endpoint wraps each row as `{ data, payer }`; the typed wharfkit client unwraps rows and moves payers into an index-aligned `ram_payers` array on the response. Read `response.ram_payers[i]` with the typed client, or call the raw endpoint with `json: true, show_payer: true` to keep the envelope. See `reference/wharfkit.md` ("show_payer rows are unwrapped into ram_payers").
 - **Large uint64 values arrive as strings.** nodeos serializes uint64 values above 2^32 as JSON strings and smaller values as JSON numbers; current `sale_id`/`auction_id`/`offer_id` values arrive as numbers, but asset ids (around 2^40) arrive as strings. Parse id fields defensively rather than assuming one shape. See `reference/atomicmarket/v2-changes.md` ("Large integers serialize as strings").
+- **The `assets` table is scoped by owner, with no collection or template index.** Enumerating every asset in a collection or template is an API-only capability: `/atomicassets/v1/assets?collection_name=...` joins across owners, but `get_table_rows` on `assets` takes the owner account as `scope`, so there is no chain-side path from a collection to its asset list without already knowing the owners. To read one specific asset over the chain, use its current owner as `scope` and its `asset_id` as an `i64`-typed bound.
 
 ## Classify deterministic errors before retrying
 
