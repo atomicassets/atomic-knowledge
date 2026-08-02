@@ -1,6 +1,6 @@
 # Atomic Knowledge
 
-Validated, source-cited knowledge for building on the Atomic NFT ecosystem on WAX and other Antelope chains: the AtomicAssets and AtomicMarket smart contracts, the atomicassets-api (eosio-contract-api) indexer, and the chain and client-library behavior around them.
+Validated, source-cited knowledge for building on the Atomic ecosystem on WAX and other Antelope chains: the AtomicAssets and AtomicMarket smart contracts, the atomicassets-api (eosio-contract-api) indexer, and the chain and client-library behavior around them.
 
 Every statement in this repository was validated against contract or indexer source code, or against live chain reads, before inclusion. The material is aimed at developers and coding agents building Atomic integrations: marketplaces, wallets, indexers, bots, and tooling.
 
@@ -13,7 +13,7 @@ Every statement in this repository was validated against contract or indexer sou
 | API | The hosted atomicassets-api endpoints (e.g. wax.api.atomicassets.io): pagination limits, lifecycle states, query semantics, rate limits, and the Socket.IO realtime surface |
 | Chain and clients | nodeos RPC behavior, error semantics, and @wharfkit/antelope client-library behavior |
 | SDKs | The official @atomichub/atomicassets and @atomichub/atomicmarket JavaScript/TypeScript clients: typed API and chain-table reads, attribute serialization, and V2 action building |
-| Media | How NFT media is referenced on chain (bare IPFS CIDs under de-facto img/backimg/video fields), value-shape parsing, and gateway resolution |
+| Media | How asset media is referenced on chain (bare IPFS CIDs under de-facto img/backimg/video fields), value-shape parsing, and gateway resolution |
 | Testing | Running compiled Antelope contracts in-process with @atomichub/vert (VeRT): action calls, table reads, time control, the per-chain host-function gate, and the emulation's limits |
 
 ## Organization

@@ -6,7 +6,7 @@ key-modules: ["atomicassets-contract (v2.0.0-rc4): src/atomicassets.cpp, include
 
 # AtomicAssets data model structure
 
-The `atomicassets` contract organizes NFTs in four levels: collections group schemas and templates and hold the authorization rules, schemas declare the attribute formats a collection's data serializes to, templates carry immutable data shared by many assets, and assets are the individual token instances. Baseline behavior below is V2, tag `v2.0.0-rc4` of `atomicassets-contract` (the release pinned for both testnets: `include/atomicassets.hpp`, `src/atomicassets.cpp`); "Changed in V2" notes call out where V1 differs enough to matter to an integrator.
+The `atomicassets` contract organizes assets in four levels: collections group schemas and templates and hold the authorization rules, schemas declare the attribute formats a collection's data serializes to, templates carry immutable data shared by many assets, and assets are the individual token instances. Baseline behavior below is V2, tag `v2.0.0-rc4` of `atomicassets-contract` (the release pinned for both testnets: `include/atomicassets.hpp`, `src/atomicassets.cpp`); "Changed in V2" notes call out where V1 differs enough to matter to an integrator.
 
 ## Collections
 

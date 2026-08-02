@@ -263,7 +263,7 @@ Source: `include/atomicmarket.hpp:195-197`, `src/atomicmarket.cpp:838-885`
 
 For a legacy multi-asset sale row (`asset_ids.size() > 1`), this call cancels the listing instead of purchasing it and charges the buyer nothing. For a normal single-asset sale: asserts the buyer is not the seller, the sale has an active backing offer, and the taker marketplace is registered; computes the settlement price (resolving the Delphi median if applicable); decreases the buyer's internal balance by that price; runs the full payout split (see `internal_payout_sale`, cross-linked below); accepts the AtomicAssets offer and transfers the assets to the buyer; erases the sale row.
 
-Token/asset movement: buyer's internal balance -> maker/taker marketplace balances, collection royalty split balances, bonus fee balances, and the seller's balance (immediately withdrawn to a real token transfer to the seller). NFT: AtomicAssets offer accepted, asset moves seller -> buyer.
+Token movement: buyer's internal balance -> maker/taker marketplace balances, collection royalty split balances, bonus fee balances, and the seller's balance (immediately withdrawn to a real token transfer to the seller). Asset movement: AtomicAssets offer accepted, asset moves seller -> buyer.
 
 Source: `include/atomicmarket.hpp:199-204`, `src/atomicmarket.cpp:896-981`
 
@@ -382,7 +382,7 @@ Source: `include/atomicmarket.hpp:256-258`, `src/atomicmarket.cpp:1501-1513`
 
 For a legacy multi-asset buyoffer, this cancels the buyoffer and refunds the buyer instead of trading (identical outcome to `declinebuyo`). For a normal single-asset buyoffer: requires the most recently created AtomicAssets offer to be exactly `recipient -> atomicmarket`, offering only the buyoffer's asset, asking for nothing, with memo `"buyoffer"`. Accepts that offer, transfers the asset to the buyer, and runs the payout split on the escrowed price, crediting/withdrawing to the recipient (the erstwhile seller).
 
-Token/asset movement: escrowed buyer balance -> maker/taker/collection royalty/bonus fee balances and the recipient's withdrawn balance. NFT: recipient -> buyer via the accepted AtomicAssets offer.
+Token movement: escrowed buyer balance -> maker/taker/collection royalty/bonus fee balances and the recipient's withdrawn balance. Asset movement: recipient -> buyer via the accepted AtomicAssets offer.
 
 Source: `include/atomicmarket.hpp:260-265`, `src/atomicmarket.cpp:1533-1626`
 
@@ -429,7 +429,7 @@ Source: `include/atomicmarket.hpp:294-296`, `src/atomicmarket.cpp:1703-1715`
 
 Requires the most recently created AtomicAssets offer to be exactly `seller -> atomicmarket`, offering only `asset_id`, asking for nothing, with memo `"tbuyoffer"`. Accepts that offer, transfers the asset to the buyer, and runs the payout split on the escrowed price, crediting/withdrawing to `seller`. Erases the row.
 
-Token/asset movement: escrowed buyer balance -> maker/taker/collection royalty/bonus fee balances and the seller's withdrawn balance. NFT: seller -> buyer via the accepted AtomicAssets offer.
+Token movement: escrowed buyer balance -> maker/taker/collection royalty/bonus fee balances and the seller's withdrawn balance. Asset movement: seller -> buyer via the accepted AtomicAssets offer.
 
 Source: `include/atomicmarket.hpp:308-314`, `src/atomicmarket.cpp:1717-1794`
 

@@ -10,7 +10,7 @@ key-modules: []
 
 ## When to use
 
-Use this skill whenever the task touches the Atomic NFT ecosystem on WAX/Antelope chains: listing or trading through the AtomicMarket contract, reading AtomicAssets state, calling atomicassets-api endpoints, running or extending the atomicassets-api indexer, deploying contract releases, or reading chain tables and accounts through @wharfkit/antelope or raw RPC.
+Use this skill whenever the task touches the Atomic ecosystem on WAX/Antelope chains: listing or trading through the AtomicMarket contract, reading AtomicAssets state, calling atomicassets-api endpoints, running or extending the atomicassets-api indexer, deploying contract releases, or reading chain tables and accounts through @wharfkit/antelope or raw RPC.
 
 ## Steps
 

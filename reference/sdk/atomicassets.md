@@ -7,7 +7,7 @@ key-modules:
 
 # @atomichub/atomicassets SDK
 
-The official JavaScript/TypeScript client for the AtomicAssets NFT standard on Antelope chains. It reads NFT data over the hosted API and directly from chain tables, serializes and deserializes attribute data, and builds v2 contract actions for a signer to sign. Version-sensitive facts below were read from the 2.0.0 source tree; re-verify against current source after an upgrade.
+The official JavaScript/TypeScript client for the AtomicAssets standard on Antelope chains. It reads asset data over the hosted API and directly from chain tables, serializes and deserializes attribute data, and builds v2 contract actions for a signer to sign. Version-sensitive facts below were read from the 2.0.0 source tree; re-verify against current source after an upgrade.
 
 ```
 npm install @atomichub/atomicassets

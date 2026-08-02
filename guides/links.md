@@ -6,7 +6,7 @@ key-modules: ["atomictools-contract (commit d89ce79e4): src/link.cpp, include/at
 
 # Links: the atomictools claim-link flow
 
-A claim link (or "claimlink") lets someone hand a set of AtomicAssets NFTs to a recipient who does not yet have an account name in hand: the sender escrows the assets against an off-chain key pair, and whoever receives the private key can claim the assets to any account they control. It is how "here is a link, open it to receive these NFTs" flows are built on Antelope chains. The contract is deployed as account `atomictoolsx` on WAX and under the same name on other chains; the `config.atomicassets_account` it escrows through is `atomicassets`.
+A claim link (or "claimlink") lets someone hand a set of assets to a recipient who does not yet have an account name in hand: the sender escrows the assets against an off-chain key pair, and whoever receives the private key can claim the assets to any account they control. It is how "here is a link, open it to receive these assets" flows are built on Antelope chains. The contract is deployed as account `atomictoolsx` on WAX and under the same name on other chains; the `config.atomicassets_account` it escrows through is `atomicassets`.
 
 The contract has no release tags. Source citations pin commit `d89ce79e4` of `pinknetworkx/atomictools-contract`. This guide shows each write as plain JSON action data first, then the same call through `@wharfkit/session`'s `session.transact()`; it does not broadcast any transaction. The read examples are live `get_table_rows` and hosted-API calls that were run read-only against `wax.greymass.com` and `wax.api.atomicassets.io`. Asset ids and the `link_counter` exceed the JavaScript safe-integer range and must be passed as strings; see `reference/wharfkit.md` and `reference/atomicmarket/v2-changes.md` ("Large integers serialize as strings").
 
@@ -168,7 +168,7 @@ Source: `src/link.cpp:107-124`
 ## RAM and authorization notes
 
 - The `links` row RAM is paid by the creator from `announcelink` onward and released when the link is claimed or cancelled. Funding the link (`assets_transferred` flip) keeps the same payer, so a claim does not shift RAM cost onto the recipient for the link row itself.
-- The escrowed NFTs live in the `atomictoolsx` account's own AtomicAssets scope between funding and resolution. The contract moves them out under `permission_level{atomictoolsx, "active"}`, so the deployed account's `active` permission must be able to call `atomicassets::transfer` (it is the contract's own authority, so this holds by default).
+- The escrowed assets live in the `atomictoolsx` account's own AtomicAssets scope between funding and resolution. The contract moves them out under `permission_level{atomictoolsx, "active"}`, so the deployed account's `active` permission must be able to call `atomicassets::transfer` (it is the contract's own authority, so this holds by default).
 - A first-time recipient's new asset scope RAM is paid by `atomictoolsx` on claim, since the contract is the transfer sender.
 - The unrelated `auth` action always throws by design; it is a proof-of-key-control challenge for off-chain services, not part of the link flow. See `reference/atomictools/actions.md` ("Admin and off-chain auth").
 

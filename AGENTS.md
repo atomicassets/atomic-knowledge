@@ -29,7 +29,7 @@ Start here. Identify the domain the task touches, then read the matching file be
 | AtomicAssets V2 upgrade and indexer/chain compatibility | `reference/atomicassets/v2-upgrade.md` |
 | AtomicTools claim-links action reference: announce, fund, claim, cancel, the signature claim mechanism | `reference/atomictools/actions.md` |
 | AtomicTools tables (links, config): schema, scope, the assetidshash index | `reference/atomictools/tables.md` |
-| NFT media: IPFS references, field-name conventions (img/backimg/video), bare-CID vs URL parsing, gateway resolution, V2 media-type descriptors | `reference/media.md` |
+| Asset media: IPFS references, field-name conventions (img/backimg/video), bare-CID vs URL parsing, gateway resolution, V2 media-type descriptors | `reference/media.md` |
 | Calling atomicassets-api HTTP endpoints: pagination limits, buyoffer lifecycle states, rate limits | `reference/api.md` |
 | atomicassets-api realtime/streaming: Socket.IO namespaces, events, room subscription, socket auth and limits | `reference/api-streaming.md` |
 | Running or extending the atomicassets-api indexer (also known as eosio-contract-api): handler configuration, drain gating, data freshness, migrations, CI | `reference/atomicassets-api.md` |
