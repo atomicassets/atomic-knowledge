@@ -8,7 +8,7 @@ key-modules: ["atomictools-contract (commit d89ce79e4): src/link.cpp, src/auth.c
 
 Complete action reference for the `atomictools` contract, deployed as account `atomictoolsx` on WAX (and under the same account name on other Antelope chains). The contract has no release tags; every citation below pins commit `d89ce79e4` of `pinknetworkx/atomictools-contract`. Action declarations are in `include/atomictoolsx.hpp`; bodies are in `src/link.cpp` and `src/auth.cpp`.
 
-The contract's single purpose is transferable claim links: a creator escrows a set of AtomicAssets NFTs against an off-chain key pair, and anyone who holds the matching private key can later claim those assets to their own account. It moves no fungible tokens and holds no balances of its own; the only assets it ever custodies are the escrowed NFTs, held in the `atomictoolsx` account's own AtomicAssets scope between announcement and claim/cancel.
+The contract's single purpose is transferable claim links: a creator escrows a set of assets against an off-chain key pair, and anyone who holds the matching private key can later claim those assets to their own account. It moves no fungible tokens and holds no balances of its own; the only assets it ever custodies are the escrowed ones, held in the `atomictoolsx` account's own AtomicAssets scope between announcement and claim/cancel.
 
 Live-chain status: the full action and table list on this page was diffed against the deployed `atomictoolsx` ABI on WAX mainnet (`get_abi`) and matches the pinned source exactly. `config.version` reads `1.0.0` live.
 

@@ -1,5 +1,5 @@
 ---
-scope: How NFT media is referenced in the Atomic ecosystem - IPFS storage, de-facto media field-name conventions, bare-CID vs URL handling, and gateway resolution
+scope: How asset media is referenced in the Atomic ecosystem - IPFS storage, de-facto media field-name conventions, bare-CID vs URL handling, and gateway resolution
 depends-on:
     - reference/atomicassets/serialization.md
     - reference/atomicassets/custom-types.md
@@ -9,7 +9,7 @@ key-modules: ["atomicassets-contract (v2.0.0-rc4): include/atomicdata.hpp (image
 
 # Media conventions
 
-How an Atomic NFT points at its media, and what an integrator must do to render it. The chain stores no image bytes and no media column: media is carried as ordinary schema attributes whose values are IPFS references, under field names that are collection convention rather than contract rule. This page covers those conventions and how to resolve them. The wire encoding of the `ipfs` and `image` FORMAT types is in `reference/atomicassets/serialization.md`; the V2 `FORMAT_TYPE` media-type mechanism is in `reference/atomicassets/custom-types.md`; which data layer a given attribute comes from is in `reference/atomicassets/data-precedence.md`. This file does not restate those.
+How an Atomic asset points at its media, and what an integrator must do to render it. The chain stores no image bytes and no media column: media is carried as ordinary schema attributes whose values are IPFS references, under field names that are collection convention rather than contract rule. This page covers those conventions and how to resolve them. The wire encoding of the `ipfs` and `image` FORMAT types is in `reference/atomicassets/serialization.md`; the V2 `FORMAT_TYPE` media-type mechanism is in `reference/atomicassets/custom-types.md`; which data layer a given attribute comes from is in `reference/atomicassets/data-precedence.md`. This file does not restate those.
 
 ## Media is attribute data, not a dedicated field
 
