@@ -4,7 +4,7 @@ depends-on: [reference/atomicassets/notifications.md, reference/atomicassets/act
 key-modules: ["atomicassets-contract (v2.0.0-rc4): src/atomicassets.cpp, include/atomicassets.hpp"]
 ---
 
-# Building a reactive contract on AtomicAssets notifications
+# React to contract notifications
 
 A smart contract can react to AtomicAssets activity by receiving the `require_recipient` notifications the contract emits: a listener contract watches transfers, mints, or burns and runs its own logic the moment they happen, without polling the chain. This guide covers which notifications a third-party contract can receive, how to wire the C++ `on_notify` handlers so they actually fire, and the same-transaction safety rules that govern what a handler may safely do. It builds on `reference/atomicassets/notifications.md`, which is the reference for the collection-config side (`notify_accounts`, `allow_notify`) and the full per-action notification map; read that first, then this for the integration mechanics. Baseline is the V2 contract, tag `v2.0.0-rc4` of `atomicassets-contract` (the release pinned for both testnets).
 

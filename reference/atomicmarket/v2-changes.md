@@ -4,7 +4,7 @@ depends-on: [reference/atomicmarket/fees-and-royalties.md, reference/atomicmarke
 key-modules: ["atomicmarket-contract (v2.0.0-rc2): src/atomicmarket.cpp, include/atomicmarket.hpp"]
 ---
 
-# AtomicMarket V2 behavior changes and defensive guards
+# AtomicMarket V2 changes
 
 Two facts live only on this page: the V2 contract's defensive guards, and nodeos's uint64 JSON serialization behavior. Every other V2 change to the shared `atomicmarket` contract is indexed below, each pointing to its authoritative home.
 

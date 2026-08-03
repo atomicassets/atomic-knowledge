@@ -4,7 +4,7 @@ depends-on: []
 key-modules: ["atomicassets-contract (v2.0.0-rc4): src/atomicassets.cpp, include/atomicassets.hpp"]
 ---
 
-# AtomicAssets V2 upgrade and compatibility
+# AtomicAssets V2 upgrade
 
 What changed in the `atomicassets` contract's V2 upgrade, and the indexer/chain compatibility surface that follows from how the upgrade was shipped.
 
