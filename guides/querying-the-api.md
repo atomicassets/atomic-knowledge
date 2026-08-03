@@ -4,7 +4,7 @@ depends-on: [reference/api.md]
 key-modules: ["atomicmarket-contract (v2.0.0-rc2): src/atomicmarket.cpp", "atomicassets-contract (v2.0.0-rc4): src/atomicassets.cpp"]
 ---
 
-# Querying the API and reading chain tables
+# Query the API and chain tables
 
 Workflow patterns for reading Atomic data, combining facts from the `reference/` files. Each pattern links back to the reference section that carries the underlying fact.
 

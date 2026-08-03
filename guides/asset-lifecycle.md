@@ -4,7 +4,7 @@ depends-on: [reference/atomicassets/structure.md, reference/atomicassets/actions
 key-modules: ["atomicmarket-contract (v2.0.0-rc2): src/atomicmarket.cpp", "atomicassets-contract (v2.0.0-rc4): src/atomicassets.cpp"]
 ---
 
-# Asset lifecycle: creating and managing assets
+# Create and manage assets
 
 The full creator flow on the `atomicassets` contract: create a collection, define a schema, optionally create a template, mint assets, edit mutable data, transfer, and burn. Baseline is AtomicAssets V2; notes call out where V1 differed. Every data shape, required authorization, RAM payer, and failure mode below was checked against tag `v2.0.0-rc4` of `atomicassets-contract` (the release pinned for both testnets), `src/atomicassets.cpp`.
 
