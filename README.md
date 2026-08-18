@@ -16,8 +16,8 @@ Agents read `AGENTS.md`, whose routing table maps a task to the file that answer
 
 The pages are read against these baselines:
 
-- `atomicassets-contract` at `v2.0.0-rc4`
-- `atomicmarket-contract` at `v2.0.0-rc2`
+- `atomicassets-contract` at `v2.0.0`
+- `atomicmarket-contract` at `v2.0.0`
 - `atomicassets-api` at its `main` branch state, which carries no release tag; the streaming and rate-limit pages pin commit `f6419858`
 - `atomictools-contract` at commit `d89ce79e4`, which the deployed `atomictoolsx` ABI on WAX matches exactly
 - `atomicassets-sdk` at main `80580c5` and `atomicmarket-sdk` at main `278bdfa`, both version 2.0.0

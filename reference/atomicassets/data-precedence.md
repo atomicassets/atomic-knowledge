@@ -1,12 +1,12 @@
 ---
 scope: How the template and asset data layers combine into an asset's effective attributes, which layer wins a name collision, and what a reader has to do
 depends-on: [reference/atomicassets/structure.md, reference/atomicassets/serialization.md]
-key-modules: ["atomicassets-contract (v2.0.0-rc4): src/atomicassets.cpp, include/atomicassets.hpp"]
+key-modules: ["atomicassets-contract (v2.0.0): src/atomicassets.cpp, include/atomicassets.hpp"]
 ---
 
 # Attribute data precedence
 
-An asset's displayed attributes can come from up to three separate storage locations that all serialize against the same schema: the template's immutable data, the asset's own immutable data, and the asset's mutable data. The contract never merges these on-chain - every table stores its own layer as raw serialized bytes, and it is up to whatever reads the chain (an indexer, an API, a client library) to deserialize each layer and combine them into one effective attribute set. When more than one layer defines the same attribute name, the layers do not average or concatenate: one layer's value wins outright. (V2 adds a fourth layer, template mutable data; see "Changed in V2" below.) Contract citations below are against tag `v2.0.0-rc4` of `atomicassets-contract` (the release pinned for both testnets).
+An asset's displayed attributes can come from up to three separate storage locations that all serialize against the same schema: the template's immutable data, the asset's own immutable data, and the asset's mutable data. The contract never merges these on-chain - every table stores its own layer as raw serialized bytes, and it is up to whatever reads the chain (an indexer, an API, a client library) to deserialize each layer and combine them into one effective attribute set. When more than one layer defines the same attribute name, the layers do not average or concatenate: one layer's value wins outright. (V2 adds a fourth layer, template mutable data; see "Changed in V2" below.) Contract citations below are against tag `v2.0.0` of `atomicassets-contract` (the release pinned for both testnets).
 
 ## Where each layer lives
 
@@ -16,7 +16,7 @@ An asset's displayed attributes can come from up to three separate storage locat
 
 Changed in V2: a fourth layer. `template_mutables` (contract table `templates2`), scoped by `collection_name` and keyed by `template_id`, holds a `mutable_serialized_data` for the template itself, set via `createtempl2` or changed via `settempldata`. A V1 integrator's mental model of "templates are always fully immutable" no longer holds in V2: two different assets referencing the same template can see that template's mutable attributes change together, independent of anything at the asset level. This layer only exists as a table row once non-empty data has been set for that template.
 
-Source: `src/atomicassets.cpp:697-788` (mintasset writes both asset layers), `src/atomicassets.cpp:796-836` (setassetdata rewrites only the mutable layer), `src/atomicassets.cpp:1579-1655` (internal_create_template writes the template immutable layer and, if given non-empty data, the template mutable layer), `src/atomicassets.cpp:846-907` (settempldata is the only action that changes template mutable data later)
+Source: `src/atomicassets.cpp:700-791` (mintasset writes both asset layers), `src/atomicassets.cpp:799-839` (setassetdata rewrites only the mutable layer), `src/atomicassets.cpp:1582-1658` (internal_create_template writes the template immutable layer and, if given non-empty data, the template mutable layer), `src/atomicassets.cpp:849-910` (settempldata is the only action that changes template mutable data later)
 
 ## Serialization: identifiers are positions, not names
 
@@ -54,4 +54,4 @@ To compute an asset's effective attributes from scratch:
 4. Merge in this order, letting each later step override matching keys: template mutable data, then asset mutable data, then asset immutable data, then template immutable data. That is the order the `atomicassets-api` reference reader uses (template mutable at the bottom, template immutable at the top). The contract prescribes no order of its own, so a reader with a different use case is free to place the template mutable layer elsewhere; this order simply matches the reference implementation.
 5. Treat a key absent from all fetched layers as unset, not as an empty string or zero - the serialization format never encodes "no value" as anything other than the key's absence.
 
-Source: derived from `src/atomicassets.cpp:697-788`, `src/atomicassets.cpp:796-836`, `src/atomicassets.cpp:846-907`, `src/atomicassets.cpp:1579-1655`, `include/atomicdata.hpp:488-524`, cross-checked against `atomicassets-api src/api/namespaces/atomicassets/format.ts:1-36`
+Source: derived from `src/atomicassets.cpp:700-791`, `src/atomicassets.cpp:799-839`, `src/atomicassets.cpp:849-910`, `src/atomicassets.cpp:1582-1658`, `include/atomicdata.hpp:488-524`, cross-checked against `atomicassets-api src/api/namespaces/atomicassets/format.ts:1-36`

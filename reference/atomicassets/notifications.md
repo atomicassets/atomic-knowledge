@@ -1,12 +1,12 @@
 ---
 scope: How `atomicassets` notifies collections and parties via require_recipient and notify_collection_accounts, and what a notified contract can and cannot assume
 depends-on: [reference/atomicassets/structure.md, reference/atomicassets/actions.md]
-key-modules: ["atomicassets-contract (v2.0.0-rc4): src/atomicassets.cpp, include/atomicassets.hpp"]
+key-modules: ["atomicassets-contract (v2.0.0): src/atomicassets.cpp, include/atomicassets.hpp"]
 ---
 
 # AtomicAssets notifications
 
-How a collection opts a smart contract into `require_recipient` notifications, which actions notify which parties, and what a notified contract can and cannot assume. Baseline is the V2 contract, tag `v2.0.0-rc4` of `atomicassets-contract` (the release pinned for both testnets); differences from V1 are called out under "Changed in V2."
+How a collection opts a smart contract into `require_recipient` notifications, which actions notify which parties, and what a notified contract can and cannot assume. Baseline is the V2 contract, tag `v2.0.0` of `atomicassets-contract` (the release pinned for both testnets); differences from V1 are called out under "Changed in V2."
 
 ## Collection notify accounts
 
@@ -39,20 +39,20 @@ Two distinct mechanisms exist. Some actions call `require_recipient` directly on
 | `burnasset` (via `logburnasset`) | the collection's `notify_accounts` | `notify_collection_accounts` only |
 | `backasset` (V1, via `logbackasset`) | `asset_owner`, plus the collection's `notify_accounts` | `require_recipient` and `notify_collection_accounts` together; unreachable in V2, where `logbackasset` is an empty stub (see `reference/atomicassets/backing-tokens.md`) |
 
-Source: `src/atomicassets.cpp:76-86` (transfer), `src/atomicassets.cpp:1185-1273` (createoffer), `src/atomicassets.cpp:1457-1469` (lognewoffer), `src/atomicassets.cpp:1299-1350` (acceptoffer), `src/atomicassets.cpp:1280-1290` (canceloffer), `src/atomicassets.cpp:1358-1368` (declineoffer), `src/atomicassets.cpp:697-788` (mintasset), `src/atomicassets.cpp:796-836` (setassetdata), `src/atomicassets.cpp:846-907` (settempldata), `src/atomicassets.cpp:914-976` (setrampayer/setlastpayer), `src/atomicassets.cpp:1096-1177` (burnasset), `src/atomicassets.cpp:1445-1573` (log action bodies), `src/atomicassets.cpp:1665-1761` (internal_transfer)
+Source: `src/atomicassets.cpp:76-86` (transfer), `src/atomicassets.cpp:1188-1276` (createoffer), `src/atomicassets.cpp:1460-1472` (lognewoffer), `src/atomicassets.cpp:1302-1353` (acceptoffer), `src/atomicassets.cpp:1283-1293` (canceloffer), `src/atomicassets.cpp:1361-1371` (declineoffer), `src/atomicassets.cpp:700-791` (mintasset), `src/atomicassets.cpp:799-839` (setassetdata), `src/atomicassets.cpp:849-910` (settempldata), `src/atomicassets.cpp:917-979` (setrampayer/setlastpayer), `src/atomicassets.cpp:1099-1180` (burnasset), `src/atomicassets.cpp:1448-1576` (log action bodies), `src/atomicassets.cpp:1668-1764` (internal_transfer)
 
 ## What a notified contract can and cannot rely on
 
 A notification is delivered inline, in the same transaction as the triggering action: a notified contract's own handler runs as part of that transaction and can abort it by throwing, so being on a `notify_accounts` list is a way to gate or observe an action, not a read-only subscription. What arrives is only the notifying action's own parameters (for example `logsetdata` carries the deserialized old and new mutable data); a notified contract that needs anything beyond that has to query the tables itself. The set of accounts notified for a collection is read fresh at the moment the `log*` action runs, not cached from an earlier point in the transaction. Two things a notified contract cannot assume: it will not hear anything about `canceloffer` or `declineoffer`, since neither sends any notification, and grouping of a multi-asset `transfer` into per-collection `logtransfer` calls follows `std::map<name, ...>` key order, not the order the caller supplied asset ids in.
 
-Source: `src/atomicassets.cpp:1823-1856` (`partial_read_collection`), `src/atomicassets.cpp:1880-1888` (`notify_collection_accounts`), `src/atomicassets.cpp:1665-1761` (internal_transfer collection grouping)
+Source: `src/atomicassets.cpp:1826-1859` (`partial_read_collection`), `src/atomicassets.cpp:1883-1891` (`notify_collection_accounts`), `src/atomicassets.cpp:1668-1764` (internal_transfer collection grouping)
 
 ## Changed in V2
 
 Two notification points are new. `setrampayer` and `setlastpayer` each send the inline `logrampayer` action, which notifies the affected asset's collection `notify_accounts` through `notify_collection_accounts` (there is no direct `require_recipient` on the owner); see [AtomicAssets actions](actions.md#ram-payer-reassignment-replaces-descoped-custodial-rentals) ("RAM-payer reassignment (replaces descoped custodial rentals)") for the mechanism and the abandoned design it replaced. `settempldata`/`logsetdatatl` is new alongside V2's mutable-template-data feature and notifies only the collection's `notify_accounts`, with no per-account recipient. Separately, `addnotifyacc`'s 24-account cap is new in V2 (see [AtomicAssets data model structure](structure.md#authorization-and-the-24-account-cap), "Authorization and the 24-account cap"). Finally, `logbackasset`'s V1 notification behavior (`require_recipient(asset_owner)` plus `notify_collection_accounts`) is now dead code: the V2 `logbackasset` action body is an empty stub kept only for ABI compatibility, and nothing in V2 ever sends it, because `backasset` and `mintasset`'s backing path both abort before reaching a log call.
 
-Source: `src/atomicassets.cpp:914-940` (setrampayer), `src/atomicassets.cpp:943-976` (setlastpayer), `src/atomicassets.cpp:1535-1547` (logrampayer), `src/atomicassets.cpp:846-907` (settempldata), `src/atomicassets.cpp:1522-1532` (logsetdatatl), `src/atomicassets.cpp:274` (24-account cap in addnotifyacc), `src/atomicassets.cpp:1550-1556` (V2 logbackasset stub); V1 backing/notification behavior lives in this repo's V1 tree (`contracts/atomicassets-contract`)
+Source: `src/atomicassets.cpp:917-943` (setrampayer), `src/atomicassets.cpp:946-979` (setlastpayer), `src/atomicassets.cpp:1538-1550` (logrampayer), `src/atomicassets.cpp:849-910` (settempldata), `src/atomicassets.cpp:1525-1535` (logsetdatatl), `src/atomicassets.cpp:274` (24-account cap in addnotifyacc), `src/atomicassets.cpp:1553-1559` (V2 logbackasset stub); V1 backing/notification behavior lives in this repo's V1 tree (`contracts/atomicassets-contract`)
 
 ## Live-chain status
 
-See [AtomicAssets V2 upgrade](v2-upgrade.md#deployment-status) ("Deployment status"). Every V2-only notification point above is source-verified against the `v2.0.0-rc4` contract but had not shipped to WAX mainnet at the time of this check.
+See [AtomicAssets V2 upgrade](v2-upgrade.md#deployment-status) ("Deployment status"). Every V2-only notification point above is source-verified against the `v2.0.0` contract but had not shipped to WAX mainnet at the time of this check.

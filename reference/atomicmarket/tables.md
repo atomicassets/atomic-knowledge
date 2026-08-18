@@ -1,7 +1,7 @@
 ---
 scope: Table reference for the `atomicmarket` contract - sales, auctions, buyoffers, template buyoffers, marketplaces, balances, config, and the royalty tables
 depends-on: [reference/atomicmarket/fees-and-royalties.md]
-key-modules: ["atomicmarket-contract (v2.0.0-rc2): src/atomicmarket.cpp, include/atomicmarket.hpp"]
+key-modules: ["atomicmarket-contract (v2.0.0): src/atomicmarket.cpp, include/atomicmarket.hpp"]
 ---
 
 # AtomicMarket tables

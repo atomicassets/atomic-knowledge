@@ -4,7 +4,7 @@ depends-on:
     - reference/atomicassets/serialization.md
     - reference/atomicassets/custom-types.md
     - reference/atomicassets/data-precedence.md
-key-modules: ["atomicassets-contract (v2.0.0-rc4): include/atomicdata.hpp (image/ipfs wire types); live reads of wax.api.atomicassets.io and public IPFS gateways"]
+key-modules: ["atomicassets-contract (v2.0.0): include/atomicdata.hpp (image/ipfs wire types); live reads of wax.api.atomicassets.io and public IPFS gateways"]
 ---
 
 # Media conventions

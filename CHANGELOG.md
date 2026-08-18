@@ -2,6 +2,22 @@
 
 What each release of this corpus changed, one release per tag. `Corrected` comes first in every release, because a fact that was wrong is what a returning reader has to see before anything else. The other sections are `Added`, `Revalidated`, and `Removed`, in that order, and a section with nothing in it is left out.
 
+## 2026.08.1
+
+### Corrected
+
+- `reference/atomicassets/actions.md` states the GA acceptance boundary for `acceptauswap`: the boundary second is accepted, and the note about a source comment the GA release fixed is gone.
+- `reference/atomicassets/tables.md` marks `acceptance_date` as the second at or after which `acceptauswap` is callable.
+- `reference/atomicassets/actions.md` and `reference/atomicassets/tables.md` cite `internal_create_template` at its real bounds, which the previous citation missed on both ends.
+
+### Added
+
+- `reference/atomicassets/v2-upgrade.md` records that both testnets run the GA build byte for byte: the live `get_code_hash` equals the `v2.0.0` Release checksum.
+
+### Revalidated
+
+- Every page pinned to a contract release candidate now reads at the GA `v2.0.0` tags: `atomicmarket-contract` `v2.0.0` is the same commit as `v2.0.0-rc2`, and every `atomicassets-contract` citation was re-anchored and re-verified across the GA diff.
+
 ## 2026.08.0
 
 ### Corrected

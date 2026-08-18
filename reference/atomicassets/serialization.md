@@ -1,12 +1,12 @@
 ---
 scope: The custom binary format the `atomicassets` contract uses to encode attribute data - varints, zigzag, per-type wire encoding, arrays, and identifiers
 depends-on: [reference/atomicassets/structure.md, reference/atomicassets/custom-types.md]
-key-modules: ["atomicassets-contract (v2.0.0-rc4): src/atomicassets.cpp, include/atomicassets.hpp"]
+key-modules: ["atomicassets-contract (v2.0.0): src/atomicassets.cpp, include/atomicassets.hpp"]
 ---
 
 # AtomicAssets attribute serialization
 
-The custom binary format the `atomicassets` contract uses to store attribute data (collection data, and template/asset immutable and mutable data) as `vector<uint8_t>` table fields instead of raw ABI structs. The format is schema-driven: encoding and decoding both require the same ordered `FORMAT` list (see [AtomicAssets attribute type system](custom-types.md)) that produced the bytes. Baseline is the V2 contract, tag `v2.0.0-rc4` of `atomicassets-contract` (the release pinned for both testnets); the encoding logic is unchanged from V1 (see "Changed in V2" below).
+The custom binary format the `atomicassets` contract uses to store attribute data (collection data, and template/asset immutable and mutable data) as `vector<uint8_t>` table fields instead of raw ABI structs. The format is schema-driven: encoding and decoding both require the same ordered `FORMAT` list (see [AtomicAssets attribute type system](custom-types.md)) that produced the bytes. Baseline is the V2 contract, tag `v2.0.0` of `atomicassets-contract` (the release pinned for both testnets); the encoding logic is unchanged from V1 (see "Changed in V2" below).
 
 ## The format trades a schema lookup for RAM
 
@@ -14,7 +14,7 @@ Storing attribute data as ABI-serialized structs would repeat each attribute's n
 
 The same codec also serializes collection data, using a single contract-wide `FORMAT` list stored in the `config` table (`collection_format`, extended only by `admincoledit`) instead of a per-schema one.
 
-Source: `include/atomicdata.hpp:488-524`, `src/atomicassets.cpp:18-31` (`admincoledit`), `src/atomicassets.cpp:156,182` (collection data via `config.collection_format`), `src/atomicassets.cpp:763-764,834,1617,1644` (template/asset data via `schema.format`)
+Source: `include/atomicdata.hpp:488-524`, `src/atomicassets.cpp:18-31` (`admincoledit`), `src/atomicassets.cpp:156,182` (collection data via `config.collection_format`), `src/atomicassets.cpp:766-767,834,1617,1644` (template/asset data via `schema.format`)
 
 ## Varints compress small numbers into few bytes
 
@@ -58,7 +58,7 @@ Source: `include/atomicdata.hpp:122-238` (serialize array branch), `include/atom
 
 `serialize` walks the schema's `FORMAT` list in order, and for each attribute present in the supplied `ATTRIBUTE_MAP` writes a varint-encoded identifier equal to `(position in the FORMAT list) + RESERVED`, where `RESERVED` is the constant `4`, followed by that attribute's encoded value. Attributes absent from the map are simply skipped (no placeholder byte). `deserialize` reads a stream of `(identifier, value)` pairs until it runs out of bytes, and looks up `format_lines.at(identifier - RESERVED)` to know which type to decode next and which name to attach the result to. Because the identifier is a position in the `FORMAT` list rather than a hash or name, extending a schema (`extendschema`) or the collection format (`admincoledit`) only ever appends new lines: inserting or reordering existing lines would silently repoint every previously stored identifier at a different attribute. Both extension actions insert only at the end of the existing list before re-running `check_format` on the result.
 
-Source: `include/atomicdata.hpp:46`, `include/atomicdata.hpp:488-524`, `src/atomicassets.cpp:482-506` (`extendschema` appends), `src/atomicassets.cpp:18-34` (`admincoledit` appends)
+Source: `include/atomicdata.hpp:46`, `include/atomicdata.hpp:488-524`, `src/atomicassets.cpp:485-509` (`extendschema` appends), `src/atomicassets.cpp:18-34` (`admincoledit` appends)
 
 ## Serializing and deserializing off-chain
 

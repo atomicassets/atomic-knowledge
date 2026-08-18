@@ -1,7 +1,7 @@
 ---
 scope: The full fee model for a sale, auction, or buyoffer settlement on `atomicmarket` - marketplace fees, fee bounds, collection fee timing, and royalty splits
 depends-on: [reference/atomicmarket/tables.md, reference/atomicmarket/marketplaces.md]
-key-modules: ["atomicmarket-contract (v2.0.0-rc2): src/atomicmarket.cpp, include/atomicmarket.hpp"]
+key-modules: ["atomicmarket-contract (v2.0.0): src/atomicmarket.cpp, include/atomicmarket.hpp"]
 ---
 
 # AtomicMarket fees and royalties

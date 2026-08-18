@@ -1,12 +1,12 @@
 ---
 scope: Building a third-party contract that reacts to AtomicAssets notifications - which ones reach a listener, how to wire on_notify, and the safety rules
 depends-on: [reference/atomicassets/notifications.md, reference/atomicassets/actions.md]
-key-modules: ["atomicassets-contract (v2.0.0-rc4): src/atomicassets.cpp, include/atomicassets.hpp"]
+key-modules: ["atomicassets-contract (v2.0.0): src/atomicassets.cpp, include/atomicassets.hpp"]
 ---
 
 # React to contract notifications
 
-A smart contract can react to AtomicAssets activity by receiving the `require_recipient` notifications the contract emits: a listener contract watches transfers, mints, or burns and runs its own logic the moment they happen, without polling the chain. This guide covers which notifications a third-party contract can receive, how to wire the C++ `on_notify` handlers so they actually fire, and the same-transaction safety rules that govern what a handler may safely do. It builds on [AtomicAssets notifications](../reference/atomicassets/notifications.md), which is the reference for the collection-config side (`notify_accounts`, `allow_notify`) and the full per-action notification map; read that first, then this for the integration mechanics. Baseline is the V2 contract, tag `v2.0.0-rc4` of `atomicassets-contract` (the release pinned for both testnets).
+A smart contract can react to AtomicAssets activity by receiving the `require_recipient` notifications the contract emits: a listener contract watches transfers, mints, or burns and runs its own logic the moment they happen, without polling the chain. This guide covers which notifications a third-party contract can receive, how to wire the C++ `on_notify` handlers so they actually fire, and the same-transaction safety rules that govern what a handler may safely do. It builds on [AtomicAssets notifications](../reference/atomicassets/notifications.md), which is the reference for the collection-config side (`notify_accounts`, `allow_notify`) and the full per-action notification map; read that first, then this for the integration mechanics. Baseline is the V2 contract, tag `v2.0.0` of `atomicassets-contract` (the release pinned for both testnets).
 
 ## Which notifications a listener can receive
 
@@ -16,13 +16,13 @@ There are two independent ways a third-party contract gets notified, and they ca
 
 Some actions call `require_recipient` on the specific accounts involved, so a listener that is one of those accounts is notified even without any collection opt-in. `transfer` notifies both `from` and `to`: a contract set as the recipient of a transfer receives the `atomicassets::transfer` notification with the transfer's own parameters. `mintasset` notifies the `new_asset_owner` through its inline `logmint` action, so a contract that assets are minted directly to is notified as the owner. Offer creation notifies the offer's `sender` and `recipient` through `lognewoffer`. None of these require the listener to be on any collection list; being the party named in the action is enough.
 
-Source: `atomicassets-contract src/atomicassets.cpp:76-86` (`transfer`, `require_recipient(from)` and `require_recipient(to)` at `:83-84`), `atomicassets-contract src/atomicassets.cpp:1488-1505` (`logmint`, `require_recipient(new_asset_owner)` at `:1502`), `atomicassets-contract src/atomicassets.cpp:1457-1469` (`lognewoffer`)
+Source: `atomicassets-contract src/atomicassets.cpp:76-86` (`transfer`, `require_recipient(from)` and `require_recipient(to)` at `:83-84`), `atomicassets-contract src/atomicassets.cpp:1491-1508` (`logmint`, `require_recipient(new_asset_owner)` at `:1505`), `atomicassets-contract src/atomicassets.cpp:1460-1472` (`lognewoffer`)
 
 ### Indirectly, as a collection notify account
 
 A collection author can add a contract to that collection's `notify_accounts` list (gated by `allow_notify`), and the contract is then notified on every collection-touching action through the inline `log*` action that fans out to `notify_collection_accounts`. This is how a listener observes activity for assets it does not own: mints, burns, transfers, data edits, and RAM-payer reassignments across the whole collection. The listener does not choose to subscribe; the collection author adds it, which is a deliberate trust grant, because a notify account's handler runs inside the triggering transaction and can make that action fail. The config side (adding and removing accounts, the one-way `forbidnotify` gate, the 24-account cap) is documented in [AtomicAssets notifications](../reference/atomicassets/notifications.md); this guide assumes the account is already on the list and focuses on the receiving contract.
 
-Source: `atomicassets-contract src/atomicassets.cpp:1880-1888` (`notify_collection_accounts`), `atomicassets-contract src/atomicassets.cpp:246-279` (`addnotifyacc`, and its comment: "NOTE: It will consequently allow the account to make any of these actions throw (fail). Only add trusted accounts to this list")
+Source: `atomicassets-contract src/atomicassets.cpp:1883-1891` (`notify_collection_accounts`), `atomicassets-contract src/atomicassets.cpp:246-279` (`addnotifyacc`, and its comment: "NOTE: It will consequently allow the account to make any of these actions throw (fail). Only add trusted accounts to this list")
 
 The full table of which action notifies whom, and by which mechanism, is in [AtomicAssets notifications](../reference/atomicassets/notifications.md#which-actions-notify-whom) ("Which actions notify whom"). The listener sees no difference in wiring between the two paths: both arrive as an `on_notify` dispatch on some action name. What differs is the action name to bind and the data delivered.
 
@@ -52,7 +52,7 @@ The trap: the handler's parameter list must match the notifying action's ABI par
 
 The data a handler receives is exactly the notifying action's parameters, nothing more. `logtransfer` carries the moved `asset_ids` but not their templates or backed tokens; `logburnasset` is the richest, carrying the burned asset's full deserialized immutable and mutable data plus its backed tokens, because after the burn the row is gone and this is the only place that data survives. A handler that needs anything beyond what its signature delivers must read the AtomicAssets tables itself within the same transaction.
 
-Source: `atomicassets-contract include/atomicassets.hpp:30-35` (`transfer`), `atomicassets-contract include/atomicassets.hpp:247-253` (`logtransfer`), `atomicassets-contract include/atomicassets.hpp:275-286` (`logmint`), `atomicassets-contract include/atomicassets.hpp:316-326` (`logburnasset`), `atomicassets-contract include/atomicassets.hpp:288-293` (`logsetdata`), `atomicassets-contract include/atomicassets.hpp:303-308` (`logrampayer`), `atomicassets-contract src/atomicassets.cpp:1752-1760` (per-collection `logtransfer` fan-out)
+Source: `atomicassets-contract include/atomicassets.hpp:30-35` (`transfer`), `atomicassets-contract include/atomicassets.hpp:247-253` (`logtransfer`), `atomicassets-contract include/atomicassets.hpp:275-286` (`logmint`), `atomicassets-contract include/atomicassets.hpp:316-326` (`logburnasset`), `atomicassets-contract include/atomicassets.hpp:288-293` (`logsetdata`), `atomicassets-contract include/atomicassets.hpp:303-308` (`logrampayer`), `atomicassets-contract src/atomicassets.cpp:1755-1763` (per-collection `logtransfer` fan-out)
 
 ## Semantics and safety
 
@@ -66,25 +66,25 @@ Source: `atomicassets-contract src/atomicassets.cpp:246-250` (`addnotifyacc` war
 
 The robust way to know a notification is genuine is that the dispatch itself binds it: an `on_notify("atomicassets::transfer")` handler only runs because the AtomicAssets contract sent the notification, so the notifier's identity is established by the binding, not by anything in the parameters. AtomicAssets models this in its own token-deposit handler: when it receives a `*::transfer` notification it authenticates the sending token contract with `get_first_receiver()` rather than trusting the transfer's fields, and it guards `if (to != get_self()) return;` so it only acts when it is the actual recipient. A listener bound to a single `contract::action` already knows the notifier, but the role guard matters: `transfer` notifies both `from` and `to`, so a handler is invoked in both roles and must check which one it is (`to == get_self()` for incoming) before acting. Do not treat the account names in the payload as authenticated identities to make trust decisions about; they are data describing the action, not proof that any of those accounts authorized your handler.
 
-Source: `atomicassets-contract src/atomicassets.cpp:1402-1416` (`receive_token_transfer`: `to != get_self()` guard at `:1403`, `get_first_receiver()` authentication at `:1412`)
+Source: `atomicassets-contract src/atomicassets.cpp:1405-1419` (`receive_token_transfer`: `to != get_self()` guard at `:1406`, `get_first_receiver()` authentication at `:1415`)
 
 ### Authorization context
 
 Assume none of the notified parties authorized your handler. The precise authorizations visible inside an Antelope notification handler are a property of the chain runtime (nodeos), not of the pinned AtomicAssets source, so this guide does not assert a line-cited rule about what `require_auth` returns in that context. The safe practice, and the one AtomicAssets follows in its own code, is to not attempt to authenticate a notified party by calling `require_auth` on a name from the payload: a handler establishes trust from the notifier binding (above), not by re-checking the user's authority. Where the contract needs its own authority, it uses `get_self()` (as every `log*` action does with `require_auth(get_self())`), never the notified user's. Design the handler to need only its own authorization plus the delivered data.
 
-Source: `atomicassets-contract src/atomicassets.cpp:1452` (`logtransfer` uses `require_auth(get_self())`), `atomicassets-contract src/atomicassets.cpp:1500` (`logmint` likewise); Antelope runtime authorization semantics are not covered by the pinned contract source and are stated here as safe practice, not a source-cited fact.
+Source: `atomicassets-contract src/atomicassets.cpp:1455` (`logtransfer` uses `require_auth(get_self())`), `atomicassets-contract src/atomicassets.cpp:1503` (`logmint` likewise); Antelope runtime authorization semantics are not covered by the pinned contract source and are stated here as safe practice, not a source-cited fact.
 
 ### RAM
 
 Your handler bills its own account for the rows it stores. A row a handler emplaces into its own tables is paid for by whoever the handler names as payer. The general Antelope rule about which payer a notification context may bill is a runtime property, not something the pinned source states, so treat it conservatively: pay RAM from `get_self()` for anything the listener stores, rather than trying to bill a user who merely appears in the notification. AtomicAssets' own deposit handler never opens a new user-billed row from the notification path; it modifies an already-existing balance row with `same_payer` and requires the row to have been created earlier by a separate user-authorized `announcedepo`. A listener that accumulates state should budget for that RAM on its own account, the same way the worked example below emplaces under `get_self()`.
 
-Source: `atomicassets-contract src/atomicassets.cpp:1435-1437` (`receive_token_transfer` modifies with `same_payer`), `atomicassets-contract src/atomicassets.cpp:1418-1421` (deposit requires the pre-existing row); the general RAM-payer rule for notification contexts is Antelope runtime behavior, stated here as safe practice.
+Source: `atomicassets-contract src/atomicassets.cpp:1438-1440` (`receive_token_transfer` modifies with `same_payer`), `atomicassets-contract src/atomicassets.cpp:1421-1424` (deposit requires the pre-existing row); the general RAM-payer rule for notification contexts is Antelope runtime behavior, stated here as safe practice.
 
 ### Inline follow-up actions stay in the transaction
 
 Deferring work to a self-inline action does not decouple it from the transaction. A handler can organize its follow-up work by sending an inline action to itself (`action(permission_level{get_self(), "active"}, ...).send()`), which is exactly how AtomicAssets dispatches its own `log*` actions. This gives the follow-up a clean authorization context (it runs as `get_self()`) and keeps the handler body small, but it does not make the work asynchronous: an inline action executes in the same transaction and still aborts the user's action if it throws. There is no built-in escape from the same-transaction rule in the notification path. Use a self-inline action for code structure and authorization clarity, not as a way to make a risky handler safe to fail.
 
-Source: `atomicassets-contract src/atomicassets.cpp:1752-1760` (AtomicAssets sends its own `logtransfer` as an inline action under `get_self()`), `atomicassets-contract src/atomicassets.cpp:1655-1663` (`RAM_RESTRICTIONS` note on same-transaction inline behavior)
+Source: `atomicassets-contract src/atomicassets.cpp:1755-1763` (AtomicAssets sends its own `logtransfer` as an inline action under `get_self()`), `atomicassets-contract src/atomicassets.cpp:1658-1666` (`RAM_RESTRICTIONS` note on same-transaction inline behavior)
 
 ## A minimal listener: counting incoming transfers
 

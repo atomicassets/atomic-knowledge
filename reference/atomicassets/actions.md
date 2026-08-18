@@ -1,12 +1,12 @@
 ---
 scope: Complete action reference for the `atomicassets` contract - admin, collections, schemas, templates, assets, RAM-payer reassignment, transfers, and offers
 depends-on: [reference/atomicassets/structure.md, reference/atomicassets/tables.md]
-key-modules: ["atomicassets-contract (v2.0.0-rc4): src/atomicassets.cpp, include/atomicassets.hpp", "AntelopeIO/leap (v5.0.3): chain RAM-billing constants"]
+key-modules: ["atomicassets-contract (v2.0.0): src/atomicassets.cpp, include/atomicassets.hpp", "AntelopeIO/leap (v5.0.3): chain RAM-billing constants"]
 ---
 
 # AtomicAssets actions
 
-Complete action reference for the `atomicassets` contract, baselined on tag `v2.0.0-rc4` of `atomicassets-contract` (the release pinned for both `wax-testnet` and `jungle4-testnet`). Every entry cites its declaration in `include/atomicassets.hpp` and its body in `src/atomicassets.cpp`. "Changed in V2" notes compare against the V1 `atomicassets-contract` source.
+Complete action reference for the `atomicassets` contract, baselined on tag `v2.0.0` of `atomicassets-contract` (the release pinned for both `wax-testnet` and `jungle4-testnet`). Every entry cites its declaration in `include/atomicassets.hpp` and its body in `src/atomicassets.cpp`. "Changed in V2" notes compare against the V1 `atomicassets-contract` source.
 
 Live-chain status: see [AtomicAssets V2 upgrade](v2-upgrade.md#deployment-status) ("Deployment status"). None of the V2-only actions on this page are callable on WAX mainnet yet.
 
@@ -139,7 +139,7 @@ Required authorization: the collection's current `author`, at the `owner` permis
 
 Creates an `authorswaps` row. Fails if a swap for this collection is already underway. `acceptance_date` is set to `now` if `owner` is true (immediately acceptable), or `now + 604800` (one week out) otherwise. This is the only place the two paths diverge; `acceptauswap`'s own window is identical either way.
 
-Source: `include/atomicassets.hpp:81-85`, `src/atomicassets.cpp:357-388`
+Source: `include/atomicassets.hpp:81-85`, `src/atomicassets.cpp:357-381`
 
 ### acceptauswap
 
@@ -147,9 +147,9 @@ Source: `include/atomicassets.hpp:81-85`, `src/atomicassets.cpp:357-388`
 
 Required authorization: the swap's `new_author`.
 
-Reassigns `collections.author` to `new_author` and erases the `authorswaps` row. Only acceptable once `now > acceptance_date`, and only until `now < acceptance_date + 604800`. Combined with `createauswap`'s two paths, the full window measured from creation is: immediately through +7 days for an `owner`-permission swap, or +7 days through +14 days for an `active`-permission swap. (The action's own source comment claims swaps "remain valid for up to 3 weeks"; that does not match what the code computes, one or two weeks depending on path, so this page states the computed behavior rather than the comment.)
+Reassigns `collections.author` to `new_author` and erases the `authorswaps` row. Acceptable from `acceptance_date` itself (the boundary second passes; the check rejects only `now < acceptance_date`), and only until `now < acceptance_date + 604800`. Combined with `createauswap`'s two paths, the full window measured from creation is: immediately through +7 days for an `owner`-permission swap, or +7 days through +14 days for an `active`-permission swap.
 
-Source: `include/atomicassets.hpp:87-89`, `src/atomicassets.cpp:389-423`
+Source: `include/atomicassets.hpp:87-89`, `src/atomicassets.cpp:390-420`
 
 ### rejectauswap
 
@@ -159,7 +159,7 @@ Required authorization: either the swap's `current_author` or its `new_author` (
 
 Erases the `authorswaps` row without changing `collections.author`.
 
-Source: `include/atomicassets.hpp:91-93`, `src/atomicassets.cpp:424-449`
+Source: `include/atomicassets.hpp:91-93`, `src/atomicassets.cpp:427-452`
 
 ## Schemas
 
@@ -174,7 +174,7 @@ Required authorization: `authorized_creator`, checked via `check_has_collection_
 
 Creates a `schemas` row scoped to `collection_name`. `schema_name` must not already exist in that scope; `schema_format` is validated by `check_format` (unique names, valid type strings, must include a `{"name": "name", "type": "string"}` line).
 
-Source: `include/atomicassets.hpp:103-108`, `src/atomicassets.cpp:450-481`
+Source: `include/atomicassets.hpp:103-108`, `src/atomicassets.cpp:453-484`
 
 ### extendschema
 
@@ -187,7 +187,7 @@ Required authorization: `authorized_editor`, checked via `check_has_collection_a
 
 Appends lines to an existing schema's `format` and re-validates the whole extended vector with `check_format`. Existing lines are never removed or reordered, for the same on-chain-identifier reason as `admincoledit` above; see [AtomicAssets attribute serialization](serialization.md) for why position matters.
 
-Source: `include/atomicassets.hpp:110-115`, `src/atomicassets.cpp:482-513`
+Source: `include/atomicassets.hpp:110-115`, `src/atomicassets.cpp:485-516`
 
 ### setschematyp (V2)
 
@@ -200,7 +200,7 @@ Required authorization: `authorized_editor`, checked via `check_has_collection_a
 
 Emplaces or fully replaces the `schematypes` row for this schema (not additive: the whole `format_type` vector passed in replaces whatever was there). Every entry's `name` must be unique in the vector and must match an existing attribute name in the schema's `format`; `mediatype` and `info` are free-form, unvalidated strings. Metadata only, never touches serialization. Changed in V2: this action and its table do not exist in V1.
 
-Source: `include/atomicassets.hpp:117-122`, `src/atomicassets.cpp:514-565`
+Source: `include/atomicassets.hpp:117-122`, `src/atomicassets.cpp:517-568`
 
 ## Templates
 
@@ -218,7 +218,7 @@ Required authorization: `authorized_creator`, checked via `check_has_collection_
 
 Creates a `templates` row keyed by a contract-wide `template_id` counter (`config.template_counter`, starting at 1: template ids are unique across the whole contract, not per collection). Delegates to `internal_create_template` with `mutable_data = {}`. Sends `lognewtempl`.
 
-Source: `include/atomicassets.hpp:124-132`, `src/atomicassets.cpp:566-582`, `src/atomicassets.cpp:1613-1689` (`internal_create_template`)
+Source: `include/atomicassets.hpp:124-132`, `src/atomicassets.cpp:569-585`, `src/atomicassets.cpp:1582-1658` (`internal_create_template`)
 
 ### createtempl2 (V2)
 
@@ -230,7 +230,7 @@ Required authorization: `authorized_creator`, checked via `check_has_collection_
 
 Identical to `createtempl`, except `internal_create_template` also receives `mutable_data`. If `mutable_data` is non-empty, it is written to a `templates2` row and a second inline action, `logsetdatatl` (with `old_data = {}`), is sent immediately after `lognewtempl`: one `createtempl2` call with non-empty mutable data produces two separate notification fan-outs in the same transaction, not one. Changed in V2: does not exist in V1, where every template's data is immutable forever after `createtempl`.
 
-Source: `include/atomicassets.hpp:126-135`, `src/atomicassets.cpp:583-599`, `src/atomicassets.cpp:1613-1689`
+Source: `include/atomicassets.hpp:126-135`, `src/atomicassets.cpp:586-602`, `src/atomicassets.cpp:1582-1658`
 
 ### settempldata (V2)
 
@@ -243,7 +243,7 @@ Required authorization: `authorized_editor`, checked via `check_has_collection_a
 
 Upserts the template's `templates2` row: emplaces it if absent and `new_mutable_data` is non-empty, modifies it if present and `new_mutable_data` is non-empty, and erases it if present and `new_mutable_data` is empty. A `templates2` row therefore only exists at all while the template currently has non-empty mutable data. Always sends `logsetdatatl` (with `old_data = {}` if no row existed before the call). Changed in V2: does not exist in V1.
 
-Source: `include/atomicassets.hpp:137-142`, `src/atomicassets.cpp:846-913`
+Source: `include/atomicassets.hpp:137-142`, `src/atomicassets.cpp:849-916`
 
 ### deltemplate (V2)
 
@@ -255,7 +255,7 @@ Required authorization: `authorized_editor`, checked via `check_has_collection_a
 
 Erases the `templates` row (and its `templates2` row, if any) only while `issued_supply == 0`. Sends no notification at all, unlike every other collection-editing action in this group: an indexer that only watches `notify_collection_accounts` fan-out will not observe a deletion, though it remains visible as the top-level action in the transaction trace. Changed in V2: does not exist in V1 (a V1 template, once created, can never be removed even with zero issued supply).
 
-Source: `include/atomicassets.hpp:144-148`, `src/atomicassets.cpp:600-630`
+Source: `include/atomicassets.hpp:144-148`, `src/atomicassets.cpp:603-633`
 
 ### locktemplate
 
@@ -267,7 +267,7 @@ Required authorization: `authorized_editor`, checked via `check_has_collection_a
 
 Sets `max_supply` to the current `issued_supply`, freezing further minting. Requires `issued_supply != 0` (at least one asset must already have been minted). Sends no notification.
 
-Source: `include/atomicassets.hpp:150-154`, `src/atomicassets.cpp:631-660`
+Source: `include/atomicassets.hpp:150-154`, `src/atomicassets.cpp:634-663`
 
 ### redtemplmax (V2)
 
@@ -280,7 +280,7 @@ Required authorization: `authorized_editor`, checked via `check_has_collection_a
 
 Lowers a template's `max_supply`. Once a finite cap has been set this way, every subsequent call must lower it further; there is no action that raises `max_supply` again. Sends no notification. Changed in V2: does not exist in V1.
 
-Source: `include/atomicassets.hpp:156-161`, `src/atomicassets.cpp:661-696`
+Source: `include/atomicassets.hpp:156-161`, `src/atomicassets.cpp:664-699`
 
 ## Assets
 
@@ -299,7 +299,7 @@ Required authorization: `authorized_minter`, checked via `check_has_collection_a
 
 Creates an `assets` row scoped to `new_asset_owner`, keyed by a contract-wide `asset_counter` starting at 2^40 (1099511627776). If `template_id >= 0`, the template must exist, must belong to `schema_name`, and its `issued_supply` (incremented by this call) must stay within `max_supply` when `max_supply > 0`. RAM for the new row is paid by `authorized_minter`. Sends `logmint`. Changed in V2: `tokens_to_back` is checked *after* `logmint` is sent, and any non-empty value always fails with "Native backing has been deprecated on the AtomicAssets Contract": the parameter stays in the ABI for interface stability, but minting with backing no longer functions at all (in V1 it invoked `internal_back_asset` per token and actually moved deposited balance onto the new asset).
 
-Source: `include/atomicassets.hpp:171-180`, `src/atomicassets.cpp:697-788`
+Source: `include/atomicassets.hpp:171-180`, `src/atomicassets.cpp:700-791`
 
 ### setassetdata
 
@@ -312,7 +312,7 @@ Required authorization: `authorized_editor`, checked via `check_has_collection_a
 
 Re-serializes `assets.mutable_serialized_data` and reassigns `ram_payer` to `authorized_editor`: RAM for the row moves to whoever last edited it, not the original minter or current owner. Sends `logsetdata` with the deserialized old and new data, before the row is modified.
 
-Source: `include/atomicassets.hpp:174-179`, `src/atomicassets.cpp:796-845`
+Source: `include/atomicassets.hpp:174-179`, `src/atomicassets.cpp:799-848`
 
 `setrampayer` and `setlastpayer`, the V2 actions that reassign `ram_payer` without a transfer, are documented under "RAM-payer reassignment (replaces descoped custodial rentals)" below.
 
@@ -325,7 +325,7 @@ Required authorization: `owner`.
 
 Opens a zero-balance entry for `symbol_to_announce` in `owner`'s `balances` row (creating the row if it doesn't exist). Must be called before the first deposit of a given token symbol, so that `owner` (not the contract) pays the row's RAM. Idempotent: calling it again for an already-announced symbol returns silently rather than erroring.
 
-Source: `include/atomicassets.hpp:192-195`, `src/atomicassets.cpp:990-1039`
+Source: `include/atomicassets.hpp:192-195`, `src/atomicassets.cpp:993-1042`
 
 ### withdraw
 
@@ -336,7 +336,7 @@ Required authorization: `owner`.
 
 Decreases `owner`'s `balances` entry for that symbol and sends a real token transfer back to `owner` from the corresponding registered contract. If the withdrawal brings that symbol's amount to exactly zero, its entry is removed from the `quantities` vector (and the whole `balances` row is erased if that was the only symbol present). A later deposit of that same symbol requires calling `announcedepo` again, even if the account's `balances` row still exists for other symbols, because the per-symbol entry itself is gone.
 
-Source: `include/atomicassets.hpp:197-200`, `src/atomicassets.cpp:1040-1078`, `src/atomicassets.cpp:1768-1801` (`internal_decrease_balance`)
+Source: `include/atomicassets.hpp:197-200`, `src/atomicassets.cpp:1043-1081`, `src/atomicassets.cpp:1771-1804` (`internal_decrease_balance`)
 
 ### backasset
 
@@ -349,7 +349,7 @@ Required authorization: none checked; the action body is `check(false, "Native b
 
 Changed in V2: in V1 this action moved deposited balance from `payer` onto an asset's `backed_tokens` (via `internal_back_asset`). In V2 it always reverts regardless of the arguments supplied; it remains in the ABI only for interface compatibility.
 
-Source: `include/atomicassets.hpp:202-207`, `src/atomicassets.cpp:1079-1087`
+Source: `include/atomicassets.hpp:202-207`, `src/atomicassets.cpp:1082-1090`
 
 ### burnasset
 
@@ -360,7 +360,7 @@ Required authorization: `asset_owner`.
 
 Erases the `assets` row. If the asset is templated, the template's `burnable` flag must be true. Any `backed_tokens` still on the row (only possible on assets that predate the V2 backing deprecation) are credited into `asset_owner`'s `balances` row. Sends `logburnasset` with the full pre-burn state (collection, schema, template id, backed tokens, both data layers, prior ram_payer) before erasing the row. The parent template's `issued_supply` is unchanged: the action reads the template row only for the `burnable` check, so `issued_supply` counts lifetime mints and a circulating supply must subtract burns.
 
-Source: `include/atomicassets.hpp:209-212`, `src/atomicassets.cpp:1096-1177`
+Source: `include/atomicassets.hpp:209-212`, `src/atomicassets.cpp:1099-1180`
 
 ## RAM-payer reassignment (replaces descoped custodial rentals)
 
@@ -375,7 +375,7 @@ Required authorization: `new_payer`.
 
 Reassigns `ram_payer` on an asset the caller already owns (looked up in `new_payer`'s own scope) to `new_payer` itself. Fails if `new_payer` is already the `ram_payer`. Sends `logrampayer`. Changed in V2: does not exist in V1.
 
-Source: `include/atomicassets.hpp:181-184`, `src/atomicassets.cpp:914-940`
+Source: `include/atomicassets.hpp:181-184`, `src/atomicassets.cpp:917-943`
 
 ### setlastpayer (V2)
 
@@ -386,7 +386,7 @@ Required authorization: `owner`.
 
 Reassigns `ram_payer` to `owner` for the single highest-`asset_id` row currently in `owner`'s scope (the multi-index's last entry by primary-key order, `--owner_assets.end()`), not necessarily the most recently acquired asset if `owner` has since reacquired an older, lower-id asset. Asserts that this asset's `collection_name` matches the passed-in `collection_name` (so the caller must know which collection they expect to be claiming for) and fails if `owner` holds no assets at all, or already pays for that asset's RAM. Sends `logrampayer`. Changed in V2: does not exist in V1.
 
-Source: `include/atomicassets.hpp:186-189`, `src/atomicassets.cpp:943-976`
+Source: `include/atomicassets.hpp:186-189`, `src/atomicassets.cpp:946-979`
 
 ### logrampayer (V2)
 
@@ -397,7 +397,7 @@ Source: `include/atomicassets.hpp:186-189`, `src/atomicassets.cpp:943-976`
 
 Sent by `setrampayer` and `setlastpayer`. Looks up the asset's `collection_name` and calls `notify_collection_accounts`. Changed in V2: does not exist in V1; this is the notification counterpart of the V2 RAM-reassignment mechanism.
 
-Source: `include/atomicassets.hpp:303-308`, `src/atomicassets.cpp:1535-1547`
+Source: `include/atomicassets.hpp:303-308`, `src/atomicassets.cpp:1538-1550`
 
 ## Transfers and offers
 
@@ -412,7 +412,7 @@ Required authorization: `from`.
 
 Notifies `from` and `to` directly via `require_recipient`, then calls `internal_transfer`, which: requires `to` to exist and differ from `from`; requires every asset to currently belong to `from` and, if templated, to have `transferable = true`; and, if this is the first asset `to` has ever held (an empty scope), makes `from` pay for the new scope's RAM by emplacing and immediately erasing a placeholder row (so the action fails outright if `from` cannot cover that RAM); that charge is exactly 112 bytes, the billable size the chain gives a `table_id_object`, the record that carries one table scope, and it stays with `from` while the scope exists. Sends one `logtransfer` per distinct collection touched by the batch (grouped by `std::map<name, ...>` key order, not caller-supplied order), each of which fans out to that collection's `notify_accounts`.
 
-Source: `include/atomicassets.hpp:30-35`, `src/atomicassets.cpp:76-86`, `src/atomicassets.cpp:1665-1761` (`internal_transfer`); for the 112-byte figure, `AntelopeIO/leap` at `v5.0.3`: `libraries/chain/include/eosio/chain/config.hpp:108,140,146` and `libraries/chain/include/eosio/chain/contract_table_objects.hpp:244-247` (`billable_size_v<table_id_object>` = align_up(44 + 2x32, 16) = 112), charged at `libraries/chain/apply_context.cpp:691`; live WAX mainnet read via `wax.greymass.com` `POST /v1/history/get_transaction`, tx `1ec40244151f86b361f9fa18de6ed7bb1413608792141538e0de531a53c55393`, whose `account_ram_deltas` bill the sender exactly +112
+Source: `include/atomicassets.hpp:30-35`, `src/atomicassets.cpp:76-86`, `src/atomicassets.cpp:1668-1764` (`internal_transfer`); for the 112-byte figure, `AntelopeIO/leap` at `v5.0.3`: `libraries/chain/include/eosio/chain/config.hpp:108,140,146` and `libraries/chain/include/eosio/chain/contract_table_objects.hpp:244-247` (`billable_size_v<table_id_object>` = align_up(44 + 2x32, 16) = 112), charged at `libraries/chain/apply_context.cpp:691`; live WAX mainnet read via `wax.greymass.com` `POST /v1/history/get_transaction`, tx `1ec40244151f86b361f9fa18de6ed7bb1413608792141538e0de531a53c55393`, whose `account_ram_deltas` bill the sender exactly +112
 
 ### createoffer
 
@@ -426,7 +426,7 @@ Required authorization: `sender`.
 
 Creates an `offers` row keyed by a global `offer_counter`. Every listed asset must currently belong to the side it's listed under and, if templated, be `transferable`. Sends `lognewoffer`, which notifies `sender` and `recipient` directly.
 
-Source: `include/atomicassets.hpp:215-221`, `src/atomicassets.cpp:1185-1279`
+Source: `include/atomicassets.hpp:215-221`, `src/atomicassets.cpp:1188-1282`
 
 ### canceloffer
 
@@ -436,7 +436,7 @@ Required authorization: the offer's `sender` only (not the `recipient`).
 
 Erases the offer row. Sends no notification of any kind, to either party.
 
-Source: `include/atomicassets.hpp:223-225`, `src/atomicassets.cpp:1280-1298`
+Source: `include/atomicassets.hpp:223-225`, `src/atomicassets.cpp:1283-1301`
 
 ### acceptoffer
 
@@ -446,7 +446,7 @@ Required authorization: the offer's `recipient` only.
 
 Notifies `sender` and `recipient` directly via `require_recipient` (not through a log action), then executes both legs through `internal_transfer`: `recipient`'s listed assets move to `sender` with `sender` (specifically the offer's own `ram_payer`, which may have been reassigned by `payofferram`) covering any new-scope RAM, and `sender`'s listed assets move to `recipient` with `recipient` covering any new-scope RAM. Erases the offer row. Each leg's `internal_transfer` call still sends its own per-collection `logtransfer` actions.
 
-Source: `include/atomicassets.hpp:227-229`, `src/atomicassets.cpp:1299-1357`
+Source: `include/atomicassets.hpp:227-229`, `src/atomicassets.cpp:1302-1360`
 
 ### declineoffer
 
@@ -456,7 +456,7 @@ Required authorization: the offer's `recipient` only.
 
 Erases the offer row. Sends no notification of any kind.
 
-Source: `include/atomicassets.hpp:231-233`, `src/atomicassets.cpp:1358-1376`
+Source: `include/atomicassets.hpp:231-233`, `src/atomicassets.cpp:1361-1379`
 
 ### payofferram
 
@@ -467,7 +467,7 @@ Required authorization: `payer` only (no relationship to the offer's `sender` or
 
 Erases the offer row and re-emplaces an identical copy with `ram_payer` set to `payer`, moving the row's RAM bill to `payer` without touching any of its other fields. Intended for a dapp to sponsor the RAM of offers its users create. Sends no notification.
 
-Source: `include/atomicassets.hpp:235-238`, `src/atomicassets.cpp:1377-1401`
+Source: `include/atomicassets.hpp:235-238`, `src/atomicassets.cpp:1380-1404`
 
 ## Token deposit notification handler
 
@@ -482,7 +482,7 @@ Not a regular action: declared `[[eosio::on_notify("*::transfer")]]`, so it runs
 
 Returns immediately if `to != get_self()`. Otherwise requires the `(get_first_receiver(), quantity.symbol)` pair to match an entry in `config.supported_tokens` (the check matches the full contract-and-symbol pair; the symbol alone is not enough), requires `memo` to be exactly the literal string `"deposit"` (anything else, including an empty memo, fails the whole incoming transfer), and requires `from` to already have an `announcedepo`'d `balances` entry for that exact symbol. On success, credits the deposited amount into that entry.
 
-Source: `include/atomicassets.hpp:238-243`, `src/atomicassets.cpp:1402-1444`
+Source: `include/atomicassets.hpp:238-243`, `src/atomicassets.cpp:1405-1447`
 
 ## Notification actions (contract-internal)
 
@@ -498,7 +498,7 @@ Every action in this group requires `require_auth(get_self())`: they can only ru
 
 Sent by `internal_transfer` (used by both `transfer` and `acceptoffer`), once per distinct collection in the batch. Calls `notify_collection_accounts(collection_name)`.
 
-Source: `include/atomicassets.hpp:247-253`, `src/atomicassets.cpp:1445-1456`
+Source: `include/atomicassets.hpp:247-253`, `src/atomicassets.cpp:1448-1459`
 
 ### lognewoffer
 
@@ -511,7 +511,7 @@ Source: `include/atomicassets.hpp:247-253`, `src/atomicassets.cpp:1445-1456`
 
 Sent by `createoffer`. Calls `require_recipient(sender)` and `require_recipient(recipient)`.
 
-Source: `include/atomicassets.hpp:255-262`, `src/atomicassets.cpp:1457-1471`
+Source: `include/atomicassets.hpp:255-262`, `src/atomicassets.cpp:1460-1474`
 
 ### lognewtempl
 
@@ -526,7 +526,7 @@ Source: `include/atomicassets.hpp:255-262`, `src/atomicassets.cpp:1457-1471`
 
 Sent by `internal_create_template` (used by both `createtempl` and `createtempl2`). Calls `notify_collection_accounts(collection_name)`.
 
-Source: `include/atomicassets.hpp:264-273`, `src/atomicassets.cpp:1472-1487`
+Source: `include/atomicassets.hpp:264-273`, `src/atomicassets.cpp:1475-1490`
 
 ### logmint
 
@@ -543,7 +543,7 @@ Source: `include/atomicassets.hpp:264-273`, `src/atomicassets.cpp:1472-1487`
 
 Sent by `mintasset`. Calls `require_recipient(new_asset_owner)` and `notify_collection_accounts(collection_name)`.
 
-Source: `include/atomicassets.hpp:275-286`, `src/atomicassets.cpp:1488-1507`
+Source: `include/atomicassets.hpp:275-286`, `src/atomicassets.cpp:1491-1510`
 
 ### logsetdata
 
@@ -554,7 +554,7 @@ Source: `include/atomicassets.hpp:275-286`, `src/atomicassets.cpp:1488-1507`
 
 Sent by `setassetdata`. Looks up the asset's `collection_name` (by `asset_owner`/`asset_id`) and calls `notify_collection_accounts`; no direct `require_recipient(asset_owner)`.
 
-Source: `include/atomicassets.hpp:288-293`, `src/atomicassets.cpp:1508-1521`
+Source: `include/atomicassets.hpp:288-293`, `src/atomicassets.cpp:1511-1524`
 
 ### logsetdatatl (V2)
 
@@ -566,7 +566,7 @@ Source: `include/atomicassets.hpp:288-293`, `src/atomicassets.cpp:1508-1521`
 
 Sent by `createtempl2` (when given non-empty mutable data) and `settempldata`. Calls `notify_collection_accounts(collection_name)`. Changed in V2: does not exist in V1.
 
-Source: `include/atomicassets.hpp:295-301`, `src/atomicassets.cpp:1522-1534`
+Source: `include/atomicassets.hpp:295-301`, `src/atomicassets.cpp:1525-1537`
 
 `logrampayer`, sent by `setrampayer` and `setlastpayer`, is documented under "RAM-payer reassignment (replaces descoped custodial rentals)" below rather than in this group.
 
@@ -578,7 +578,7 @@ Source: `include/atomicassets.hpp:295-301`, `src/atomicassets.cpp:1522-1534`
 
 Body is `require_auth(get_self())` only; no notification of any kind is sent. Changed in V2: in V1 this action called `require_recipient(asset_owner)` and `notify_collection_accounts`. In V2 it is dead code kept only for ABI compatibility: `backasset` always reverts and `mintasset`'s backing path always reverts, so nothing in the shipped contract ever dispatches this action.
 
-Source: `include/atomicassets.hpp:310-314`, `src/atomicassets.cpp:1550-1557`
+Source: `include/atomicassets.hpp:310-314`, `src/atomicassets.cpp:1553-1560`
 
 ### logburnasset
 
@@ -594,4 +594,4 @@ Source: `include/atomicassets.hpp:310-314`, `src/atomicassets.cpp:1550-1557`
 
 Sent by `burnasset`. Calls `notify_collection_accounts(collection_name)`.
 
-Source: `include/atomicassets.hpp:316-326`, `src/atomicassets.cpp:1559-1578`
+Source: `include/atomicassets.hpp:316-326`, `src/atomicassets.cpp:1562-1581`

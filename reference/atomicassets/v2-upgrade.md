@@ -1,7 +1,7 @@
 ---
 scope: What changed in the AtomicAssets V2 upgrade, why it is additive and in place, the indexer and chain compatibility surface it creates, and where it is live
 depends-on: []
-key-modules: ["atomicassets-contract (v2.0.0-rc4): src/atomicassets.cpp, include/atomicassets.hpp"]
+key-modules: ["atomicassets-contract (v2.0.0): src/atomicassets.cpp, include/atomicassets.hpp"]
 ---
 
 # AtomicAssets V2 upgrade
@@ -19,6 +19,10 @@ WAX mainnet was still running V1 at the time of writing. A live `get_abi` read a
 Re-check `tokenconfigs.version` (or `get_abi`) on any target chain before relying on V2-only behavior. `version` is only as accurate as the operator's last `setversion` call, so treat `get_abi`'s actual action/table list as the authoritative check when the two could disagree.
 
 Source: live chain read, `POST https://wax.greymass.com/v1/chain/get_abi {"account_name":"atomicassets"}`, checked 2026-07-06
+
+The testnet deployments are the GA release byte for byte: `get_code_hash` for `atomicassets` returns `962a93e1adde9779d3afb84983cee076c3d2b50b0473c99fb0fe02573a7b7242` on both wax-testnet and jungle4, equal to the `atomicassets.wasm` line of the `v2.0.0` Release's `SHA256SUMS`, so the tag this corpus pins and the code the testnets execute are identical.
+
+Source: live chain reads, `POST /v1/chain/get_code_hash {"account_name":"atomicassets"}` on `waxtestnet.greymass.com` and `jungle4.api.eosnation.io`; the `SHA256SUMS` asset of the `atomicassets-contract` `v2.0.0` Release
 
 AtomicMarket follows the same additive pattern, but its V2 royalty tables are live on testnet. A `get_table_rows` read of the `royaltyconf` table (`code=atomicmarket`, `scope=atomicmarket`) succeeds on wax-testnet, where it is populated (`royaltycol11` among others carries a config), and on jungle4, where the table exists but is unseeded; on WAX mainnet the same read fails with `contract_table_query_exception` (code 3060003) because the V2 `setcode` has not been applied there. The full V2 royalty split is therefore live-chain-verified, not merely source-verified: a real wax-testnet sale settles founders, template, and attribute payouts that sum exactly to the collection fee (see [AtomicMarket fees and royalties](../atomicmarket/fees-and-royalties.md)).
 

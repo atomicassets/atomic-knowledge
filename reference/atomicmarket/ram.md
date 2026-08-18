@@ -1,7 +1,7 @@
 ---
 scope: Who pays RAM for each `atomicmarket` table row, the voluntary pay*ram re-homing actions, and sizing implications for a high-volume marketplace or dapp
 depends-on: [reference/atomicmarket/tables.md]
-key-modules: ["atomicmarket-contract (v2.0.0-rc2): src/atomicmarket.cpp, include/atomicmarket.hpp", "AntelopeIO/leap (v5.0.3): chain RAM-billing constants"]
+key-modules: ["atomicmarket-contract (v2.0.0): src/atomicmarket.cpp, include/atomicmarket.hpp", "AntelopeIO/leap (v5.0.3): chain RAM-billing constants"]
 ---
 
 # AtomicMarket RAM
