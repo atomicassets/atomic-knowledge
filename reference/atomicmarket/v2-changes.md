@@ -20,16 +20,16 @@ Reading these tables over `/v1/chain/get_table_rows`, nodeos serializes uint64 v
 
 ## Marketplace attribution
 
-See `reference/atomicmarket/marketplaces.md` for the full attribution model: how `maker_marketplace`/`taker_marketplace` are supplied, which side survives past settlement, and how a marketplace's cut is credited.
+See [AtomicMarket marketplaces](marketplaces.md) for the full attribution model: how `maker_marketplace`/`taker_marketplace` are supplied, which side survives past settlement, and how a marketplace's cut is credited.
 
 ## Execution-time fees and trace-only royalty logs
 
-See `reference/atomicmarket/fees-and-royalties.md` for the full fee model: the collection fee applies at execution time rather than listing time, the royalty log actions are trace-only, and the seller-remainder assertion is the settlement-time backstop against stacked fees.
+See [AtomicMarket fees and royalties](fees-and-royalties.md) for the full fee model: the collection fee applies at execution time rather than listing time, the royalty log actions are trace-only, and the seller-remainder assertion is the settlement-time backstop against stacked fees.
 
 ## Bundle listing retirement
 
-V2 removes bundle (multi-asset) listings. Each action's own legacy-row handling is documented inline via the "Changed in V2" notes and per-action descriptions in `reference/atomicmarket/actions.md` and `reference/atomicmarket/tables.md`.
+V2 removes bundle (multi-asset) listings. Each action's own legacy-row handling is documented inline via the "Changed in V2" notes and per-action descriptions in [AtomicMarket actions](actions.md) and [AtomicMarket tables](tables.md).
 
 ## Overlapping and lazy-accept listings
 
-See `guides/sales.md` for why AtomicMarket's lazy-accept escrow model makes multiple live sale listings of the same asset valid chain state, not drift.
+See [Working with sales](../../guides/sales.md) for why AtomicMarket's lazy-accept escrow model makes multiple live sale listings of the same asset valid chain state, not drift.

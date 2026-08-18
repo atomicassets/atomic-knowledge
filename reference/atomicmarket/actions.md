@@ -8,7 +8,7 @@ key-modules: ["atomicmarket-contract (v2.0.0-rc2): src/atomicmarket.cpp, include
 
 Every entry cites its declaration in `include/atomicmarket.hpp` and its body in `src/atomicmarket.cpp` (paths relative to the atomicmarket-contract repo), baselined on the V2 source. "Changed in V2" notes compare against the V1 `atomicmarket-contract` source.
 
-See `reference/atomicmarket/marketplaces.md` ("Registering a marketplace with regmarket") for marketplace attribution, `reference/atomicmarket/fees-and-royalties.md` ("The collection fee applies at execution time, not at listing time") for execution-time collection fees, ("The royalty log actions are trace-only and dust always reconciles") for trace-only royalty logs, and `reference/atomicmarket/v2-changes.md` ("Defensive guards in the V2 contract") for defensive guards. Bundle retirement is covered inline via this page's own "Changed in V2" notes.
+See [AtomicMarket marketplaces](marketplaces.md#registering-a-marketplace-with-regmarket) ("Registering a marketplace with regmarket") for marketplace attribution, [AtomicMarket fees and royalties](fees-and-royalties.md#the-collection-fee-applies-at-execution-time-not-at-listing-time) ("The collection fee applies at execution time, not at listing time") for execution-time collection fees, ("The royalty log actions are trace-only and dust always reconciles") for trace-only royalty logs, and [AtomicMarket V2 changes](v2-changes.md#defensive-guards-in-the-v2-contract) ("Defensive guards in the V2 contract") for defensive guards. Bundle retirement is covered inline via this page's own "Changed in V2" notes.
 
 Custodial rentals do not appear anywhere in this source tree: neither the V1 baseline nor the V2 source declare any rent-prefixed action or table. A custodial rental feature was explored during V2 development and descoped before shipping; this page can only confirm the feature's absence from both source trees, not the history of the descope itself.
 
@@ -81,7 +81,7 @@ Source: `include/atomicmarket.hpp:90-93`, `src/atomicmarket.cpp:174-194`
 
 - `fee_recipient: name`: must be an existing account.
 - `fee: double`: must be positive; combined with the maker, taker, and 15% maximum collection fee must not exceed the sale price.
-- `applicable_counter_names: vector<name>`: at least one required; see `reference/atomicmarket/tables.md` ("counters") for the counter names a bonus fee can attach to.
+- `applicable_counter_names: vector<name>`: at least one required; see [AtomicMarket tables](tables.md#counters) ("counters") for the counter names a bonus fee can attach to.
 - `fee_name: string`
 
 Creates a new bonus fee that applies going forward to settlements whose relevant counter (sale, auction, buyoffer, or template buyoffer id) falls at or above the counter's current value at creation time for each listed counter name. Multiple bonus fees can still stack past 100% on a single payout; `internal_payout_sale` enforces a hard backstop that the seller's remainder stays positive.
@@ -137,7 +137,7 @@ Source: `include/atomicmarket.hpp:127-130`, `src/atomicmarket.cpp:426-464`
 - `creator: name`: required authorization.
 - `marketplace_name: name`
 
-Registers a marketplace name usable in `maker_marketplace`/`taker_marketplace` parameters. Existing-account names require that account's authorization. Names with a suffix (`x.y`) require the suffix account's authorization. A plain 12-character name needs no special authorization beyond the creator's. Registration exists so the contract is not paying RAM, on an attacker's behalf, for balance rows keyed to made-up marketplace names. See `reference/atomicmarket/marketplaces.md` ("Registering a marketplace with regmarket") for the full attribution model.
+Registers a marketplace name usable in `maker_marketplace`/`taker_marketplace` parameters. Existing-account names require that account's authorization. Names with a suffix (`x.y`) require the suffix account's authorization. A plain 12-character name needs no special authorization beyond the creator's. Registration exists so the contract is not paying RAM, on an attacker's behalf, for balance rows keyed to made-up marketplace names. See [AtomicMarket marketplaces](marketplaces.md#registering-a-marketplace-with-regmarket) ("Registering a marketplace with regmarket") for the full attribution model.
 
 Source: `include/atomicmarket.hpp:116-119`, `src/atomicmarket.cpp:359-388`
 
@@ -162,7 +162,7 @@ Source: `include/atomicmarket.hpp:349-354`, `src/atomicmarket.cpp:1870-1882`
 
 ## Royalty split configuration (V2 only)
 
-New in V2; V1 has no royalty split tables or actions and pays the full collection fee to the collection author. See `reference/atomicmarket/fees-and-royalties.md` ("The royalty split engine divides the collection fee among founders, templates, and attributes") for the full split engine: category renormalization, attribute matching precedence, dust reconciliation.
+New in V2; V1 has no royalty split tables or actions and pays the full collection fee to the collection author. See [AtomicMarket fees and royalties](fees-and-royalties.md#the-royalty-split-engine-divides-the-collection-fee-among-founders-templates-and-attributes) ("The royalty split engine divides the collection fee among founders, templates, and attributes") for the full split engine: category renormalization, attribute matching precedence, dust reconciliation.
 
 All six actions in this group require the collection author's authorization specifically (`require_auth(author)`, read from a partial deserialization of the AtomicAssets `collections` row). Authorized accounts of the collection are deliberately rejected, because these configs control where settlement funds are paid out.
 
@@ -230,7 +230,7 @@ Source: `include/atomicmarket.hpp:181-184`, `src/atomicmarket.cpp:723-734`
 
 ## Sales
 
-Instant-sale listings settle through a lazy-accept AtomicAssets offer; see `guides/sales.md` for why overlapping listings of the same asset are valid chain state.
+Instant-sale listings settle through a lazy-accept AtomicAssets offer; see [Working with sales](../../guides/sales.md) for why overlapping listings of the same asset are valid chain state.
 
 ### announcesale
 
@@ -240,7 +240,7 @@ Instant-sale listings settle through a lazy-accept AtomicAssets offer; see `guid
 - `settlement_symbol: symbol`
 - `maker_marketplace: name`: must be a registered marketplace.
 
-Creates a `sales` row. No assets or tokens move yet; the seller still has to create a matching AtomicAssets offer (memo `"sale"`) to activate it. Rejects a second announcement by the same seller for the identical asset id set (via the `assetidshash` secondary index). Reads and stores the collection's fee at announcement time purely for the `lognewsale` informational log; the fee actually applied at settlement is read fresh (see `reference/atomicmarket/fees-and-royalties.md` ("The collection fee applies at execution time, not at listing time")). Emits `lognewsale`.
+Creates a `sales` row. No assets or tokens move yet; the seller still has to create a matching AtomicAssets offer (memo `"sale"`) to activate it. Rejects a second announcement by the same seller for the identical asset id set (via the `assetidshash` secondary index). Reads and stores the collection's fee at announcement time purely for the `lognewsale` informational log; the fee actually applied at settlement is read fresh (see [AtomicMarket fees and royalties](fees-and-royalties.md#the-collection-fee-applies-at-execution-time-not-at-listing-time) ("The collection fee applies at execution time, not at listing time")). Emits `lognewsale`.
 
 Changed in V2: `asset_ids.size() == 1` is enforced here; V1 allowed multi-asset bundle listings.
 
@@ -274,7 +274,7 @@ Source: `include/atomicmarket.hpp:199-204`, `src/atomicmarket.cpp:896-981`
 - `listing_price_to_assert: asset`
 - `settlement_symbol_to_assert: symbol`
 
-No authorization required. Pure validation, meant to run in the same transaction immediately before `purchasesale` so a buyer's expectations about a sale's contents can't be front-run. Throws if any of the asserted values differ from the stored sale row. Asset id comparison uses the 4-iterator `std::is_permutation` overload deliberately (see `reference/atomicmarket/v2-changes.md` ("Defensive guards in the V2 contract") for why the 3-iterator overload is unsafe here).
+No authorization required. Pure validation, meant to run in the same transaction immediately before `purchasesale` so a buyer's expectations about a sale's contents can't be front-run. Throws if any of the asserted values differ from the stored sale row. Asset id comparison uses the 4-iterator `std::is_permutation` overload deliberately (see [AtomicMarket V2 changes](v2-changes.md#defensive-guards-in-the-v2-contract) ("Defensive guards in the V2 contract") for why the 3-iterator overload is unsafe here).
 
 Source: `include/atomicmarket.hpp:206-211`, `src/atomicmarket.cpp:993-1015`
 
@@ -435,7 +435,7 @@ Source: `include/atomicmarket.hpp:308-314`, `src/atomicmarket.cpp:1717-1794`
 
 ## RAM
 
-Each of these three actions re-homes the RAM payer of an existing row to `payer` by erasing and re-emplacing it under the new payer, with no other field changes and no token movement. See `reference/atomicmarket/ram.md` ("Sellers and buyers pay RAM for their own listing rows by default") for who pays RAM by default, and ("Practical sizing implications for a high-volume marketplace") for the sizing implications for a high-volume marketplace.
+Each of these three actions re-homes the RAM payer of an existing row to `payer` by erasing and re-emplacing it under the new payer, with no other field changes and no token movement. See [AtomicMarket RAM](ram.md#sellers-and-buyers-pay-ram-for-their-own-listing-rows-by-default) ("Sellers and buyers pay RAM for their own listing rows by default") for who pays RAM by default, and ("Practical sizing implications for a high-volume marketplace") for the sizing implications for a high-volume marketplace.
 
 ### paysaleram
 
@@ -477,11 +477,11 @@ These actions carry no state change beyond `require_auth(get_self())` (and, for 
 - `logsalestart(sale_id, offer_id)`: sent from `receive_asset_offer` once a sale's backing offer is linked. Source: `include/atomicmarket.hpp:401-404`, `src/atomicmarket.cpp:2068-2073`
 - `logauctstart(auction_id)`: sent from `receive_asset_transfer` once an auction's assets are transferred into custody. Source: `include/atomicmarket.hpp:406-408`, `src/atomicmarket.cpp:2075-2079`
 
-The `collection_fee` carried on these logs (and stored on the corresponding table row) is the fee read at listing time for informational/indexing purposes only. It is not necessarily the fee actually applied at settlement. See `reference/atomicmarket/fees-and-royalties.md` ("The collection fee applies at execution time, not at listing time").
+The `collection_fee` carried on these logs (and stored on the corresponding table row) is the fee read at listing time for informational/indexing purposes only. It is not necessarily the fee actually applied at settlement. See [AtomicMarket fees and royalties](fees-and-royalties.md#the-collection-fee-applies-at-execution-time-not-at-listing-time) ("The collection fee applies at execution time, not at listing time").
 
 ## Royalty distribution logs (V2 only)
 
-New in V2. Sent inline from `distribute_collection_fee` (src/atomicmarket.cpp:2689-2986) during every settlement (`purchasesale`, `auctclaimsel`, `acceptbuyo`, `fulfilltbuyo`) that distributes a collection fee through a royalty split config. Like the event logs above, they carry no state change beyond `require_auth(get_self())`, deliberately with no `require_recipient` to any payout recipient, since notifying an arbitrary recipient contract would let it assert in its own notification handler and block the collection's settlements entirely. See `reference/atomicmarket/fees-and-royalties.md` ("The royalty log actions are trace-only and dust always reconciles") for why this makes them trace-only for indexers and why the payout amounts always reconcile to the collection fee.
+New in V2. Sent inline from `distribute_collection_fee` (src/atomicmarket.cpp:2689-2986) during every settlement (`purchasesale`, `auctclaimsel`, `acceptbuyo`, `fulfilltbuyo`) that distributes a collection fee through a royalty split config. Like the event logs above, they carry no state change beyond `require_auth(get_self())`, deliberately with no `require_recipient` to any payout recipient, since notifying an arbitrary recipient contract would let it assert in its own notification handler and block the collection's settlements entirely. See [AtomicMarket fees and royalties](fees-and-royalties.md#the-royalty-log-actions-are-trace-only-and-dust-always-reconciles) ("The royalty log actions are trace-only and dust always reconciles") for why this makes them trace-only for indexers and why the payout amounts always reconcile to the collection fee.
 
 ### logroyfound
 
