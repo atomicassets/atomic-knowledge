@@ -123,6 +123,6 @@ Three read paths cover different needs, consistent with `guides/querying-the-api
 
 - **`ExplorerApi` (this SDK)** for typed indexer reads from JS/TS: filtered lists, search, sort, counts, stats, and cross-owner enumeration, with params and response objects already typed and errors raised as `ApiError`. This is the default for application and bot code.
 - **Raw HTTP against the atomicassets-api** when you are not in a JS runtime, or want full control over paging and caching without the wrapper. The endpoints, the limit cap, and the lifecycle-state enums are in [atomicassets-api HTTP API](../api.md).
-- **Chain table reads** (`RpcApi` here, or `@wharfkit/antelope`'s `get_table_rows`) when you need unindexed chain truth without indexer lag, or a node is your only backend. Note the numeric-key and `show_payer` pitfalls of the typed wharfkit client in [@wharfkit/antelope client behavior](../wharfkit.md); `RpcApi` reads through its own queue and cache instead.
+- **Chain table reads** (`RpcApi` here, or `@wharfkit/antelope`'s `get_table_rows`) when you need unindexed chain truth without indexer lag, or a node is your only backend. Note the numeric-key and `show_payer` pitfalls of the typed WharfKit client in [@wharfkit/antelope client behavior](../wharfkit.md); `RpcApi` reads through its own queue and cache instead.
 
 List endpoints reached through `ExplorerApi` inherit the deployment's `limit` cap of 100; see [atomicassets-api HTTP API](../api.md#list-endpoints-cap-limit-at-100) ("List endpoints cap limit at 100").

@@ -111,7 +111,7 @@ Source: atomicmarket-sdk (main, 278bdfa) src/Networks.ts (`marketApiForNetwork`,
 The read-path choice mirrors the AtomicAssets SDK, consistent with `guides/querying-the-api.md`:
 
 - **`AtomicMarketApi` (this SDK)** for typed indexer reads of sales, auctions, buyoffers, marketplaces, and the royalty read layer from JS/TS, with params and response objects typed and failures raised as `ApiError`.
-- **Raw HTTP against the atomicmarket API** outside a JS runtime, or when you want direct control over paging; the endpoints, limit cap, and per-endpoint `state` enums are in [atomicassets-api HTTP API](../api.md).
+- **Raw HTTP against the AtomicMarket API** outside a JS runtime, or when you want direct control over paging; the endpoints, limit cap, and per-endpoint `state` enums are in [atomicassets-api HTTP API](../api.md).
 - **Chain table reads** (`@wharfkit/antelope` `get_table_rows`) for unindexed marketplace state without indexer lag; mind the numeric-key and `show_payer` behaviors in [@wharfkit/antelope client behavior](../wharfkit.md), and that large ids can arrive as strings.
 
 List endpoints reached through `AtomicMarketApi` inherit the deployment's `limit` cap of 100; see [atomicassets-api HTTP API](../api.md#list-endpoints-cap-limit-at-100) ("List endpoints cap limit at 100").

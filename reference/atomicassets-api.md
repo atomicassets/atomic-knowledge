@@ -15,7 +15,7 @@ Source: `atomicassets-api package.json` (`name`, `repository.url`), `atomicasset
 
 ## The delphioracle handler is required everywhere
 
-The AtomicMarket handler's schema setup declares a foreign key from `atomicmarket_symbol_pairs` to `delphioracle_pairs`. The `delphioracle_pairs` table is created only by the delphioracle handler's own bootstrap, so a filler configuration that omits the delphioracle handler fails during AtomicMarket table creation with a missing-relation error. This means the delphioracle handler must be registered in every chain's filler configuration, ordered before the atomicmarket handler, even on chains where no delphioracle contract is deployed; there it simply observes a non-existent account and stays idle. The failure surfaces as a schema/migration error on a fresh chain rather than anything pointing at handler configuration, which makes it a common trap when onboarding a new chain.
+The AtomicMarket handler's schema setup declares a foreign key from `atomicmarket_symbol_pairs` to `delphioracle_pairs`. The `delphioracle_pairs` table is created only by the delphioracle handler's own bootstrap, so a filler configuration that omits the delphioracle handler fails during AtomicMarket table creation with a missing-relation error. This means the delphioracle handler must be registered in every chain's filler configuration, ordered before the AtomicMarket handler, even on chains where no delphioracle contract is deployed; there it simply observes a non-existent account and stays idle. The failure surfaces as a schema/migration error on a fresh chain rather than anything pointing at handler configuration, which makes it a common trap when onboarding a new chain.
 
 ## Reader-priority drain gate and queue dedup
 
