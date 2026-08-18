@@ -106,7 +106,7 @@ Source: atomicmarket-sdk (main, 278bdfa) src/Actions/Generator.ts (`MarketAction
 
 Source: atomicmarket-sdk (main, 278bdfa) src/Networks.ts (`marketApiForNetwork`, re-exported `AtomicHubNetwork`/`NETWORK_ENDPOINTS`); `wax` and `wax-testnet` factories verified live
 
-## When to use the SDK versus raw HTTP or wharfkit table reads
+## When to use the SDK versus raw HTTP or WharfKit table reads
 
 The read-path choice mirrors the AtomicAssets SDK, consistent with `guides/querying-the-api.md`:
 

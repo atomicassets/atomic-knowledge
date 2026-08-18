@@ -4,7 +4,7 @@ depends-on: [reference/atomictools/actions.md, reference/atomictools/tables.md, 
 key-modules: ["atomictools-contract (commit d89ce79e4): src/link.cpp, include/atomictoolsx.hpp", "atomicassets-api: src/filler/handlers/atomictools"]
 ---
 
-# Links: the atomictools claim-link flow
+# Links: the AtomicTools claim-link flow
 
 A claim link (or "claimlink") lets someone hand a set of assets to a recipient who does not yet have an account name in hand: the sender escrows the assets against an off-chain key pair, and whoever receives the private key can claim the assets to any account they control. It is how "here is a link, open it to receive these assets" flows are built on Antelope chains. The contract is deployed as account `atomictoolsx` on WAX and under the same name on other chains; the `config.atomicassets_account` it escrows through is `atomicassets`.
 

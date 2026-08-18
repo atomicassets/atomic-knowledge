@@ -117,7 +117,7 @@ The action objects the generator returns are already in the shape WharfKit's `se
 
 Source: atomicassets-sdk (main, 80580c5) src/Actions/Generator.ts (`EosioActionObject`, `EosioAuthorizationObject`, `_authorize`)
 
-## When to use the SDK versus raw HTTP or wharfkit table reads
+## When to use the SDK versus raw HTTP or WharfKit table reads
 
 Three read paths cover different needs, consistent with `guides/querying-the-api.md`:
 
