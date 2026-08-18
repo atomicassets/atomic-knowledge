@@ -15,6 +15,7 @@ This log traces how every fact in `reference/` and `guides/` was checked before 
 - `atomicassets-api` at its current `main` branch state (no release tag; indexer behavior and API surface are read from the running source tree; streaming and rate-limit pages pin `f6419858`)
 - `atomictools-contract` at commit `d89ce79e4` (the upstream repository has no release tag; the deployed `atomictoolsx` ABI on WAX matches this commit exactly)
 - `atomicassets-sdk` at main `80580c5` and `atomicmarket-sdk` at main `278bdfa` (both version 2.0.0)
+- `@wharfkit/antelope` at `1.1.1`
 - `@atomichub/vert` at `2.2.0`, commit `a8a4160`
 
 A page's `key-modules` frontmatter names the specific baseline(s) it draws from; entries below carry the same pin unless noted otherwise.
