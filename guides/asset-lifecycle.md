@@ -2,14 +2,14 @@
 scope: Creator flow on the `atomicassets` contract - create a collection, define a schema, optionally a template, mint assets, edit mutable data, transfer, and burn
 depends-on: [reference/atomicassets/structure.md, reference/atomicassets/actions.md, reference/wharfkit.md]
 key-modules:
-    - "atomicmarket-contract (v2.0.0-rc2): src/atomicmarket.cpp"
-    - "atomicassets-contract (v2.0.0-rc4): src/atomicassets.cpp"
+    - "atomicmarket-contract (v2.0.0): src/atomicmarket.cpp"
+    - "atomicassets-contract (v2.0.0): src/atomicassets.cpp"
     - "@atomichub/atomicassets 2.1.1 (atomicassets-sdk v2.1.1, 5c70c62): src/Actions/Generator.ts"
 ---
 
 # Create a collection and mint assets
 
-The full creator flow on the `atomicassets` contract: create a collection, define a schema, optionally create a template, mint assets, edit mutable data, transfer, and burn. Baseline is AtomicAssets V2; notes call out where V1 differed. Every data shape, required authorization, RAM payer, and failure mode below was checked against tag `v2.0.0-rc4` of `atomicassets-contract` (the release pinned for both testnets), `src/atomicassets.cpp`.
+The full creator flow on the `atomicassets` contract: create a collection, define a schema, optionally create a template, mint assets, edit mutable data, transfer, and burn. Baseline is AtomicAssets V2; notes call out where V1 differed. Every data shape, required authorization, RAM payer, and failure mode below was checked against tag `v2.0.0` of `atomicassets-contract` (the release pinned for both testnets), `src/atomicassets.cpp`.
 
 Each step shows the action's data as plain JSON first, then the same call through `@wharfkit/session`'s `session.transact()`. See [Build a session and sign](signing.md) for how that `session` is constructed and which chain it points at. `ATTRIBUTE_MAP` fields (`data`, `immutable_data`, `mutable_data`) serialize as an array of `{key, value}` pairs, where `value` is a two-element `[type, value]` variant. The `key`/`value` naming is only present in the patched release ABI; the raw CDT build names the same fields `first`/`second`. See [Contract releases and deployment](../reference/contract-releases.md#raw-vs-patched-abi) ("Raw vs patched ABI").
 
@@ -65,7 +65,7 @@ await session.transact({
 - RAM payer: `author`.
 - Fails when: a collection with this name already exists (`"A collection with this name already exists"`); `notify_accounts` is non-empty while `allow_notify` is false (`"Can't add notify_accounts if allow_notify is false"`); `authorized_accounts` or `notify_accounts` contains a nonexistent account or a duplicate; `market_fee` is outside `0` to `0.15` (the message is built with `std::to_string` of the `double` bound, so at runtime it reads `"The market_fee must be between 0 and 0.150000"`); or a `data` attribute named `name` exceeds 64 characters (`"Names (attribute with name: \"name\") can only be 64 characters max"`).
 
-Source: `atomicassets-contract src/atomicassets.cpp:91-158` (`createcol`), `atomicassets-contract src/atomicassets.cpp:141-142` (market_fee bound), `atomicassets-contract include/atomicassets.hpp:13` (`MAX_MARKET_FEE`), `atomicassets-contract src/atomicassets.cpp:1895-1905` (`check_name_length`)
+Source: `atomicassets-contract src/atomicassets.cpp:91-158` (`createcol`), `atomicassets-contract src/atomicassets.cpp:141-142` (market_fee bound), `atomicassets-contract include/atomicassets.hpp:13` (`MAX_MARKET_FEE`), `atomicassets-contract src/atomicassets.cpp:1898-1908` (`check_name_length`)
 
 ## Create a schema: createschema
 
@@ -108,7 +108,7 @@ await session.transact({
 - RAM payer: `authorized_creator`.
 - Fails when: the caller isn't an authorized account for the collection (`"Missing authorization for this collection"`); `schema_name` isn't 1 to 12 characters; a schema with this name already exists for the collection; any line's `type` isn't a recognized scalar or vector type, or a name is empty, over 64 characters, or duplicated; or the format omits a line with `name: "name"` and `type: "string"` (`"A format line with {\"name\": \"name\" and \"type\": \"string\"} needs to be defined for every schema"`).
 
-Source: `atomicassets-contract src/atomicassets.cpp:450-475` (`createschema`), `atomicassets-contract src/atomicassets.cpp:1861-1875` (`check_has_collection_auth`, collection authorization), `atomicassets-contract include/checkformat.hpp:32-97` (format validation)
+Source: `atomicassets-contract src/atomicassets.cpp:453-478` (`createschema`), `atomicassets-contract src/atomicassets.cpp:1864-1878` (`check_has_collection_auth`, collection authorization), `atomicassets-contract include/checkformat.hpp:32-97` (format validation)
 
 ## Create a template: createtempl
 
@@ -157,7 +157,7 @@ await session.transact({
 - RAM payer: `authorized_creator`.
 - Fails when: no schema with `schema_name` exists for the collection; both `transferable` and `burnable` are false (`"A template cannot be both non-transferable and non-burnable"`); or an `immutable_data`/`mutable_data` attribute named `name` exceeds 64 characters. `max_supply: 0` is valid and means unlimited.
 
-Source: `atomicassets-contract src/atomicassets.cpp:566-576` (`createtempl`), `atomicassets-contract src/atomicassets.cpp:1579-1655` (`internal_create_template`, shared by `createtempl`/`createtempl2`)
+Source: `atomicassets-contract src/atomicassets.cpp:569-579` (`createtempl`), `atomicassets-contract src/atomicassets.cpp:1582-1658` (`internal_create_template`, shared by `createtempl`/`createtempl2`)
 
 ## Mint an asset: mintasset
 
@@ -202,7 +202,7 @@ Pass `template_id: -1` to mint a templateless asset carrying its own `immutable_
 
 **Changed in V2:** native token backing (the `tokens_to_back` parameter and the `backasset` action) is deprecated: any non-empty `tokens_to_back` aborts the mint, and `backasset` unconditionally fails. Under V1 both were functional and moved real token balances onto the asset.
 
-Source: `atomicassets-contract src/atomicassets.cpp:697-788` (`mintasset`, backing guard at `:786-787`), V1 backing behavior in this repo's V1 tree (`contracts/atomicassets-contract/src/atomicassets.cpp`)
+Source: `atomicassets-contract src/atomicassets.cpp:700-791` (`mintasset`, backing guard at `:789-790`), V1 backing behavior in this repo's V1 tree (`contracts/atomicassets-contract/src/atomicassets.cpp`)
 
 ### Building the same mint through the SDK
 
@@ -267,7 +267,7 @@ Pass `asset_id` as a string in the action data. See [AtomicMarket V2 changes](..
 - RAM payer: reassigned to `authorized_editor` on every call (`_asset.ram_payer = authorized_editor`), replacing whoever paid before, including the original minter.
 - Fails when: no asset with `asset_id` exists for `asset_owner`; the caller isn't authorized for the asset's collection; or a `new_mutable_data` attribute named `name` exceeds 64 characters.
 
-Source: `atomicassets-contract src/atomicassets.cpp:796-836`
+Source: `atomicassets-contract src/atomicassets.cpp:799-839`
 
 ## Transfer an asset: transfer
 
@@ -300,7 +300,7 @@ await session.transact({
 - RAM payer: unchanged for an existing scope; the row keeps whoever originally paid for it. If `to` has never held any AtomicAssets asset before, a new scope must be created, and `from` implicitly pays for it (the transfer aborts if `from` hasn't authorized the action, which it always has, since `from` is the one calling `transfer`).
 - Fails when: `to` isn't a registered account; `from` equals `to`; `asset_ids` is empty or contains a repeated id; the memo exceeds 256 characters; `from` doesn't own one of the listed assets (`"Sender doesn't own at least one of the provided assets"`); or at least one asset's template has `transferable: false` (`"At least one asset isn't transferable"`). The contract appends the offending id to both of these messages as a ` (ID: <asset_id>)` suffix, so a match on either string should allow for the trailing id.
 
-Source: `atomicassets-contract src/atomicassets.cpp:76-86` (`transfer` action), `atomicassets-contract src/atomicassets.cpp:1665-1761` (`internal_transfer`, shared with `acceptoffer`)
+Source: `atomicassets-contract src/atomicassets.cpp:76-86` (`transfer` action), `atomicassets-contract src/atomicassets.cpp:1668-1764` (`internal_transfer`, shared with `acceptoffer`)
 
 ## Burn an asset: burnasset
 
@@ -329,7 +329,7 @@ await session.transact({
 - RAM payer: none afterward; the row and its RAM are released back to whoever paid for it. If the asset carries any `backed_tokens`, `burnasset` credits them to the owner's `balances` row before erasing the asset. That crediting code is retained in V2, so a legacy V1-backed asset still pays out its backing on burn; V2 only makes new backing impossible (`backasset` aborts and `mintasset` rejects a non-empty `tokens_to_back`), so no freshly-minted asset can accumulate a balance to release.
 - Fails when: no asset with `asset_id` exists for `asset_owner`, or the asset's template has `burnable: false` (`"The asset is not burnable"`). Templateless assets (`template_id: -1`) are always burnable.
 
-Source: `atomicassets-contract src/atomicassets.cpp:1096-1177` (`burnasset`, backed-token crediting at `:1112-1145`)
+Source: `atomicassets-contract src/atomicassets.cpp:1099-1180` (`burnasset`, backed-token crediting at `:1115-1148`)
 
 ## See also
 

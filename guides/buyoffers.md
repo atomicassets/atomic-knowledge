@@ -2,8 +2,8 @@
 scope: How to create, accept, decline, and cancel AtomicMarket asset and template buyoffers, whose price leaves the buyer's deposited balance at creation
 depends-on: [reference/atomicmarket/actions.md, guides/deposits.md, reference/api.md]
 key-modules:
-    - "atomicmarket-contract (v2.0.0-rc2): src/atomicmarket.cpp"
-    - "atomicassets-contract (v2.0.0-rc4): src/atomicassets.cpp"
+    - "atomicmarket-contract (v2.0.0): src/atomicmarket.cpp"
+    - "atomicassets-contract (v2.0.0): src/atomicassets.cpp"
     - "@atomichub/atomicmarket 2.4.1 (atomicmarket-sdk v2.4.1, 437300b): src/Actions/Generator.ts"
 ---
 

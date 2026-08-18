@@ -1,7 +1,7 @@
 ---
 scope: Action reference for the `atomicmarket` contract - admin, marketplaces, balances, royalty config, sales, auctions, buyoffers, template buyoffers, and RAM
 depends-on: [reference/atomicmarket/tables.md, reference/atomicassets/actions.md]
-key-modules: ["atomicmarket-contract (v2.0.0-rc2): src/atomicmarket.cpp, include/atomicmarket.hpp"]
+key-modules: ["atomicmarket-contract (v2.0.0): src/atomicmarket.cpp, include/atomicmarket.hpp"]
 ---
 
 # AtomicMarket actions

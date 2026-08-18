@@ -1,12 +1,12 @@
 ---
 scope: Complete table reference for the `atomicassets` contract - collections, schemas, templates, assets, offers, balances, config, and the V2-only tables
 depends-on: [reference/atomicassets/structure.md]
-key-modules: ["atomicassets-contract (v2.0.0-rc4): src/atomicassets.cpp, include/atomicassets.hpp"]
+key-modules: ["atomicassets-contract (v2.0.0): src/atomicassets.cpp, include/atomicassets.hpp"]
 ---
 
 # AtomicAssets tables
 
-Complete table reference for the `atomicassets` contract, baselined on tag `v2.0.0-rc4` of `atomicassets-contract` (the release pinned for both `wax-testnet` and `jungle4-testnet`). Struct and typedef citations are to `include/atomicassets.hpp`; behavior citations are to `src/atomicassets.cpp`. "Changed in V2" notes compare against the V1 `atomicassets-contract` source.
+Complete table reference for the `atomicassets` contract, baselined on tag `v2.0.0` of `atomicassets-contract` (the release pinned for both `wax-testnet` and `jungle4-testnet`). Struct and typedef citations are to `include/atomicassets.hpp`; behavior citations are to `src/atomicassets.cpp`. "Changed in V2" notes compare against the V1 `atomicassets-contract` source.
 
 Live-chain status: see [AtomicAssets V2 upgrade](v2-upgrade.md#deployment-status) ("Deployment status"); the V2-only tables below (`authorswaps`, `schematypes`, `templates2`) do not exist on WAX mainnet yet. An abandoned custodial-rentals design left a `holders` table on unreleased development branches; it ships in no tagged release and is not documented here. See [AtomicAssets actions](actions.md#ram-payer-reassignment-replaces-descoped-custodial-rentals) ("RAM-payer reassignment (replaces descoped custodial rentals)").
 
@@ -27,11 +27,11 @@ Secondary indexes: none.
 | `collection_name` | `name` | The collection whose authorship is being reassigned. Also the primary key. |
 | `current_author` | `name` | The collection's author at the moment the swap was created; re-checked against the live `collections.author` on accept/reject as a consistency guard. |
 | `new_author` | `name` | The account the swap would make the new author. |
-| `acceptance_date` | `uint32_t` | Unix seconds after which `acceptauswap` becomes callable: `now` if the swap was created under the author's `owner` permission, `now + 604800` (one week) otherwise. |
+| `acceptance_date` | `uint32_t` | Unix seconds at or after which `acceptauswap` is callable (the boundary second passes): `now` if the swap was created under the author's `owner` permission, `now + 604800` (one week) otherwise. |
 
 A row exists only while a swap is pending; `acceptauswap` and `rejectauswap` both erase it. Changed in V2: this table does not exist in V1 (collection authorship there is fixed at creation).
 
-Source: `include/atomicassets.hpp:337-345`, `src/atomicassets.cpp:357-449` (`createauswap`, `acceptauswap`, `rejectauswap`)
+Source: `include/atomicassets.hpp:337-345`, `src/atomicassets.cpp:357-445` (`createauswap`, `acceptauswap`, `rejectauswap`)
 
 ## collections
 
@@ -55,7 +55,7 @@ Secondary indexes: none.
 
 See [AtomicAssets data model structure](structure.md#authorization-and-the-24-account-cap) ("Authorization and the 24-account cap") for why both lists are capped at 24.
 
-Source: `include/atomicassets.hpp:348-359`, `src/atomicassets.cpp:91-166` (`createcol`), `src/atomicassets.cpp:1804-1856` (`partial_read_collection`)
+Source: `include/atomicassets.hpp:348-359`, `src/atomicassets.cpp:91-166` (`createcol`), `src/atomicassets.cpp:1807-1859` (`partial_read_collection`)
 
 Live chain example (`wax.greymass.com get_table_rows`, `code=atomicassets`, `scope=atomicassets`, `table=collections`, one row, byte fields elided):
 
@@ -81,7 +81,7 @@ Secondary indexes: none.
 
 Append-only: `extendschema` is the only action that changes an existing row, and it can only add lines to the end of `format`, never remove or reorder them.
 
-Source: `include/atomicassets.hpp:363-369`, `src/atomicassets.cpp:450-513` (`createschema`, `extendschema`)
+Source: `include/atomicassets.hpp:363-369`, `src/atomicassets.cpp:453-516` (`createschema`, `extendschema`)
 
 Live chain example (`scope=farmersworld`, `table=schemas`, `lower_bound=memberships`):
 
@@ -111,7 +111,7 @@ Written only by `setschematyp`, which fully replaces the row's `format_type` vec
 
 Do not treat the API's `mediatype`/`info` fields as evidence of a `schematypes` row. The atomicassets-api includes `mediatype` and `info` on every attribute of a schema's `format` in its HTTP response even when the on-chain `schematypes` table has no row for that schema: with no descriptor set it defaults `mediatype` to the attribute's own `name` and `info` to `null`. To know whether a real `FORMAT_TYPE` descriptor was set, read the `schematypes` table on chain rather than inferring it from the API's schema response. This synthesis ships in atomicassets-api 2.0.0 (live-confirmed on the wax-testnet deployment, which reports that version on `/health`); deployments on the 1.7 line, including the WAX mainnet reference deployment at the time of the read, return schema `format` entries as plain `{name, type}` with no `mediatype`/`info` fields at all.
 
-Source: `include/atomicassets.hpp:373-379`, `src/atomicassets.cpp:514-565` (`setschematyp`)
+Source: `include/atomicassets.hpp:373-379`, `src/atomicassets.cpp:517-568` (`setschematyp`)
 
 ## templates
 
@@ -133,7 +133,7 @@ Secondary indexes: none.
 | `issued_supply` | `uint32_t` | Incremented by every `mintasset` against this template; must stay `< max_supply` when `max_supply > 0`. Also the value `deltemplate` requires to be exactly 0. No action decrements it, `burnasset` included, so it counts lifetime mints rather than circulating supply; a circulating supply must subtract burns. |
 | `immutable_serialized_data` | `vector<uint8_t>` | Set once at `createtempl`/`createtempl2`; no action changes it afterward. |
 
-Source: `include/atomicassets.hpp:383-394`, `src/atomicassets.cpp:566-696` (create/lock/reduce/delete actions), `src/atomicassets.cpp:1613-1689` (`internal_create_template`), `src/atomicassets.cpp:1096-1177` (`burnasset`, which reads the row for the `burnable` check and never writes it)
+Source: `include/atomicassets.hpp:383-394`, `src/atomicassets.cpp:569-699` (create/lock/reduce/delete actions), `src/atomicassets.cpp:1582-1658` (`internal_create_template`), `src/atomicassets.cpp:1099-1180` (`burnasset`, which reads the row for the `burnable` check and never writes it)
 
 Live chain example (`scope=farmersworld`, `table=templates`, `lower_bound=260638`, byte field elided):
 
@@ -160,7 +160,7 @@ Secondary indexes: none.
 
 A row exists only while the template's mutable data is non-empty: `settempldata` erases the row when called with an empty map, and `createtempl2` only creates one when given non-empty `mutable_data`. Its absence means "no mutable template data set for this template," not "empty bytes for it." Changed in V2: this table (and the whole idea of mutable template data) does not exist in V1; `createtempl` there is the only creation action, and every template's data is fixed forever.
 
-Source: `include/atomicassets.hpp:398-405`, `src/atomicassets.cpp:583-599` (`createtempl2`), `src/atomicassets.cpp:846-913` (`settempldata`)
+Source: `include/atomicassets.hpp:398-405`, `src/atomicassets.cpp:586-602` (`createtempl2`), `src/atomicassets.cpp:849-916` (`settempldata`)
 
 ## assets
 
@@ -183,7 +183,7 @@ Secondary indexes: none.
 | `immutable_serialized_data` | `vector<uint8_t>` | Set once at `mintasset`; never changed by any later action; copied verbatim on every transfer. |
 | `mutable_serialized_data` | `vector<uint8_t>` | Set at `mintasset`; the only one of the two data fields an authorized editor can change later, via `setassetdata`. |
 
-Source: `include/atomicassets.hpp:409-421`, `src/atomicassets.cpp:697-788` (`mintasset`), `src/atomicassets.cpp:796-845` (`setassetdata`), `src/atomicassets.cpp:1096-1177` (`burnasset`), `src/atomicassets.cpp:1665-1761` (`internal_transfer`)
+Source: `include/atomicassets.hpp:409-421`, `src/atomicassets.cpp:700-791` (`mintasset`), `src/atomicassets.cpp:799-848` (`setassetdata`), `src/atomicassets.cpp:1099-1180` (`burnasset`), `src/atomicassets.cpp:1668-1764` (`internal_transfer`)
 
 Live chain example (`scope=farmersworld`, `table=assets`, one row, byte fields elided):
 
@@ -212,7 +212,7 @@ Secondary indexes: `sender` (`sender.value`, index name `sender`), `recipient` (
 | `memo` | `string` | Up to 256 characters. |
 | `ram_payer` | `name` | Who currently pays for this row's RAM; reassignable to any account via `payofferram` regardless of that account's relationship to the offer. |
 
-Source: `include/atomicassets.hpp:424-442`, `src/atomicassets.cpp:1185-1401` (`createoffer` through `payofferram`)
+Source: `include/atomicassets.hpp:424-442`, `src/atomicassets.cpp:1188-1404` (`createoffer` through `payofferram`)
 
 Live chain example (`scope=atomicassets`, `table=offers`, one row):
 
@@ -236,7 +236,7 @@ Secondary indexes: none.
 | `owner` | `name` | The account the balance belongs to. Also the primary key. |
 | `quantities` | `vector<asset>` | One entry per announced token symbol. An entry is added by `announcedepo` (as a zero amount) or incremented by a deposit; an entry is removed entirely once its amount reaches exactly zero via `withdraw`, and the whole row is erased if that was the last entry. A given (owner, symbol) pair that hits zero this way needs `announcedepo` called again before it can receive further deposits, even if the row still exists for other symbols. |
 
-Source: `include/atomicassets.hpp:445-451`, `src/atomicassets.cpp:990-1039` (`announcedepo`), `src/atomicassets.cpp:1040-1078` (`withdraw`), `src/atomicassets.cpp:1402-1444` (`receive_token_transfer`), `src/atomicassets.cpp:1768-1801` (`internal_decrease_balance`)
+Source: `include/atomicassets.hpp:445-451`, `src/atomicassets.cpp:993-1042` (`announcedepo`), `src/atomicassets.cpp:1043-1081` (`withdraw`), `src/atomicassets.cpp:1405-1447` (`receive_token_transfer`), `src/atomicassets.cpp:1771-1804` (`internal_decrease_balance`)
 
 Live chain example (`scope=atomicassets`, `table=balances`, three rows):
 

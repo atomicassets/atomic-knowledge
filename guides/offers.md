@@ -1,12 +1,12 @@
 ---
 scope: The `atomicassets` createoffer, acceptoffer, declineoffer, and canceloffer trade primitive, what invalidates an offer, and how AtomicMarket sales use it
 depends-on: [reference/atomicassets/actions.md]
-key-modules: ["atomicmarket-contract (v2.0.0-rc2): src/atomicmarket.cpp", "atomicassets-contract (v2.0.0-rc4): src/atomicassets.cpp"]
+key-modules: ["atomicmarket-contract (v2.0.0): src/atomicmarket.cpp", "atomicassets-contract (v2.0.0): src/atomicassets.cpp"]
 ---
 
 # Offers: the native two-sided trade flow
 
-`atomicassets` offers are the contract's only built-in trade primitive: a sender proposes swapping some of their assets for some of a recipient's, the recipient accepts or declines, and either side can back out before that happens. AtomicMarket sales and buyoffers are built on top of this primitive rather than moving assets directly (sales use an offer with memo `"sale"`, buyoffers use memos `"buyoffer"` and `"tbuyoffer"`); see "How AtomicMarket sales use offers" below for how the two connect. AtomicMarket auctions are the exception: they do not use offers at all. A seller escrows the asset by a direct AtomicAssets `transfer` to the `atomicmarket` contract with the memo `"auction"`, which the contract's `receive_asset_transfer` handler picks up. Behavior here is unchanged between V1 and V2. AtomicAssets line citations below are against tag `v2.0.0-rc4` of `atomicassets-contract` (the release pinned for both testnets).
+`atomicassets` offers are the contract's only built-in trade primitive: a sender proposes swapping some of their assets for some of a recipient's, the recipient accepts or declines, and either side can back out before that happens. AtomicMarket sales and buyoffers are built on top of this primitive rather than moving assets directly (sales use an offer with memo `"sale"`, buyoffers use memos `"buyoffer"` and `"tbuyoffer"`); see "How AtomicMarket sales use offers" below for how the two connect. AtomicMarket auctions are the exception: they do not use offers at all. A seller escrows the asset by a direct AtomicAssets `transfer` to the `atomicmarket` contract with the memo `"auction"`, which the contract's `receive_asset_transfer` handler picks up. Behavior here is unchanged between V1 and V2. AtomicAssets line citations below are against tag `v2.0.0` of `atomicassets-contract` (the release pinned for both testnets).
 
 Each action's data shape is plain JSON first, then the same call through `@wharfkit/session`'s `session.transact()`, which [Build a session and sign](signing.md) constructs. Only asset ids need the string treatment: see [AtomicMarket V2 changes](../reference/atomicmarket/v2-changes.md#large-integers-serialize-as-strings) ("Large integers serialize as strings") for why. `template_id` is an `int32_t`, and offer ids are a small contract-wide `uint64` counter (a live `offers` row reads `offer_id: 7`); both stay well inside the safe-integer range and serialize as bare JSON numbers, as the numeric `offer_id` examples below do. See [@wharfkit/antelope client behavior](../reference/wharfkit.md).
 
@@ -47,7 +47,7 @@ await session.transact({
 
 Ownership and transferability are checked at creation time only; they are re-checked again at `acceptoffer`, not continuously. See "What invalidates an offer" below.
 
-Source: `atomicassets-contract src/atomicassets.cpp:1185-1273`
+Source: `atomicassets-contract src/atomicassets.cpp:1188-1276`
 
 ## Accept an offer: acceptoffer
 
@@ -76,7 +76,7 @@ Accepting re-verifies ownership of every listed asset, then runs both transfers 
 - RAM payer: split, not uniform. Assets moving from recipient to sender use the offer's current RAM payer as the scope payer for any new scope the sender needs; assets moving from sender to recipient have the recipient cover their own new scope. In practice this means accepting an offer that requires you to hold an asset type for the first time can implicitly charge your own RAM, not the offer creator's.
 - Fails when: the sender or recipient no longer owns one of the listed assets (see below).
 
-Source: `atomicassets-contract src/atomicassets.cpp:1299-1350`, `atomicassets-contract src/atomicassets.cpp:1665-1761` (`internal_transfer`, shared transfer logic)
+Source: `atomicassets-contract src/atomicassets.cpp:1302-1353`, `atomicassets-contract src/atomicassets.cpp:1668-1764` (`internal_transfer`, shared transfer logic)
 
 ## Decline an offer: declineoffer
 
@@ -99,7 +99,7 @@ await session.transact({
 - RAM payer: not applicable; the row is erased and its RAM released to whoever paid for it.
 - Fails when: no offer with `offer_id` exists.
 
-Source: `atomicassets-contract src/atomicassets.cpp:1358-1368`
+Source: `atomicassets-contract src/atomicassets.cpp:1361-1371`
 
 ## Cancel an offer: canceloffer
 
@@ -122,7 +122,7 @@ await session.transact({
 - RAM payer: not applicable; the row is erased.
 - Fails when: no offer with `offer_id` exists.
 
-Source: `atomicassets-contract src/atomicassets.cpp:1280-1290`
+Source: `atomicassets-contract src/atomicassets.cpp:1283-1293`
 
 ## Reassign the RAM payer: payofferram
 
@@ -149,7 +149,7 @@ The action erases the offer row and re-emplaces an identical copy paid for by `p
 - RAM payer: `payer`, after the call.
 - Fails when: no offer with `offer_id` exists.
 
-Source: `atomicassets-contract src/atomicassets.cpp:1377-1395`
+Source: `atomicassets-contract src/atomicassets.cpp:1380-1398`
 
 ## What invalidates an offer
 
@@ -160,7 +160,7 @@ Source: `atomicassets-contract src/atomicassets.cpp:1377-1395`
 
 Either way, `acceptoffer` fails with `"Offer sender doesn't own at least one of the provided assets"` (or the recipient equivalent), and the offer row is left untouched, since the failed transaction makes no state changes. The contract appends the offending id to that string as a ` (ID: <asset_id>)` suffix (the same suffix `createoffer` and `transfer` add to their ownership and transferability errors), so a match on the message should allow for the trailing id. A stale offer is not pruned automatically: it stays in the `offers` table, discoverable by anyone reading it, until its sender calls `canceloffer`, its recipient calls `declineoffer`, or a failed `acceptoffer` prompts one of them to clean it up. Indexers and UIs that show pending offers should not assume a listed offer is still fulfillable.
 
-Source: `atomicassets-contract src/atomicassets.cpp:1313-1325` (ownership re-check in `acceptoffer`), `atomicassets-contract src/atomicassets.cpp:1096-1177` (`burnasset` erase)
+Source: `atomicassets-contract src/atomicassets.cpp:1316-1328` (ownership re-check in `acceptoffer`), `atomicassets-contract src/atomicassets.cpp:1099-1180` (`burnasset` erase)
 
 ## How AtomicMarket sales use offers
 

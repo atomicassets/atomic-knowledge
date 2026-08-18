@@ -1,12 +1,12 @@
 ---
 scope: The AtomicAssets data model - collections, schemas, templates, and assets - the authorization model governing them, and how each table is scoped
 depends-on: []
-key-modules: ["atomicassets-contract (v2.0.0-rc4): src/atomicassets.cpp, include/atomicassets.hpp"]
+key-modules: ["atomicassets-contract (v2.0.0): src/atomicassets.cpp, include/atomicassets.hpp"]
 ---
 
 # AtomicAssets data model structure
 
-The `atomicassets` contract organizes assets in four levels: collections group schemas and templates and hold the authorization rules, schemas declare the attribute formats a collection's data serializes to, templates carry immutable data shared by many assets, and assets are the individual items an account owns. Baseline behavior below is V2, tag `v2.0.0-rc4` of `atomicassets-contract` (the release pinned for both testnets: `include/atomicassets.hpp`, `src/atomicassets.cpp`); "Changed in V2" notes call out where V1 differs enough to matter to an integrator.
+The `atomicassets` contract organizes assets in four levels: collections group schemas and templates and hold the authorization rules, schemas declare the attribute formats a collection's data serializes to, templates carry immutable data shared by many assets, and assets are the individual items an account owns. Baseline behavior below is V2, tag `v2.0.0` of `atomicassets-contract` (the release pinned for both testnets: `include/atomicassets.hpp`, `src/atomicassets.cpp`); "Changed in V2" notes call out where V1 differs enough to matter to an integrator.
 
 ```mermaid
 flowchart TD
@@ -48,7 +48,7 @@ Schemas can only be extended, never edited retroactively: `extendschema` appends
 
 Changed in V2: schema type descriptors. The `schema_types` table (`setschematyp` action) attaches an optional `FORMAT_TYPE { name, mediatype, info }` per attribute - a human-readable description and, for binary-carrying types, a media type hint (for example marking an `ipfs` attribute as a `.glb` 3D model). It is metadata only: it does not affect serialization and every named attribute must already exist in the schema's `format`. V1 has no equivalent table.
 
-Source: `include/atomicdata.hpp:35-44` (`FORMAT`, `FORMAT_TYPE`), `include/checkformat.hpp:32-97` (`check_format`), `include/checkformat.hpp:95-96` (mandatory name/string line), `include/checkformat.hpp:89-90` (uniqueness), `include/atomicassets.hpp:363-379` (schemas and schema_types tables), `src/atomicassets.cpp:450-475` (createschema), `src/atomicassets.cpp:482-506` (extendschema, append-only), `src/atomicassets.cpp:514-560` (setschematyp)
+Source: `include/atomicdata.hpp:35-44` (`FORMAT`, `FORMAT_TYPE`), `include/checkformat.hpp:32-97` (`check_format`), `include/checkformat.hpp:95-96` (mandatory name/string line), `include/checkformat.hpp:89-90` (uniqueness), `include/atomicassets.hpp:363-379` (schemas and schema_types tables), `src/atomicassets.cpp:453-478` (createschema), `src/atomicassets.cpp:485-509` (extendschema, append-only), `src/atomicassets.cpp:517-563` (setschematyp)
 
 Live chain observation (wax.greymass.com `get_table_rows`, `code=atomicassets`, `scope=alien.worlds`, `table=schemas`): the `faces.worlds`-adjacent schema `arms.worlds` returns `format: [{"name":"cardid","type":"uint16"}, {"name":"name","type":"string"}, {"name":"img","type":"image"}, ...]` - an ordered vector matching this layout exactly.
 
@@ -62,7 +62,7 @@ Templates are optional: `mintasset` accepts `template_id = -1` to mint a schemal
 
 Changed in V2: mutable template data. The `template_mutables` table (contract table name `templates2`), scoped like `templates` by `collection_name` and keyed by the same `template_id`, holds a `mutable_serialized_data` field that can be set at creation (`createtempl2`) or changed later (`settempldata`). A template row here only exists once non-empty mutable data has been set; `settempldata` with an empty map erases the row instead of leaving an empty one. V1 templates have no mutable data at all - `createtempl` is the only creation action there, and every template's data is fixed forever at creation.
 
-Source: `include/atomicassets.hpp:383-405` (templates and template_mutables tables), `include/atomicassets.hpp:456` (template_counter default), `src/atomicassets.cpp:566-594` (createtempl / createtempl2), `src/atomicassets.cpp:600-624` (deltemplate), `src/atomicassets.cpp:631-653` (locktemplate), `src/atomicassets.cpp:661-689` (redtemplmax), `src/atomicassets.cpp:846-907` (settempldata, emplace/modify/erase branching), `src/atomicassets.cpp:1579-1655` (internal_create_template)
+Source: `include/atomicassets.hpp:383-405` (templates and template_mutables tables), `include/atomicassets.hpp:456` (template_counter default), `src/atomicassets.cpp:569-597` (createtempl / createtempl2), `src/atomicassets.cpp:603-627` (deltemplate), `src/atomicassets.cpp:634-656` (locktemplate), `src/atomicassets.cpp:664-692` (redtemplmax), `src/atomicassets.cpp:849-910` (settempldata, emplace/modify/erase branching), `src/atomicassets.cpp:1582-1658` (internal_create_template)
 
 Live chain observation (wax.greymass.com, `scope=alien.worlds`, `table=templates`): template `13728` returns `max_supply: 403, issued_supply: 403` (locked at its cap) alongside its `immutable_serialized_data` byte vector; template `17453` shows `max_supply: 0` (unlimited) with `issued_supply: 415`.
 
@@ -74,7 +74,7 @@ An asset's fields: `collection_name` and `schema_name` (fixed at mint time), `te
 
 Changed in V2: RAM-payer reassignment. Two actions let an asset's `ram_payer` be reassigned without a transfer, replacing an abandoned custodial-rentals design that never shipped. See [AtomicAssets actions](actions.md#ram-payer-reassignment-replaces-descoped-custodial-rentals) ("RAM-payer reassignment (replaces descoped custodial rentals)"). V1 has neither the reassignment actions nor the abandoned design.
 
-Source: `include/atomicassets.hpp:409-421` (assets table), `include/atomicassets.hpp:455` (asset_counter default), `src/atomicassets.cpp:697-788` (mintasset), `src/atomicassets.cpp:796-836` (setassetdata), `src/atomicassets.cpp:1079-1087` (backasset deprecated)
+Source: `include/atomicassets.hpp:409-421` (assets table), `include/atomicassets.hpp:455` (asset_counter default), `src/atomicassets.cpp:700-791` (mintasset), `src/atomicassets.cpp:799-839` (setassetdata), `src/atomicassets.cpp:1082-1090` (backasset deprecated)
 
 Live chain observation (wax.api.atomicassets.io `/atomicassets/v1/assets?collection_name=alien.worlds&template_id=13728`): asset `1099511946686`, owned by `wombatmaster`, carries empty `immutable_data` and `mutable_data` objects of its own - all of its displayed attributes come from the template (see [Attribute data precedence](data-precedence.md)).
 
@@ -86,7 +86,7 @@ Three levels of authority operate over a collection and everything scoped under 
 - **Authorized accounts** (`collections.authorized_accounts`, capped at 24) - can create and edit schemas, templates, and assets belonging to the collection. Every action gated this way calls `check_has_collection_auth(account, collection_name)`, which both requires the caller's own authorization and checks list membership; it does not require being the author.
 - **Notify accounts** (`collections.notify_accounts`, capped at 24, gated by `allow_notify`) - not authorization at all, but a `require_recipient` notification list: every relevant action for the collection will attempt to notify these accounts' smart contracts, so a notify account with a throwing `on_notify` handler can block the action. The 24-account cap on both lists exists partly to bound the low-level partial-row read the contract uses to check membership without deserializing a collection's full (and potentially multi-kilobyte) `serialized_data`. This cap is new in V2 for `notify_accounts`: V1's `addnotifyacc` enforced no limit on the list's size.
 
-Source: `src/atomicassets.cpp:167-442` (author-only and auth-gated actions), `src/atomicassets.cpp:1823-1888` (`partial_read_collection`, `check_has_collection_auth`, `notify_collection_accounts`), `src/atomicassets.cpp:127-128` (24-account cap, createcol), `src/atomicassets.cpp:212` (24-account cap, addcolauth), `src/atomicassets.cpp:274` (24-account cap, addnotifyacc)
+Source: `src/atomicassets.cpp:167-445` (author-only and auth-gated actions), `src/atomicassets.cpp:1826-1891` (`partial_read_collection`, `check_has_collection_auth`, `notify_collection_accounts`), `src/atomicassets.cpp:127-128` (24-account cap, createcol), `src/atomicassets.cpp:212` (24-account cap, addcolauth), `src/atomicassets.cpp:274` (24-account cap, addnotifyacc)
 
 ## Table scoping summary
 

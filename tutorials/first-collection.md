@@ -3,7 +3,7 @@ scope: The one path from an empty WAX testnet account to a minted asset, through
 depends-on: [guides/signing.md, guides/asset-lifecycle.md, reference/atomicassets/structure.md, reference/sdk/atomicassets.md]
 key-modules:
     - "atomicassets-sdk (v2.1.1, 5c70c62): src/Actions/Generator.ts"
-    - "atomicassets-contract (v2.0.0-rc4): src/atomicassets.cpp"
+    - "atomicassets-contract (v2.0.0): src/atomicassets.cpp"
 ---
 
 # Mint your first asset on testnet

@@ -1,7 +1,7 @@
 ---
 scope: AtomicMarket's internal balances ledger - depositing with the transfer memo, what consumes a balance, withdrawing, who pays RAM, and supported tokens
 depends-on: [reference/atomicmarket/actions.md, reference/atomicmarket/ram.md]
-key-modules: ["atomicmarket-contract (v2.0.0-rc2): src/atomicmarket.cpp", "atomicassets-contract (v2.0.0-rc4): src/atomicassets.cpp"]
+key-modules: ["atomicmarket-contract (v2.0.0): src/atomicmarket.cpp", "atomicassets-contract (v2.0.0): src/atomicassets.cpp"]
 ---
 
 # Balances and deposits

@@ -1,7 +1,7 @@
 ---
 scope: V2 changes index for the `atomicmarket` contract, plus the two facts that live only here - the defensive guards and uint64 JSON serialization as strings
 depends-on: [reference/atomicmarket/fees-and-royalties.md, reference/atomicmarket/actions.md, reference/atomicmarket/tables.md]
-key-modules: ["atomicmarket-contract (v2.0.0-rc2): src/atomicmarket.cpp, include/atomicmarket.hpp"]
+key-modules: ["atomicmarket-contract (v2.0.0): src/atomicmarket.cpp, include/atomicmarket.hpp"]
 ---
 
 # AtomicMarket V2 changes
