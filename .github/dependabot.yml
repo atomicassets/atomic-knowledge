@@ -1,0 +1,11 @@
+# The only dependencies this repository declares are the actions its workflow
+# pins by commit. Dependabot keeps those pins moving; the corpus itself has no
+# package manifest to watch.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: ci
