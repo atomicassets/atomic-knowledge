@@ -8,7 +8,7 @@ key-modules: ["atomicmarket-contract (v2.0.0-rc2): src/atomicmarket.cpp", "atomi
 
 How AtomicMarket's internal token balance system works: depositing, what consumes a deposited balance, withdrawing, RAM, and which tokens are accepted. Baseline is AtomicMarket V2 (`atomicmarket-contract`); the balance mechanics below are unchanged from V1 unless noted.
 
-AtomicMarket never moves tokens directly between wallets during a sale, auction, or buyoffer settlement; every payout is routed through the internal `balances` ledger first. But the payout is not uniform. The seller's settlement cut (and, for a buyoffer, the recipient's cut) is credited to their balance and then immediately auto-withdrawn to their wallet in the same settlement, via `internal_withdraw_tokens` on the shared `internal_payout_sale` path that `purchasesale`, auction claim, `acceptbuyo`, and `fulfilltbuyo` all reach. Everything else stays parked in `balances` pending a manual `withdraw`: marketplace (maker and taker) fees, the collection fee, royalty splits, and bonus fees are each credited to their recipient's row and sit there until that recipient withdraws.
+AtomicMarket never moves tokens directly between accounts during a sale, auction, or buyoffer settlement; every payout is routed through the internal `balances` ledger first. But the payout is not uniform. The seller's settlement cut (and, for a buyoffer, the recipient's cut) is credited to their balance and then immediately auto-withdrawn to their account in the same settlement, via `internal_withdraw_tokens` on the shared `internal_payout_sale` path that `purchasesale`, auction claim, `acceptbuyo`, and `fulfilltbuyo` all reach. Everything else stays parked in `balances` pending a manual `withdraw`: marketplace (maker and taker) fees, the collection fee, royalty splits, and bonus fees are each credited to their recipient's row and sit there until that recipient withdraws.
 
 ## Depositing tokens
 
@@ -50,7 +50,7 @@ Source: `atomicmarket-contract src/atomicmarket.cpp:1870-1882` (`receive_token_t
 These actions deduct from the caller's deposited balance rather than accepting a token transfer inline, because the balance must already be escrowed before the contract can commit to a trade:
 
 - **`createbuyo`** / **`createtbuyo`**: the offered `price` is deducted from the buyer's balance at creation time, before any counterparty has acted. See `guides/buyoffers.md`.
-- **`auctionbid`**: the `bid` amount is deducted from the bidder's balance when the bid is placed. If the bid outbids an existing bidder, that bidder's previous bid is credited back to their balance (not transferred to their wallet); they must `withdraw` it themselves.
+- **`auctionbid`**: the `bid` amount is deducted from the bidder's balance when the bid is placed. If the bid outbids an existing bidder, that bidder's previous bid is credited back to their balance (not transferred to their account); they must `withdraw` it themselves.
 - **`purchasesale`**: the settlement price (which can differ from the listed price for stable-priced sales, via `calc_settlement_price`) is deducted from the buyer's balance at purchase time.
 
 Declining, cancelling, or being outbid always credits the balance back rather than transferring tokens out. Every one of these paths goes through the same `internal_add_balance` / `internal_decrease_balance` pair that deposits and withdrawals use.

@@ -58,7 +58,7 @@ await session.transact({
 - RAM payer: `creator` pays for the new `links` row.
 - Fails when: `asset_ids` is empty; the memo exceeds 256 characters; `creator` does not currently own one of the assets; a listed asset's template has `transferable: false`; or `creator` already has a live link for this exact set of asset ids ("You have already announced a link for these assets").
 
-The assets stay in the creator's wallet at this point. The link is recorded with `assets_transferred: false`.
+The assets stay in the creator's account at this point. The link is recorded with `assets_transferred: false`.
 
 Source: `src/link.cpp:21-98`
 
