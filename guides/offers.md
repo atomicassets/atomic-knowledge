@@ -8,7 +8,7 @@ key-modules: ["atomicmarket-contract (v2.0.0-rc2): src/atomicmarket.cpp", "atomi
 
 `atomicassets` offers are the contract's only built-in trade primitive: a sender proposes swapping some of their assets for some of a recipient's, the recipient accepts or declines, and either side can back out before that happens. AtomicMarket sales and buyoffers are built on top of this primitive rather than moving assets directly (sales use an offer with memo `"sale"`, buyoffers use memos `"buyoffer"` and `"tbuyoffer"`); see "How AtomicMarket sales use offers" below for how the two connect. AtomicMarket auctions are the exception: they do not use offers at all. A seller escrows the asset by a direct AtomicAssets `transfer` to the `atomicmarket` contract with the memo `"auction"`, which the contract's `receive_asset_transfer` handler picks up. Behavior here is unchanged between V1 and V2. AtomicAssets line citations below are against tag `v2.0.0-rc4` of `atomicassets-contract` (the release pinned for both testnets).
 
-Each action's data shape is plain JSON first, then the same call through `@wharfkit/session`'s `session.transact()`. Only asset ids need the string treatment: see `reference/atomicmarket/v2-changes.md` ("Large integers serialize as strings") for why. `template_id` is an `int32_t`, and offer ids are a small contract-wide `uint64` counter (a live `offers` row reads `offer_id: 7`); both stay well inside the safe-integer range and serialize as bare JSON numbers, as the numeric `offer_id` examples below do. See `reference/wharfkit.md`.
+Each action's data shape is plain JSON first, then the same call through `@wharfkit/session`'s `session.transact()`. Only asset ids need the string treatment: see [AtomicMarket V2 changes](../reference/atomicmarket/v2-changes.md#large-integers-serialize-as-strings) ("Large integers serialize as strings") for why. `template_id` is an `int32_t`, and offer ids are a small contract-wide `uint64` counter (a live `offers` row reads `offer_id: 7`); both stay well inside the safe-integer range and serialize as bare JSON numbers, as the numeric `offer_id` examples below do. See [@wharfkit/antelope client behavior](../reference/wharfkit.md).
 
 ## Create an offer: createoffer
 
@@ -180,12 +180,12 @@ AtomicMarket instant sales are a thin wrapper around this same offer mechanism, 
 
 `ram_payer` here is neither the sale's seller nor AtomicMarket itself: a third-party resource payer took over the offer's RAM with `payofferram`, which is common for services that sponsor sellers' RAM.
 
-Fee application, royalty logging, and settlement-time behavior belong to the AtomicMarket contract, not this one; see `reference/atomicmarket/v2-changes.md`, particularly "Marketplace attribution" (a sale's taker side and offer linkage) and "Execution-time fees and trace-only royalty logs".
+Fee application, royalty logging, and settlement-time behavior belong to the AtomicMarket contract, not this one; see [AtomicMarket V2 changes](../reference/atomicmarket/v2-changes.md), particularly "Marketplace attribution" (a sale's taker side and offer linkage) and "Execution-time fees and trace-only royalty logs".
 
 Source: `atomicmarket-contract src/atomicmarket.cpp:744-827` (`announcesale`), `atomicmarket-contract src/atomicmarket.cpp:896-981` (`purchasesale`, cancelled-offer guard at `:934-935`), `atomicmarket-contract src/atomicmarket.cpp:1950-2009` (`receive_asset_offer`, the `lognewoffer` handler)
 
 ## See also
 
-- `guides/asset-lifecycle.md`: creating and transferring the assets that flow through offers.
-- `reference/atomicmarket/fees-and-royalties.md`: fees, royalties, and settlement for the sales and buyoffers built on this primitive (auctions settle the same way but escrow via a direct transfer, not an offer).
-- `reference/wharfkit.md`: id serialization and table-read pitfalls relevant to reading the `offers` table directly.
+- [Create a collection and mint assets](asset-lifecycle.md): creating and transferring the assets that flow through offers.
+- [AtomicMarket fees and royalties](../reference/atomicmarket/fees-and-royalties.md): fees, royalties, and settlement for the sales and buyoffers built on this primitive (auctions settle the same way but escrow via a direct transfer, not an offer).
+- [@wharfkit/antelope client behavior](../reference/wharfkit.md): id serialization and table-read pitfalls relevant to reading the `offers` table directly.

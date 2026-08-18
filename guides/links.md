@@ -8,7 +8,7 @@ key-modules: ["atomictools-contract (commit d89ce79e4): src/link.cpp, include/at
 
 A claim link (or "claimlink") lets someone hand a set of assets to a recipient who does not yet have an account name in hand: the sender escrows the assets against an off-chain key pair, and whoever receives the private key can claim the assets to any account they control. It is how "here is a link, open it to receive these assets" flows are built on Antelope chains. The contract is deployed as account `atomictoolsx` on WAX and under the same name on other chains; the `config.atomicassets_account` it escrows through is `atomicassets`.
 
-The contract has no release tags. Source citations pin commit `d89ce79e4` of `pinknetworkx/atomictools-contract`. This guide shows each write as plain JSON action data first, then the same call through `@wharfkit/session`'s `session.transact()`; it does not broadcast any transaction. The read examples are live `get_table_rows` and hosted-API calls that were run read-only against `wax.greymass.com` and `wax.api.atomicassets.io`. Asset ids and the `link_counter` exceed the JavaScript safe-integer range and must be passed as strings; see `reference/wharfkit.md` and `reference/atomicmarket/v2-changes.md` ("Large integers serialize as strings").
+The contract has no release tags. Source citations pin commit `d89ce79e4` of `pinknetworkx/atomictools-contract`. This guide shows each write as plain JSON action data first, then the same call through `@wharfkit/session`'s `session.transact()`; it does not broadcast any transaction. The read examples are live `get_table_rows` and hosted-API calls that were run read-only against `wax.greymass.com` and `wax.api.atomicassets.io`. Asset ids and the `link_counter` exceed the JavaScript safe-integer range and must be passed as strings; see [@wharfkit/antelope client behavior](../reference/wharfkit.md) and [AtomicMarket V2 changes](../reference/atomicmarket/v2-changes.md#large-integers-serialize-as-strings) ("Large integers serialize as strings").
 
 ## The shape of the flow
 
@@ -170,7 +170,7 @@ Source: `src/link.cpp:107-124`
 - The `links` row RAM is paid by the creator from `announcelink` onward and released when the link is claimed or cancelled. Funding the link (`assets_transferred` flip) keeps the same payer, so a claim does not shift RAM cost onto the recipient for the link row itself.
 - The escrowed assets live in the `atomictoolsx` account's own AtomicAssets scope between funding and resolution. The contract moves them out under `permission_level{atomictoolsx, "active"}`, so the deployed account's `active` permission must be able to call `atomicassets::transfer` (it is the contract's own authority, so this holds by default).
 - A first-time recipient's new asset scope RAM is paid by `atomictoolsx` on claim, since the contract is the transfer sender.
-- The unrelated `auth` action always throws by design; it is a proof-of-key-control challenge for off-chain services, not part of the link flow. See `reference/atomictools/actions.md` ("Admin and off-chain auth").
+- The unrelated `auth` action always throws by design; it is a proof-of-key-control challenge for off-chain services, not part of the link flow. See [AtomicTools actions](../reference/atomictools/actions.md#admin-and-off-chain-auth) ("Admin and off-chain auth").
 
 ## Reading links via chain tables
 
@@ -240,7 +240,7 @@ Source: `atomicassets-api src/filler/handlers/atomictools/index.ts:29-33` (the `
 
 ## See also
 
-- `reference/atomictools/actions.md`: every action's parameters, auth, and notifications, including the signature-verification detail.
-- `reference/atomictools/tables.md`: the `links` and `config` schemas and the `assetidshash` index.
-- `guides/asset-lifecycle.md`: minting and transferring the assets that flow into a link.
-- `reference/api.md`: hosted-API pagination limits and conventions shared across namespaces.
+- [AtomicTools actions](../reference/atomictools/actions.md): every action's parameters, auth, and notifications, including the signature-verification detail.
+- [AtomicTools tables](../reference/atomictools/tables.md): the `links` and `config` schemas and the `assetidshash` index.
+- [Create a collection and mint assets](asset-lifecycle.md): minting and transferring the assets that flow into a link.
+- [atomicassets-api HTTP API](../reference/api.md): hosted-API pagination limits and conventions shared across namespaces.

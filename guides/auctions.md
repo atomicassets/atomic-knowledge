@@ -8,7 +8,7 @@ key-modules: ["atomicmarket-contract (v2.0.0-rc2): src/atomicmarket.cpp", "atomi
 
 The full lifecycle of an AtomicMarket auction (V2 baseline): announcing, transferring the asset into escrow, bidding, ending, claiming, and cancelling.
 
-Unlike a sale, an auction takes actual custody of the asset: the seller transfers it to the `atomicmarket` contract account, and it sits there until claimed or the auction is cancelled before any bid lands. Bids are deposit-backed: a bidder's AtomicMarket balance is debited when they bid, and refunded if outbid. See `guides/deposits.md` for the transfer-with-memo deposit flow; this guide only shows where a step requires a sufficient balance.
+Unlike a sale, an auction takes actual custody of the asset: the seller transfers it to the `atomicmarket` contract account, and it sits there until claimed or the auction is cancelled before any bid lands. Bids are deposit-backed: a bidder's AtomicMarket balance is debited when they bid, and refunded if outbid. See [Balances and deposits](deposits.md) for the transfer-with-memo deposit flow; this guide only shows where a step requires a sufficient balance.
 
 ## Announce an auction
 
@@ -145,8 +145,8 @@ Failure modes asserted in source:
 - The bid's symbol must match the auction's current bid symbol.
 - The bid must meet the starting-bid or minimum-increase threshold described above.
 - `taker_marketplace` must be a registered marketplace.
-- The bidder's balance must cover the bid amount (see `guides/deposits.md`).
-- Bidding on a legacy pre-V2 bundle auction (`asset_ids.size() > 1`) that has not been partially claimed dissolves it instead of placing a bid: any existing bid is refunded, custodied assets return to the seller, and the row is erased. See `reference/atomicmarket/v2-changes.md` for the full legacy-row bundle-dissolution behavior.
+- The bidder's balance must cover the bid amount (see [Balances and deposits](deposits.md)).
+- Bidding on a legacy pre-V2 bundle auction (`asset_ids.size() > 1`) that has not been partially claimed dissolves it instead of placing a bid: any existing bid is refunded, custodied assets return to the seller, and the row is erased. See [AtomicMarket V2 changes](../reference/atomicmarket/v2-changes.md) for the full legacy-row bundle-dissolution behavior.
 
 Optionally guard against the auction's asset ids changing between when a bidder reads it and when the bid lands, with `assertauct` in the same transaction:
 
@@ -212,14 +212,14 @@ await session.transact({
 });
 ```
 
-Authorization: the seller. `auctclaimsel` runs the same internal payout path as a sale (`internal_payout_sale`): the winning bid is split between the seller, the maker/taker marketplaces, and the collection, with the collection fee applied at execution time (see `reference/atomicmarket/v2-changes.md`, "Execution-time fees and trace-only royalty logs"). If the buyer has already claimed the asset, the auction row is erased; otherwise it is left in place with `claimed_by_seller = true` until the buyer also claims.
+Authorization: the seller. `auctclaimsel` runs the same internal payout path as a sale (`internal_payout_sale`): the winning bid is split between the seller, the maker/taker marketplaces, and the collection, with the collection fee applied at execution time (see [AtomicMarket V2 changes](../reference/atomicmarket/v2-changes.md#execution-time-fees-and-trace-only-royalty-logs), "Execution-time fees and trace-only royalty logs"). If the buyer has already claimed the asset, the auction row is erased; otherwise it is left in place with `claimed_by_seller = true` until the buyer also claims.
 
 Failure modes asserted in source:
 
 - Only the auction's seller may call it.
 - The auction must have assets in escrow, must have ended, and must have at least one bid (an auction with no bids uses `cancelauct`, not this action).
 - It cannot already be claimed by the seller.
-- On a legacy pre-V2 bundle auction that ended with no claims yet, either claim action dissolves it instead (bid refunded, assets returned to seller) rather than completing a trade; a bundle auction that was already partially claimed before V2 removed bundles completes normally through these actions. See `reference/atomicmarket/v2-changes.md` for the full behavior table.
+- On a legacy pre-V2 bundle auction that ended with no claims yet, either claim action dissolves it instead (bid refunded, assets returned to seller) rather than completing a trade; a bundle auction that was already partially claimed before V2 removed bundles completes normally through these actions. See [AtomicMarket V2 changes](../reference/atomicmarket/v2-changes.md) for the full behavior table.
 
 Source: `atomicmarket-contract src/atomicmarket.cpp:1273-1392` (`auctclaimbuy`, `auctclaimsel`)
 
@@ -247,7 +247,7 @@ Authorization: normally the seller, and only before any bid has landed: once an 
 `cancelauct` also accepts no authorization at all when the auction is invalid, meaning either:
 
 - it has not yet had assets transferred into escrow and the seller no longer owns at least one of the listed assets, or
-- it is a legacy pre-V2 bundle row (more than one asset id): every such row is unconditionally invalid under V2. Cancelling an invalid bundle auction that already has a bid (and has not been partially claimed) refunds the bidder and returns any escrowed assets to the seller. See `reference/atomicmarket/v2-changes.md` for the full legacy-row cancellation rules.
+- it is a legacy pre-V2 bundle row (more than one asset id): every such row is unconditionally invalid under V2. Cancelling an invalid bundle auction that already has a bid (and has not been partially claimed) refunds the bidder and returns any escrowed assets to the seller. See [AtomicMarket V2 changes](../reference/atomicmarket/v2-changes.md) for the full legacy-row cancellation rules.
 
 If assets were already transferred into escrow, cancelling returns them to the seller.
 

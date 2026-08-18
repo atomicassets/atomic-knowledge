@@ -131,7 +131,7 @@ Source: `@atomichub/vert src/antelope/vm.ts:131-147` (`require_auth`), `@atomich
 
 ## Multi-contract setups: inline actions and notifications
 
-Load each contract onto its own account on the same `Blockchain` and they interact as on chain. `send_inline` dispatches an inline action to another loaded contract, and `require_recipient` delivers a notification to another contract that has a matching `[[eosio::on_notify]]` handler. Both are what an AtomicMarket sale relies on: `purchasesale` sends an inline `acceptoffer` to AtomicAssets, and AtomicAssets' `lognewoffer` notifies AtomicMarket (see `guides/offers.md`). VeRT runs that whole cascade in-process, appending each inline action and notification to the action-trace queue in execution order.
+Load each contract onto its own account on the same `Blockchain` and they interact as on chain. `send_inline` dispatches an inline action to another loaded contract, and `require_recipient` delivers a notification to another contract that has a matching `[[eosio::on_notify]]` handler. Both are what an AtomicMarket sale relies on: `purchasesale` sends an inline `acceptoffer` to AtomicAssets, and AtomicAssets' `lognewoffer` notifies AtomicMarket (see [the offers guide](offers.md)). VeRT runs that whole cascade in-process, appending each inline action and notification to the action-trace queue in execution order.
 
 The privileged-inline path is exercised by the bundled suite: a contract flagged `privileged: true` at creation can send an inline action without holding `eosio.code`, while a non-privileged sender is held to the `eosio.code` check.
 
@@ -214,7 +214,7 @@ treating a green VeRT run as deploy-ready  // it does not model RAM/CPU/NET, sig
 
 ## See also
 
-- `guides/notification-integration.md`: the AtomicAssets notification wiring these multi-contract tests exercise.
-- `guides/offers.md`: the inline-`acceptoffer` and `lognewoffer`-notification cascade a sale test drives through VeRT.
-- `reference/atomicassets/actions.md` and `reference/atomicassets/notifications.md`: the action parameters and notify targets to assert against.
-- `reference/wharfkit.md`: `@wharfkit/antelope` id serialization and typed table-read behavior, shared by the values you pass VeRT actions.
+- [React to contract notifications](notification-integration.md): the AtomicAssets notification wiring these multi-contract tests exercise.
+- [Offers: the native two-sided trade flow](offers.md): the inline-`acceptoffer` and `lognewoffer`-notification cascade a sale test drives through VeRT.
+- [AtomicAssets actions](../reference/atomicassets/actions.md) and [AtomicAssets notifications](../reference/atomicassets/notifications.md): the action parameters and notify targets to assert against.
+- [@wharfkit/antelope client behavior](../reference/wharfkit.md): `@wharfkit/antelope` id serialization and typed table-read behavior, shared by the values you pass VeRT actions.
