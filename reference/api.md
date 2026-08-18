@@ -1,5 +1,5 @@
 ---
-scope: atomicassets-api HTTP API behavior - Swagger reference, the 100-row list cap, template buyoffer lifecycle states, per-endpoint state values, and rate limits
+scope: atomicassets-api HTTP API behavior - Swagger reference, the 100-row list cap, both sales routes, royalty 416s, buyoffer lifecycle states, and rate limits
 depends-on: []
 key-modules:
     - "atomicassets-api (main): src/api/server.ts, src/api/namespaces/*/openapi.ts"
@@ -18,6 +18,20 @@ Source: `atomicassets-api src/api/server.ts` (`swagger.setup` mounted at `/docs`
 ## List endpoints cap limit at 100
 
 The atomicassets-api validates the `limit` query parameter on list endpoints such as `/atomicmarket/v1/buyoffers` and `/atomicmarket/v1/sales` against a maximum that defaults to 100; requests above the cap are rejected with HTTP 400 and `{"success": false, "message": "Invalid value for parameter limit"}` rather than being clamped. The cap is an operator-configurable server setting (`limits` in the API config), so the reference deployment at wax.api.atomicassets.io enforces 100. Pagination code must therefore bound `limit` to 100 and use `page`, and counting code must treat a non-2xx response as an error: an HTTP client helper that returns undefined or empty on failure will silently turn an over-limit request into a zero count.
+
+## Two sales list routes answer on the hosted deployment
+
+The reference deployment serves both `/atomicmarket/v1/sales` and `/atomicmarket/v2/sales`. The `/v2` route is the newer materialized sales index; it returns the same row shape as `/v1`, takes the same filters and the same `state` values, and carries the same `/_count` sibling. Which of the two the OpenAPI document describes is the surprise: the served document lists `/atomicmarket/v2/sales` and does not list `/atomicmarket/v1/sales` at all, although `/v1/sales` answers 200. A code generator run against the spec therefore emits the `/v2` route only, while every existing integration and every example in this repository calls `/v1`. Both are live; pick one deliberately rather than by whichever the tooling surfaced. In `@atomichub/atomicmarket` the pair is `getSales`/`countSales` against `/v1` and `getSalesV2`/`countSalesV2` against `/v2` (see [@atomichub/atomicmarket SDK](sdk/atomicmarket.md)).
+
+Source: live probes of `https://wax.api.atomicassets.io/atomicmarket/v1/sales?limit=1` (200), `/atomicmarket/v2/sales?limit=1` (200), and `/_count` on both unfiltered and at `state=1` (200, equal counts each time), plus the OpenAPI document embedded in `https://wax.api.atomicassets.io/docs/swagger-ui-init.js` (carries `/atomicmarket/v2/sales`, carries no `/atomicmarket/v1/sales`); atomicmarket-sdk (v2.3.0, 36aee58) src/API/Explorer/index.ts:43-67 (both routes typed `ISale` and taking `SaleApiParams`)
+
+## The royalty routes answer 416 when a collection has no config
+
+The AtomicMarket v2 royalty routes (`/atomicmarket/v1/royalties/{collection_name}` and its `/templates` and `/attributes` children) answer HTTP 416 with `{"success": false, "message": "Royalty config not found"}` for a collection that has no royalty configuration. That is the normal empty result, not a transport or a routing failure, and 404 is not what these routes return.
+
+The distinction matters on WAX mainnet, which still runs the V1 contracts and therefore has no royalty configuration for any collection: every mainnet request to these routes answers 416. A client that treats 416 as "this collection configured no royalties" reads a chain-wide "the route has no data here" as a per-collection fact. `@atomichub/atomicmarket`'s `getRoyaltyConfig` maps 416 to `null` and lets every other status raise, so the same trap sits behind a `null` there; see [@atomichub/atomicmarket SDK](sdk/atomicmarket.md).
+
+Source: live probes of `https://wax.api.atomicassets.io/atomicmarket/v1/royalties/pixeltycoons` (416, `Royalty config not found`), `https://test.wax.api.atomicassets.io/atomicmarket/v1/royalties/royaltycol11` (200) and `/royalties/farmmetricsx` (416); the five royalty routes are listed in the OpenAPI document at `https://wax.api.atomicassets.io/docs/swagger-ui-init.js`
 
 ## Template buyoffers keep all lifecycle states
 

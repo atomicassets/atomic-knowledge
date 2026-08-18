@@ -42,4 +42,10 @@ Promotion means: the claim is checked against source or a live read, the result 
 
 ## Current state
 
-This log starts empty. Everything shipped in `reference/` and `guides/` at repository creation was already validated before it landed there, so there is nothing pending promotion yet. New entries arrive as work on drops, packs, EVM chains, or any other unvalidated claim begins.
+Everything in `reference/` and `guides/` was validated before it landed there, so no polished-tier fact is waiting on this log. What sits here instead is the residue of writing that tier: a claim that came up while documenting a validated surface, whose own check needs a source read or a chain state nobody has yet.
+
+| File | Holds |
+| --- | --- |
+| `api.md` | Claims about the atomicassets-api hosted HTTP surface |
+
+New files arrive as work on drops, packs, EVM chains, or any other unvalidated area begins, one per polished-tier area.
