@@ -130,10 +130,10 @@ Secondary indexes: none.
 | `transferable` | `bool` | Inherited by every asset minted from this template; blocks `transfer`, `createoffer`, and `acceptoffer` for the asset when false. |
 | `burnable` | `bool` | Inherited by every asset minted from this template. `burnable || transferable` is enforced at creation; both false is rejected. |
 | `max_supply` | `uint32_t` | 0 means unlimited. Set at creation, only ever lowered afterward (`locktemplate`, `redtemplmax`). |
-| `issued_supply` | `uint32_t` | Incremented by every `mintasset` against this template; must stay `< max_supply` when `max_supply > 0`. Also the value `deltemplate` requires to be exactly 0. |
+| `issued_supply` | `uint32_t` | Incremented by every `mintasset` against this template; must stay `< max_supply` when `max_supply > 0`. Also the value `deltemplate` requires to be exactly 0. No action decrements it, `burnasset` included, so it counts lifetime mints rather than circulating supply; a circulating supply must subtract burns. |
 | `immutable_serialized_data` | `vector<uint8_t>` | Set once at `createtempl`/`createtempl2`; no action changes it afterward. |
 
-Source: `include/atomicassets.hpp:383-394`, `src/atomicassets.cpp:566-696` (create/lock/reduce/delete actions), `src/atomicassets.cpp:1613-1689` (`internal_create_template`)
+Source: `include/atomicassets.hpp:383-394`, `src/atomicassets.cpp:566-696` (create/lock/reduce/delete actions), `src/atomicassets.cpp:1613-1689` (`internal_create_template`), `src/atomicassets.cpp:1096-1177` (`burnasset`, which reads the row for the `burnable` check and never writes it)
 
 Live chain example (`scope=farmersworld`, `table=templates`, `lower_bound=260638`, byte field elided):
 
