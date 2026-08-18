@@ -32,7 +32,7 @@ A schema is a named, ordered list of attribute definitions (`FORMAT { name, type
 
 A schema must include a `{"name": "name", "type": "string"}` line - every schema has a mandatory `name` attribute - and every attribute name inside a schema must be unique. Schema names are 1-12 characters.
 
-Schemas can only be extended, never edited retroactively: `extendschema` appends new `FORMAT` lines to the end of the existing vector, and `check_format` re-validates the whole extended vector, but no action can remove or reorder existing lines. This is a deliberate contract-level guarantee: the binary serialization format identifies each attribute by its position in the format vector (see `reference/atomicassets/data-precedence.md`), so reordering or removing a line would silently corrupt every template and asset already serialized against that schema.
+Schemas can only be extended, never edited retroactively: `extendschema` appends new `FORMAT` lines to the end of the existing vector, and `check_format` re-validates the whole extended vector, but no action can remove or reorder existing lines. This is a deliberate contract-level guarantee: the binary serialization format identifies each attribute by its position in the format vector (see [Attribute data precedence](data-precedence.md)), so reordering or removing a line would silently corrupt every template and asset already serialized against that schema.
 
 Changed in V2: schema type descriptors. The `schema_types` table (`setschematyp` action) attaches an optional `FORMAT_TYPE { name, mediatype, info }` per attribute - a human-readable description and, for binary-carrying types, a media type hint (for example marking an `ipfs` attribute as a `.glb` 3D model). It is metadata only: it does not affect serialization and every named attribute must already exist in the schema's `format`. V1 has no equivalent table.
 
@@ -60,11 +60,11 @@ An asset is one individually owned item. Assets are scoped to their current owne
 
 An asset's fields: `collection_name` and `schema_name` (fixed at mint time), `template_id` (-1 if none), `ram_payer` (who currently pays for the row's RAM - updated on transfer and on `setassetdata`), `backed_tokens` (a legacy field; native token backing is deprecated in V2 and `backasset` always fails), `immutable_serialized_data` (set once at mint, never changed again), and `mutable_serialized_data` (set at mint, replaceable via `setassetdata`).
 
-Changed in V2: RAM-payer reassignment. Two actions let an asset's `ram_payer` be reassigned without a transfer, replacing an abandoned custodial-rentals design that never shipped. See `reference/atomicassets/actions.md` ("RAM-payer reassignment (replaces descoped custodial rentals)"). V1 has neither the reassignment actions nor the abandoned design.
+Changed in V2: RAM-payer reassignment. Two actions let an asset's `ram_payer` be reassigned without a transfer, replacing an abandoned custodial-rentals design that never shipped. See [AtomicAssets actions](actions.md#ram-payer-reassignment-replaces-descoped-custodial-rentals) ("RAM-payer reassignment (replaces descoped custodial rentals)"). V1 has neither the reassignment actions nor the abandoned design.
 
 Source: `include/atomicassets.hpp:409-421` (assets table), `include/atomicassets.hpp:455` (asset_counter default), `src/atomicassets.cpp:697-788` (mintasset), `src/atomicassets.cpp:796-836` (setassetdata), `src/atomicassets.cpp:1079-1087` (backasset deprecated)
 
-Live chain observation (wax.api.atomicassets.io `/atomicassets/v1/assets?collection_name=alien.worlds&template_id=13728`): asset `1099511946686`, owned by `wombatmaster`, carries empty `immutable_data` and `mutable_data` objects of its own - all of its displayed attributes come from the template (see `reference/atomicassets/data-precedence.md`).
+Live chain observation (wax.api.atomicassets.io `/atomicassets/v1/assets?collection_name=alien.worlds&template_id=13728`): asset `1099511946686`, owned by `wombatmaster`, carries empty `immutable_data` and `mutable_data` objects of its own - all of its displayed attributes come from the template (see [Attribute data precedence](data-precedence.md)).
 
 ## Authorization and the 24-account cap
 

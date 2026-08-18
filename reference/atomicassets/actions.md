@@ -8,7 +8,7 @@ key-modules: ["atomicassets-contract (v2.0.0-rc4): src/atomicassets.cpp, include
 
 Complete action reference for the `atomicassets` contract, baselined on tag `v2.0.0-rc4` of `atomicassets-contract` (the release pinned for both `wax-testnet` and `jungle4-testnet`). Every entry cites its declaration in `include/atomicassets.hpp` and its body in `src/atomicassets.cpp`. "Changed in V2" notes compare against the V1 `atomicassets-contract` source.
 
-Live-chain status: see `reference/atomicassets/v2-upgrade.md` ("Deployment status"). None of the V2-only actions on this page are callable on WAX mainnet yet.
+Live-chain status: see [AtomicAssets V2 upgrade](v2-upgrade.md#deployment-status) ("Deployment status"). None of the V2-only actions on this page are callable on WAX mainnet yet.
 
 ## Admin
 
@@ -53,7 +53,7 @@ Three distinct authority levels operate over a collection, and it matters which 
 
 - **Author** (`collections.author`): the only account that can call `setcoldata`, `addcolauth`/`remcolauth`, `addnotifyacc`/`remnotifyacc`, `setmarketfee`, `forbidnotify`, and start an author swap.
 - **Authorized accounts** (`collections.authorized_accounts`, up to 24): can create and edit schemas, templates, and assets. Every action gated this way calls `check_has_collection_auth(account, collection_name)`, documented once here rather than repeated per action: it requires the caller's own signature and checks list membership, and it does not require being the author.
-- **Notify accounts** (`collections.notify_accounts`, up to 24, only while `allow_notify` is true): not an authorization level, a `require_recipient` fan-out list. See `reference/atomicassets/notifications.md`.
+- **Notify accounts** (`collections.notify_accounts`, up to 24, only while `allow_notify` is true): not an authorization level, a `require_recipient` fan-out list. See [AtomicAssets notifications](notifications.md).
 
 ### createcol
 
@@ -111,7 +111,7 @@ Source: `include/atomicassets.hpp:62-70`, `src/atomicassets.cpp:254-311`
 
 Required authorization: the collection's `author`.
 
-Overwrites `collections.market_fee`, the fee AtomicMarket reads live at settlement time (see `reference/atomicmarket/fees-and-royalties.md`). No notification is sent.
+Overwrites `collections.market_fee`, the fee AtomicMarket reads live at settlement time (see [AtomicMarket fees and royalties](../atomicmarket/fees-and-royalties.md)). No notification is sent.
 
 Source: `include/atomicassets.hpp:72-75`, `src/atomicassets.cpp:312-334`
 
@@ -185,7 +185,7 @@ Source: `include/atomicassets.hpp:103-108`, `src/atomicassets.cpp:450-481`
 
 Required authorization: `authorized_editor`, checked via `check_has_collection_auth`.
 
-Appends lines to an existing schema's `format` and re-validates the whole extended vector with `check_format`. Existing lines are never removed or reordered, for the same on-chain-identifier reason as `admincoledit` above; see `reference/atomicassets/serialization.md` for why position matters.
+Appends lines to an existing schema's `format` and re-validates the whole extended vector with `check_format`. Existing lines are never removed or reordered, for the same on-chain-identifier reason as `admincoledit` above; see [AtomicAssets attribute serialization](serialization.md) for why position matters.
 
 Source: `include/atomicassets.hpp:110-115`, `src/atomicassets.cpp:482-513`
 
@@ -486,7 +486,7 @@ Source: `include/atomicassets.hpp:238-243`, `src/atomicassets.cpp:1402-1444`
 
 ## Notification actions (contract-internal)
 
-Every action in this group requires `require_auth(get_self())`: they can only run as inline actions dispatched by another action in the same contract, never as a directly submitted top-level action. Each one exists to carry a stable, self-contained event payload for indexers and, in most cases, to run `notify_collection_accounts` and/or `require_recipient` for the parties involved. See `reference/atomicassets/notifications.md` ("Which actions notify whom") for the full picture.
+Every action in this group requires `require_auth(get_self())`: they can only run as inline actions dispatched by another action in the same contract, never as a directly submitted top-level action. Each one exists to carry a stable, self-contained event payload for indexers and, in most cases, to run `notify_collection_accounts` and/or `require_recipient` for the parties involved. See [AtomicAssets notifications](notifications.md#which-actions-notify-whom) ("Which actions notify whom") for the full picture.
 
 ### logtransfer
 

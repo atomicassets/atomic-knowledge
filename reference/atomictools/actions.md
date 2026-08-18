@@ -14,7 +14,7 @@ Live-chain status: the full action and table list on this page was diffed agains
 
 ## Link lifecycle actions
 
-A link moves through announce (`announcelink`), fund (an AtomicAssets `transfer` with memo `"link"`, caught by the notification handler), then exactly one terminal step: `claimlink` (assets go to the claimer) or `cancellink` (assets go back to the creator). The row is erased on either terminal step. See `guides/links.md` for the end-to-end integrator flow.
+A link moves through announce (`announcelink`), fund (an AtomicAssets `transfer` with memo `"link"`, caught by the notification handler), then exactly one terminal step: `claimlink` (assets go to the claimer) or `cancellink` (assets go back to the creator). The row is erased on either terminal step. See [the claim-links guide](../../guides/links.md) for the end-to-end integrator flow.
 
 ### announcelink
 

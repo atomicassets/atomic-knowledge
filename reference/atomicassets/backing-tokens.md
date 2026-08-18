@@ -46,4 +46,4 @@ Source: `src/atomicassets.cpp:786-787` (mintasset abort), `src/atomicassets.cpp:
 
 ## Live-chain status
 
-See `reference/atomicassets/v2-upgrade.md` ("Deployment status"): `backasset` is still a live, non-deprecated action on WAX mainnet. The deprecation described above is a fact about the V2 contract source; confirm which contract build a target chain is running before treating "backing is disabled" as universally true.
+See [AtomicAssets V2 upgrade](v2-upgrade.md#deployment-status) ("Deployment status"): `backasset` is still a live, non-deprecated action on WAX mainnet. The deprecation described above is a fact about the V2 contract source; confirm which contract build a target chain is running before treating "backing is disabled" as universally true.

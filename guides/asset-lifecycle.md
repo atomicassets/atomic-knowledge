@@ -8,7 +8,7 @@ key-modules: ["atomicmarket-contract (v2.0.0-rc2): src/atomicmarket.cpp", "atomi
 
 The full creator flow on the `atomicassets` contract: create a collection, define a schema, optionally create a template, mint assets, edit mutable data, transfer, and burn. Baseline is AtomicAssets V2; notes call out where V1 differed. Every data shape, required authorization, RAM payer, and failure mode below was checked against tag `v2.0.0-rc4` of `atomicassets-contract` (the release pinned for both testnets), `src/atomicassets.cpp`.
 
-Each step shows the action's data as plain JSON first, then the same call through `@wharfkit/session`'s `session.transact()`. `ATTRIBUTE_MAP` fields (`data`, `immutable_data`, `mutable_data`) serialize as an array of `{key, value}` pairs, where `value` is a two-element `[type, value]` variant. The `key`/`value` naming is only present in the patched release ABI; the raw CDT build names the same fields `first`/`second`. See `reference/contract-releases.md` ("Raw vs patched ABI").
+Each step shows the action's data as plain JSON first, then the same call through `@wharfkit/session`'s `session.transact()`. `ATTRIBUTE_MAP` fields (`data`, `immutable_data`, `mutable_data`) serialize as an array of `{key, value}` pairs, where `value` is a two-element `[type, value]` variant. The `key`/`value` naming is only present in the patched release ABI; the raw CDT build names the same fields `first`/`second`. See [Contract releases and deployment](../reference/contract-releases.md#raw-vs-patched-abi) ("Raw vs patched ABI").
 
 ## Collection naming rules
 
@@ -228,7 +228,7 @@ await session.transact({
 })
 ```
 
-Pass `asset_id` as a string in the action data. See `reference/atomicmarket/v2-changes.md` ("Large integers serialize as strings") for why asset ids serialize as strings, and `reference/wharfkit.md` for the same string/number split on chain table reads.
+Pass `asset_id` as a string in the action data. See [AtomicMarket V2 changes](../reference/atomicmarket/v2-changes.md#large-integers-serialize-as-strings) ("Large integers serialize as strings") for why asset ids serialize as strings, and [@wharfkit/antelope client behavior](../reference/wharfkit.md) for the same string/number split on chain table reads.
 
 - Required authorization: `authorized_editor`, authorized for the collection that owns the asset's schema, not the asset's owner.
 - RAM payer: reassigned to `authorized_editor` on every call (`_asset.ram_payer = authorized_editor`), replacing whoever paid before, including the original minter.
@@ -300,6 +300,6 @@ Source: `atomicassets-contract src/atomicassets.cpp:1096-1177` (`burnasset`, bac
 
 ## See also
 
-- `guides/offers.md`: the trade-offer flow used to move assets between accounts that haven't pre-arranged a direct `transfer`, and the primitive AtomicMarket sales are built on.
-- `reference/atomicassets/v2-upgrade.md`: V2 upgrade compatibility and indexer implications.
-- `reference/wharfkit.md`: client-library pitfalls when reading the tables these actions write to.
+- [Offers: the native two-sided trade flow](offers.md): the trade-offer flow used to move assets between accounts that haven't pre-arranged a direct `transfer`, and the primitive AtomicMarket sales are built on.
+- [AtomicAssets V2 upgrade](../reference/atomicassets/v2-upgrade.md): V2 upgrade compatibility and indexer implications.
+- [@wharfkit/antelope client behavior](../reference/wharfkit.md): client-library pitfalls when reading the tables these actions write to.
