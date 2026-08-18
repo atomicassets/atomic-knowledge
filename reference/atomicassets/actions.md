@@ -358,7 +358,7 @@ Source: `include/atomicassets.hpp:202-207`, `src/atomicassets.cpp:1079-1087`
 
 Required authorization: `asset_owner`.
 
-Erases the `assets` row. If the asset is templated, the template's `burnable` flag must be true. Any `backed_tokens` still on the row (only possible on assets that predate the V2 backing deprecation) are credited into `asset_owner`'s `balances` row. Sends `logburnasset` with the full pre-burn state (collection, schema, template id, backed tokens, both data layers, prior ram_payer) before erasing the row.
+Erases the `assets` row. If the asset is templated, the template's `burnable` flag must be true. Any `backed_tokens` still on the row (only possible on assets that predate the V2 backing deprecation) are credited into `asset_owner`'s `balances` row. Sends `logburnasset` with the full pre-burn state (collection, schema, template id, backed tokens, both data layers, prior ram_payer) before erasing the row. The parent template's `issued_supply` is unchanged: the action reads the template row only for the `burnable` check, so `issued_supply` counts lifetime mints and a circulating supply must subtract burns.
 
 Source: `include/atomicassets.hpp:209-212`, `src/atomicassets.cpp:1096-1177`
 
