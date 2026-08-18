@@ -49,7 +49,7 @@ Source: `atomicmarket-contract src/atomicmarket.cpp:1870-1882` (`receive_token_t
 
 These actions deduct from the caller's deposited balance rather than accepting a token transfer inline, because the balance must already be escrowed before the contract can commit to a trade:
 
-- **`createbuyo`** / **`createtbuyo`**: the offered `price` is deducted from the buyer's balance at creation time, before any counterparty has acted. See `guides/buyoffers.md`.
+- **`createbuyo`** / **`createtbuyo`**: the offered `price` is deducted from the buyer's balance at creation time, before any counterparty has acted. See [Buyoffers](buyoffers.md).
 - **`auctionbid`**: the `bid` amount is deducted from the bidder's balance when the bid is placed. If the bid outbids an existing bidder, that bidder's previous bid is credited back to their balance (not transferred to their account); they must `withdraw` it themselves.
 - **`purchasesale`**: the settlement price (which can differ from the listed price for stable-priced sales, via `calc_settlement_price`) is deducted from the buyer's balance at purchase time.
 
@@ -88,7 +88,7 @@ Source: `atomicmarket-contract src/atomicmarket.cpp:472-481` (`withdraw`), `atom
 
 ## RAM for balance rows
 
-Opening a new `balances` row always pays RAM from the `atomicmarket` contract account itself, so depositing for the first time costs the depositor no RAM, and the contract's own stake grows with the number of distinct depositors it has held a balance for. See `reference/atomicmarket/ram.md` ("The contract pays RAM for every balances row") for the full payer mechanics.
+Opening a new `balances` row always pays RAM from the `atomicmarket` contract account itself, so depositing for the first time costs the depositor no RAM, and the contract's own stake grows with the number of distinct depositors it has held a balance for. See [AtomicMarket RAM](../reference/atomicmarket/ram.md#the-contract-pays-ram-for-every-balances-row) ("The contract pays RAM for every balances row") for the full payer mechanics.
 
 Source: `atomicmarket-contract src/atomicmarket.cpp:2993-3026` (`internal_add_balance`), `atomicmarket-contract include/atomicmarket.hpp:519-526` (`balances_s` table and typedef)
 

@@ -6,9 +6,9 @@ key-modules: ["atomicmarket-contract (v2.0.0-rc2): src/atomicmarket.cpp", "atomi
 
 # Buyoffers
 
-How to create, accept, decline, and cancel AtomicMarket buyoffers, for both single assets and templates. Baseline is AtomicMarket V2 (`atomicmarket-contract`); "Changed in V2" notes call out where V1 behaved differently. Lifecycle-state facts for the indexer and hosted API (LISTED/CANCELED/SOLD, no row cleanup, `state` filtering) are validated in `reference/api.md` and `guides/querying-the-api.md`; this guide cross-links them rather than repeating them. Deposit and balance mechanics are covered in `guides/deposits.md`.
+How to create, accept, decline, and cancel AtomicMarket buyoffers, for both single assets and templates. Baseline is AtomicMarket V2 (`atomicmarket-contract`); "Changed in V2" notes call out where V1 behaved differently. Lifecycle-state facts for the indexer and hosted API (LISTED/CANCELED/SOLD, no row cleanup, `state` filtering) are validated in [atomicassets-api HTTP API](../reference/api.md) and [Query the API and chain tables](querying-the-api.md); this guide cross-links them rather than repeating them. Deposit and balance mechanics are covered in [Balances and deposits](deposits.md).
 
-A buyoffer is a buyer-initiated, escrowed offer: the price is deducted from the buyer's deposited balance immediately at creation (see `guides/deposits.md`), before the counterparty has agreed to anything. WAX mainnet currently runs AtomicMarket V1; see `reference/atomicmarket/tables.md` ("config") for the live-version check. The V1 behavior noted below is the live behavior only for as long as mainnet stays on V1.
+A buyoffer is a buyer-initiated, escrowed offer: the price is deducted from the buyer's deposited balance immediately at creation (see [Balances and deposits](deposits.md)), before the counterparty has agreed to anything. WAX mainnet currently runs AtomicMarket V1; see [AtomicMarket tables](../reference/atomicmarket/tables.md#config) ("config") for the live-version check. The V1 behavior noted below is the live behavior only for as long as mainnet stays on V1.
 
 ## Asset buyoffers
 
@@ -94,7 +94,7 @@ await session.transact({
 });
 ```
 
-Changed in V2: see `reference/atomicmarket/v2-changes.md` ("Defensive guards in the V2 contract") for the `is_permutation` and empty-table guard fixes in `acceptbuyo`.
+Changed in V2: see [AtomicMarket V2 changes](../reference/atomicmarket/v2-changes.md#defensive-guards-in-the-v2-contract) ("Defensive guards in the V2 contract") for the `is_permutation` and empty-table guard fixes in `acceptbuyo`.
 
 Source: `atomicmarket-contract src/atomicmarket.cpp:1533-1626` (`acceptbuyo`), `atomicmarket-contract include/atomicmarket.hpp:260-265`
 
@@ -151,7 +151,7 @@ Source: `atomicmarket-contract src/atomicmarket.cpp:1501-1513` (`cancelbuyo`), `
 
 `createbuyo` checks that the recipient owns every asset id at creation time (`get_collection_and_check_assets` looks each one up in the recipient's own asset scope and throws if any is missing). That check does not run again later. If the recipient transfers the asset away after the buyoffer exists, the row stays on chain but becomes unfulfillable in practice: `acceptbuyo` requires the recipient to create a matching AtomicAssets offer for an asset they no longer own, which AtomicAssets itself rejects. AtomicMarket has no permissionless invalidation action for buyoffers analogous to `cancelsale`'s "anyone can cancel an invalid sale" path; the buyoffer simply sits there until the buyer cancels it.
 
-A separate, unrelated "invalid" case is legacy V1 bundle buyoffers (more than one asset id, created before V2 removed the capability): calling `acceptbuyo` on one does not trade anything. It cancels the buyoffer and refunds the buyer, exactly like `declinebuyo`. See `reference/atomicmarket/v2-changes.md` ("Bundle listing retirement").
+A separate, unrelated "invalid" case is legacy V1 bundle buyoffers (more than one asset id, created before V2 removed the capability): calling `acceptbuyo` on one does not trade anything. It cancels the buyoffer and refunds the buyer, exactly like `declinebuyo`. See [AtomicMarket V2 changes](../reference/atomicmarket/v2-changes.md#bundle-listing-retirement) ("Bundle listing retirement").
 
 Source: `atomicmarket-contract src/atomicmarket.cpp:2120-2163` (`get_collection_and_check_assets`), `atomicmarket-contract src/atomicmarket.cpp:1547-1554` (legacy bundle handling inside `acceptbuyo`)
 
@@ -273,4 +273,4 @@ Source: `atomicmarket-contract src/atomicmarket.cpp:1703-1715` (`canceltbuyo`), 
 
 ### Lifecycle states in the indexer and API
 
-Template buyoffer rows in atomicassets-api are never deleted; `state` (LISTED=0, CANCELED=1, SOLD=2) is the only signal that an offer is no longer active, and the `/v1/template_buyoffers` endpoint returns all three states unless you filter. See `reference/api.md` ("Template buyoffers keep all lifecycle states") and `guides/querying-the-api.md` ("Filter template buyoffers by state") for the validated details; not repeated here.
+Template buyoffer rows in atomicassets-api are never deleted; `state` (LISTED=0, CANCELED=1, SOLD=2) is the only signal that an offer is no longer active, and the `/v1/template_buyoffers` endpoint returns all three states unless you filter. See [atomicassets-api HTTP API](../reference/api.md#template-buyoffers-keep-all-lifecycle-states) ("Template buyoffers keep all lifecycle states") and [Query the API and chain tables](querying-the-api.md#filter-template-buyoffers-by-state) ("Filter template buyoffers by state") for the validated details; not repeated here.

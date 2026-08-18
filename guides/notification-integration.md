@@ -6,7 +6,7 @@ key-modules: ["atomicassets-contract (v2.0.0-rc4): src/atomicassets.cpp, include
 
 # React to contract notifications
 
-A smart contract can react to AtomicAssets activity by receiving the `require_recipient` notifications the contract emits: a listener contract watches transfers, mints, or burns and runs its own logic the moment they happen, without polling the chain. This guide covers which notifications a third-party contract can receive, how to wire the C++ `on_notify` handlers so they actually fire, and the same-transaction safety rules that govern what a handler may safely do. It builds on `reference/atomicassets/notifications.md`, which is the reference for the collection-config side (`notify_accounts`, `allow_notify`) and the full per-action notification map; read that first, then this for the integration mechanics. Baseline is the V2 contract, tag `v2.0.0-rc4` of `atomicassets-contract` (the release pinned for both testnets).
+A smart contract can react to AtomicAssets activity by receiving the `require_recipient` notifications the contract emits: a listener contract watches transfers, mints, or burns and runs its own logic the moment they happen, without polling the chain. This guide covers which notifications a third-party contract can receive, how to wire the C++ `on_notify` handlers so they actually fire, and the same-transaction safety rules that govern what a handler may safely do. It builds on [AtomicAssets notifications](../reference/atomicassets/notifications.md), which is the reference for the collection-config side (`notify_accounts`, `allow_notify`) and the full per-action notification map; read that first, then this for the integration mechanics. Baseline is the V2 contract, tag `v2.0.0-rc4` of `atomicassets-contract` (the release pinned for both testnets).
 
 ## Which notifications a listener can receive
 
@@ -20,11 +20,11 @@ Source: `atomicassets-contract src/atomicassets.cpp:76-86` (`transfer`, `require
 
 ### Indirectly, as a collection notify account
 
-A collection author can add a contract to that collection's `notify_accounts` list (gated by `allow_notify`), and the contract is then notified on every collection-touching action through the inline `log*` action that fans out to `notify_collection_accounts`. This is how a listener observes activity for assets it does not own: mints, burns, transfers, data edits, and RAM-payer reassignments across the whole collection. The listener does not choose to subscribe; the collection author adds it, which is a deliberate trust grant, because a notify account's handler runs inside the triggering transaction and can make that action fail. The config side (adding and removing accounts, the one-way `forbidnotify` gate, the 24-account cap) is documented in `reference/atomicassets/notifications.md`; this guide assumes the account is already on the list and focuses on the receiving contract.
+A collection author can add a contract to that collection's `notify_accounts` list (gated by `allow_notify`), and the contract is then notified on every collection-touching action through the inline `log*` action that fans out to `notify_collection_accounts`. This is how a listener observes activity for assets it does not own: mints, burns, transfers, data edits, and RAM-payer reassignments across the whole collection. The listener does not choose to subscribe; the collection author adds it, which is a deliberate trust grant, because a notify account's handler runs inside the triggering transaction and can make that action fail. The config side (adding and removing accounts, the one-way `forbidnotify` gate, the 24-account cap) is documented in [AtomicAssets notifications](../reference/atomicassets/notifications.md); this guide assumes the account is already on the list and focuses on the receiving contract.
 
 Source: `atomicassets-contract src/atomicassets.cpp:1880-1888` (`notify_collection_accounts`), `atomicassets-contract src/atomicassets.cpp:246-279` (`addnotifyacc`, and its comment: "NOTE: It will consequently allow the account to make any of these actions throw (fail). Only add trusted accounts to this list")
 
-The full table of which action notifies whom, and by which mechanism, is in `reference/atomicassets/notifications.md` ("Which actions notify whom"). The listener sees no difference in wiring between the two paths: both arrive as an `on_notify` dispatch on some action name. What differs is the action name to bind and the data delivered.
+The full table of which action notifies whom, and by which mechanism, is in [AtomicAssets notifications](../reference/atomicassets/notifications.md#which-actions-notify-whom) ("Which actions notify whom"). The listener sees no difference in wiring between the two paths: both arrive as an `on_notify` dispatch on some action name. What differs is the action name to bind and the data delivered.
 
 ## Wiring the C++ handler
 
@@ -135,7 +135,7 @@ The handler never throws, so it can never block an incoming transfer; it bills i
 
 ## Testing the handler
 
-Handlers like this can be exercised in-process, without deploying to a chain, using the VeRT testing library: it runs the AtomicAssets contract and the listener together in a simulated environment, so a test can call `transfer` and assert on the listener's `stats` table, including the same-transaction abort behavior (a throwing handler failing the transfer). See `guides/testing-with-vert.md` for the setup.
+Handlers like this can be exercised in-process, without deploying to a chain, using the VeRT testing library: it runs the AtomicAssets contract and the listener together in a simulated environment, so a test can call `transfer` and assert on the listener's `stats` table, including the same-transaction abort behavior (a throwing handler failing the transfer). See [Testing Antelope contracts with VeRT](testing-with-vert.md) for the setup.
 
 ## Correct and avoid
 
@@ -152,7 +152,7 @@ Avoid:
 - Assuming a `notify_accounts` entry is a passive, read-only feed. It is not: your handler runs in the triggering transaction and your abort reverts the user's action, which is why the contract calls adding a notify account a trust decision (`reference/atomicassets/notifications.md`; `reference/atomicassets/structure.md`, "a notify account with a throwing `on_notify` handler can block the action").
 - Expecting notifications for actions that send none. `canceloffer` and `declineoffer` notify nobody, and in V2 `logbackasset` is a dead stub, so no backing notification arrives (`reference/atomicassets/notifications.md`).
 - Relying on `asset_ids` grouping order across a multi-collection transfer: the per-collection `logtransfer` calls follow `std::map` key order, not the caller's asset-id order (`reference/atomicassets/notifications.md`).
-- Doing settlement-shaped work inside a handler, such as an `on_notify` handler that creates a second AtomicAssets offer ahead of a market fulfillment. That is the buyoffer anti-pattern in `guides/buyoffers.md`; the same-transaction coupling makes it fragile.
+- Doing settlement-shaped work inside a handler, such as an `on_notify` handler that creates a second AtomicAssets offer ahead of a market fulfillment. That is the buyoffer anti-pattern in [Buyoffers](buyoffers.md); the same-transaction coupling makes it fragile.
 - Treating a self-inline action as a way to make a failure-prone handler safe: the inline action still runs in the same transaction and still aborts the user's action on a throw.
 
 Source: `atomicassets-contract src/atomicassets.cpp:246-250` (trust warning), `reference/atomicassets/notifications.md`, `reference/atomicassets/structure.md` ("Authorization and the 24-account cap"), `guides/buyoffers.md`
