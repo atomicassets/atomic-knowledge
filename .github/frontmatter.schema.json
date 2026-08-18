@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/atomicassets/atomic-knowledge/main/.github/frontmatter.schema.json",
+  "title": "Atomic Knowledge page frontmatter",
+  "description": "The frontmatter block every page in this corpus carries. The set stays small on purpose: the page title comes from the leading H1, which has to exist for GitHub anyway, and the validation tier comes from the ledger when the docs site syncs the corpus. A key that duplicates either one is a second source of truth that drifts, so no other key is accepted.",
+  "type": "object",
+  "required": ["scope"],
+  "additionalProperties": false,
+  "properties": {
+    "scope": {
+      "type": "string",
+      "minLength": 1,
+      "description": "One sentence naming what the page covers. The docs site renders it as the page description, which is the meta description of the page and its line in /llms.txt.",
+      "examples": ["Attribute data precedence across template, asset immutable, and asset mutable layers"]
+    },
+    "depends-on": {
+      "type": "array",
+      "description": "Corpus-relative paths of the pages whose facts this page builds on. The docs site passes the list through to the rendered page metadata.",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "examples": [["reference/atomicassets/structure.md"]]
+    },
+    "key-modules": {
+      "type": "array",
+      "description": "The pinned sources this page was validated against, one entry per source. The docs site passes the list through to the rendered page metadata.",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "examples": [["atomicassets-contract (v2.0.0-rc4): src/atomicassets.cpp"]]
+    }
+  }
+}
