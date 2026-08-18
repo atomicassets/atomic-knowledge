@@ -2,6 +2,17 @@
 
 What each release of this corpus changed, one release per tag. `Corrected` comes first in every release, because a fact that was wrong is what a returning reader has to see before anything else. The other sections are `Added`, `Revalidated`, and `Removed`, in that order, and a section with nothing in it is left out.
 
+## 2026.08.3
+
+### Corrected
+
+- `reference/api.md` and `reference/api-streaming.md` say the template-buyoffer socket handler is wired: at the pinned 2.2.0 tag `new_template_buyoffer` broadcasts on `lognewtbuyo`, where both pages previously recorded the handler as defined but never called.
+- `reference/atomicassets/tables.md` records that the `mediatype`/`info` synthesis is live on both hosted deployments, which now report 2.2.0 on `/health`, replacing the note that pinned mainnet to the pre-2.0 behavior.
+
+### Revalidated
+
+- The atomicassets-api baseline moves from an untagged main-branch state to tag `2.2.0`: of the twenty-one cited files, fifteen are byte-identical to the old pin and the rest change nothing cited except the socket wiring above; both line-range citations into the repo still point at byte-identical content.
+
 ## 2026.08.2
 
 ### Revalidated
