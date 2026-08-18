@@ -35,6 +35,9 @@ What each release of this corpus changed, one release per tag. `Corrected` comes
 - `AGENTS.md` routes by the outcome an agent arrives with, one row per outcome, and names the pins a version-sensitive fact has to be re-checked against.
 - `skills/atomic-integration/SKILL.md` carries the mint procedure, the market composers, and the network choice instead of one indirection, and `skills/report/SKILL.md` opens a report with the fields the issue forms accept.
 - `.github/frontmatter.schema.json` states the three frontmatter keys a page may carry, and `.github/workflows/checks.yml` gates a merge on ten checks a reviewer cannot run by eye, among them a fragment with no matching heading, a description outside the band the site renders it into, and a ledger row for a page that no longer exists.
+- `reference/atomicassets/tables.md` and `reference/atomicassets/actions.md` state that no action decrements a template's `issued_supply`, `burnasset` included, so the field counts lifetime mints and a circulating supply has to subtract burns.
+- `reference/atomicmarket/fees-and-royalties.md` states that no per-listing guard caps a seller's exposure to the execution-time collection fee, because `assertsale` takes no fee parameter.
+- `reference/atomicassets/actions.md` and `reference/atomicmarket/ram.md` pin the two RAM byte costs a caller pays: 112 bytes for the table scope a first transfer creates, and 121 + 16N bytes for a market balances row holding N token symbols, both computed from a pinned `AntelopeIO/leap` baseline and observed on WAX mainnet.
 
 ### Revalidated
 

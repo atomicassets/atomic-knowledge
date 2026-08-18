@@ -14,7 +14,7 @@
  */
 import { readFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
-import { pagesUnder, readPage } from './lib/pages.mjs';
+import { pagesUnder, readPage, section } from './lib/pages.mjs';
 
 /** The trees the ledger grades. Tutorials and concepts carry no tier by design. */
 const GRADED = ['reference', 'guides'];
@@ -26,14 +26,6 @@ const PINNED = ['reference', 'guides', 'tutorials', 'concepts'];
 const LEDGER = 'reference/validation.md';
 
 const root = resolve(process.argv[2] ?? process.cwd());
-
-/** The body of one `## ` section, by its exact heading text. */
-function section(source, heading) {
-    const pattern = new RegExp(String.raw`^## ${heading}\s*$([\s\S]*?)(?=^## |\Z)`, 'm');
-    const found = pattern.exec(source);
-
-    return found === null ? null : found[1];
-}
 
 async function readLedger() {
     try {

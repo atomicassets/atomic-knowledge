@@ -1,0 +1,105 @@
+# Cuts a tag and a Release for what just merged. Tags are `YYYY.MM.PATCH`, one
+# per merged pull request: a corpus has no API surface to break, so a semantic
+# major and minor carry nothing a reader can act on, while recency and the
+# baselines behind the pages are exactly what a reader wants. The Release body
+# copies those baselines from the ledger.
+#
+# The trigger is a branch push, so a tag push never reaches this workflow and
+# the tag it creates cannot start a second run. A run whose commit already
+# carries a tag stops before the Release, which is what makes a re-run of an
+# older commit harmless.
+#
+# Actions are pinned by commit sha with the version in the trailing comment, the
+# same as the checks workflow.
+name: release
+
+on:
+    push:
+        branches: [main]
+
+# The tag and the Release are the only writes this workflow makes.
+permissions:
+    contents: write
+
+concurrency:
+    # Two merges landing together would read the same tag list and compute the
+    # same patch number, so they queue rather than race. A queued run is never
+    # cancelled: the merge it belongs to is already on the default branch.
+    group: release
+    cancel-in-progress: false
+
+jobs:
+    release:
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        steps:
+            - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+              with:
+                  # The existing tags are the input to the patch number, and a
+                  # shallow checkout carries none of them, which would restart
+                  # every month at zero and collide with a tag that exists.
+                  fetch-depth: 0
+
+            - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+              with:
+                  node-version: '24'
+
+            - name: The next tag for this month
+              id: next
+              run: |
+                  set -euo pipefail
+
+                  if [ -n "$(git tag --points-at HEAD)" ]; then
+                      echo "::notice::$(git rev-parse --short HEAD) already carries a tag, so this run cuts nothing"
+                      echo "tag=" >> "${GITHUB_OUTPUT}"
+                      exit 0
+                  fi
+
+                  # The merge commit's own date in UTC rather than the runner
+                  # clock, so a run that starts either side of midnight tags the
+                  # month the merge landed in. Git formats it, so nothing here
+                  # needs a date library.
+                  prefix="$(TZ=UTC git show --no-patch --date=format-local:%Y.%m --format=%cd HEAD)"
+
+                  # The first release of a month is patch zero, and each one
+                  # after it is the highest suffix already used that month plus
+                  # one. The comparison is numeric, so .10 follows .9 rather than
+                  # sorting between .1 and .2, and a tag whose suffix is not a
+                  # number is not a release of this scheme and is passed over.
+                  patch=0
+                  for existing in $(git tag --list "${prefix}.*"); do
+                      suffix="${existing##*.}"
+                      case "${suffix}" in '' | *[!0-9]*) continue ;; esac
+                      if [ "${suffix}" -ge "${patch}" ]; then patch=$((suffix + 1)); fi
+                  done
+
+                  tag="${prefix}.${patch}"
+
+                  # Shape-checked before the write, because everything below
+                  # takes this value on trust: it names the tag the API creates
+                  # and titles the Release.
+                  if [[ ! "${tag}" =~ ^[0-9]{4}\.[0-9]{2}\.[0-9]+$ ]]; then
+                      echo "::error::computed tag is not YYYY.MM.PATCH: ${tag}"
+                      exit 1
+                  fi
+
+                  echo "tag=${tag}" >> "${GITHUB_OUTPUT}"
+                  echo "cutting ${tag}"
+
+            - name: The Release, naming the baselines the corpus was read against
+              if: steps.next.outputs.tag != ''
+              env:
+                  GH_TOKEN: ${{ github.token }}
+                  TAG: ${{ steps.next.outputs.tag }}
+              run: |
+                  set -euo pipefail
+
+                  node .github/scripts/compose-release-notes.mjs "${TAG}" > "${RUNNER_TEMP}/release-notes.md"
+
+                  # One call creates the tag and the Release together, so a
+                  # failure cannot leave a tag standing with no Release behind
+                  # it, and the next run reads a tag list that means what it says.
+                  gh release create "${TAG}" \
+                      --target "${GITHUB_SHA}" \
+                      --title "${TAG}" \
+                      --notes-file "${RUNNER_TEMP}/release-notes.md"
