@@ -2,6 +2,12 @@
 
 What each release of this corpus changed, one release per tag. `Corrected` comes first in every release, because a fact that was wrong is what a returning reader has to see before anything else. The other sections are `Added`, `Revalidated`, and `Removed`, in that order, and a section with nothing in it is left out.
 
+## 2026.08.2
+
+### Revalidated
+
+- `reference/wharfkit.md` reads at `@wharfkit/antelope` 1.2.0: the only source change since 1.1.1 is `send_transaction2` exception handling, and every fact on the page holds unchanged.
+
 ## 2026.08.1
 
 ### Corrected
