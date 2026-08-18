@@ -1,0 +1,31 @@
+# Terms this corpus does not use, one ripgrep pattern per line. Run with
+# --pcre2 over the stripped copy of every page, so a real action name, a real
+# payload, and a real account name inside code are already gone before a line
+# reaches this file. A finding here is prose.
+
+# The category head term. Mirrors the site's own vocabulary source, which the
+# built-output gate compiles from the same string, so the two cannot drift:
+# packages/atomic-brand/src/vocabulary.ts. The protocol's own nouns
+# (collection, schema, template, asset, offer, sale) carry the meaning.
+\bnfts?\b|non[-_\s]?fungible
+
+# Era branding rather than a protocol fact. Name the chain, the contract, or
+# the API instead.
+(?i)\bweb ?3(\.0)?\b
+
+# An asset is an asset. A template is a template. "Token instance" is neither
+# contract vocabulary nor API vocabulary.
+(?i)\btoken instances?\b
+
+# Wallet where the referent is an account. On Antelope the holder of an asset
+# or a token balance is an account, and a wallet is the signing software in
+# front of it, so the word points a reader at the wrong layer.
+#
+# Three senses are sanctioned and none of them takes these constructions:
+# Cloud Wallet is a product name, "wallet" naming signing software is the word
+# used correctly, and a wallet address is an address. Sample account names
+# built on the word sit in code and the stripping step has already removed
+# them.
+(?i)\b(?:\w+'s|their|its|your|our|his|her|my)\s+wallets?\b(?!\s+addresses?\b)
+(?i)\b(?:in|into|inside|from|to|between|out\s+of)\s+(?:the\s+|an?\s+)?wallets?\b(?!\s+addresses?\b)
+(?i)\bwallets?\s+(?:holds?|contains?|owns?|receives?|stores?|keeps?)\b

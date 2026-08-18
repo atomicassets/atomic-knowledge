@@ -1,0 +1,36 @@
+# Spelling for this corpus. The check reads a stripped copy of each page, so a
+# real account name, a real ABI type name, and a shell snippet are already gone
+# before a word reaches the dictionary. What is left is prose, and the list
+# below carries only the words that are correct in prose and in code alike.
+
+[default]
+# One spelling standard, so a British variant is a finding rather than a
+# preference. Every page already writes behavior, serialize, and normalize.
+locale = "en-us"
+
+[default.extend-words]
+# Protocol and product names. Each is also the account name or the repository
+# name, which is what makes it correct outside a code span as well as inside
+# one.
+atomicassets = "atomicassets"
+atomicmarket = "atomicmarket"
+atomictools = "atomictools"
+atomictoolsx = "atomictoolsx"
+atomichub = "atomichub"
+
+# Software this corpus reads facts out of.
+wharfkit = "wharfkit"
+nodeos = "nodeos"
+eosio = "eosio"
+delphioracle = "delphioracle"
+greymass = "greymass"
+
+# Terms of art. Each one is a near miss of an ordinary English word, which is
+# exactly the shape a dictionary corrects on its own.
+varint = "varint"
+varints = "varints"
+abi = "abi"
+abis = "abis"
+cdt = "cdt"
+dapp = "dapp"
+ipfs = "ipfs"

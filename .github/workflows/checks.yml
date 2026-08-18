@@ -1,0 +1,354 @@
+# Every check this repository has. No job carries a `name`, so the check a
+# reader sees and the check branch protection requires are both the job id.
+#
+# Every job can fail a pull request, because there is no other gate here. The
+# two network-dependent arms are the exception and both sit off the
+# pull-request path: external URL checking and starter signing run on the weekly
+# schedule, so a third-party host outage never blocks a merge.
+#
+# Actions are pinned by commit sha with the version in the trailing comment. A
+# tag is a moving target, and this workflow is what stands between the corpus
+# and a bad merge.
+name: checks
+
+on:
+    pull_request:
+    push:
+        branches: [main]
+    schedule:
+        # Weekly. The online link arm and the signing starters run here.
+        - cron: '17 6 * * 1'
+
+# Every job reads the tree and writes nothing back.
+permissions:
+    contents: read
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    # A superseded pull-request run has nothing left to say. A push to the
+    # default branch is the record of what landed, so it runs to the end.
+    cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+    # A relative markdown link whose target does not exist.
+    links:
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        steps:
+            - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+            - name: Relative links resolve
+              if: github.event_name != 'schedule'
+              uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
+              with:
+                  lycheeVersion: v0.24.2
+                  args: --offline --no-progress --exclude-path .git './**/*.md'
+                  fail: true
+
+            - name: External hosts answer
+              if: github.event_name == 'schedule'
+              uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
+              with:
+                  lycheeVersion: v0.24.2
+                  args: --no-progress --max-concurrency 4 --timeout 20 --max-retries 2 --exclude-path .git './**/*.md'
+                  fail: true
+
+    # A `#fragment` with no matching heading id. This mirrors the docs site's own
+    # link gate and moves the failure to the pull request that caused it.
+    anchors:
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        steps:
+            - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+            # A fragment resolves inside the checkout, so this arm is offline on
+            # every event. It reports a missing file as well as a missing
+            # fragment, because lychee has no fragments-only mode.
+            - name: Heading fragments resolve
+              uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
+              with:
+                  lycheeVersion: v0.24.2
+                  args: --offline --include-fragments --no-progress --exclude-path .git './**/*.md'
+                  fail: true
+
+    # The frontmatter block every page carries, against the committed schema,
+    # plus the three arms a JSON Schema cannot express.
+    frontmatter:
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        steps:
+            - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+            - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+              with:
+                  node-version: '24'
+
+            # Also extracts each block as YAML for ajv below. `skills/` carries a
+            # skill's own frontmatter and README.md carries none, so the walk
+            # covers neither.
+            - name: H1 length, scope band, and depends-on targets
+              run: node .github/scripts/check-frontmatter.mjs "${RUNNER_TEMP}/frontmatter"
+
+            - name: Frontmatter matches the schema
+              run: |
+                  npx --yes ajv-cli@5.0.0 validate \
+                      --spec=draft2020 \
+                      -s .github/frontmatter.schema.json \
+                      -d "${RUNNER_TEMP}/frontmatter/*.yml" \
+                      --all-errors
+
+    # Terms this corpus does not use, read on the stripped copy.
+    banned-terms:
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        steps:
+            - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+            - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+              with:
+                  node-version: '24'
+
+            - name: Install ripgrep
+              run: .github/scripts/install-ripgrep.sh
+
+            - name: Strip code from every page
+              run: node .github/scripts/strip-code.mjs "${RUNNER_TEMP}/stripped"
+
+            - name: No banned term in prose
+              run: |
+                  # The pattern file carries comments and blank lines for the
+                  # reader. A blank line is an empty regex that matches every
+                  # line, so both go before ripgrep sees the file.
+                  grep -vE '^[[:space:]]*(#|$)' .github/banned-terms.txt > "${RUNNER_TEMP}/banned-terms.rg"
+
+                  cd "${RUNNER_TEMP}/stripped"
+                  rg --pcre2 --line-number --no-heading --color never -f "${RUNNER_TEMP}/banned-terms.rg" . && found=0 || found=$?
+
+                  case "${found}" in
+                      0) echo "::error::a banned term reached prose, see the matches above"; exit 1 ;;
+                      1) echo "no banned term in prose" ;;
+                      *) echo "::error::ripgrep failed with ${found}"; exit "${found}" ;;
+                  esac
+
+    # An em-dash and a curly quote fail. A bold-header bullet fails on the two
+    # trees a reader arrives at and warns elsewhere. The AI-frequent vocabulary
+    # warns, because one use in a paragraph is permitted prose.
+    prose-bans:
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        steps:
+            - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+            - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+              with:
+                  node-version: '24'
+
+            - name: Install ripgrep
+              run: .github/scripts/install-ripgrep.sh
+
+            - name: Strip code from every page
+              run: node .github/scripts/strip-code.mjs "${RUNNER_TEMP}/stripped"
+
+            - name: No AI tell in prose
+              run: |
+                  cd "${RUNNER_TEMP}/stripped"
+                  failed=0
+
+                  # One helper for both severities, so a rule cannot drift into
+                  # reporting the opposite of what it means. ripgrep answers 0
+                  # for a match, 1 for none, and anything else is a tool failure
+                  # that must not read as a pass.
+                  scan() {
+                      local severity="$1" message="$2" pattern="$3"
+                      shift 3
+                      rg --pcre2 --line-number --no-heading --color never -e "${pattern}" "$@" && found=0 || found=$?
+
+                      case "${found}" in
+                          0)
+                              echo "::${severity}::${message}"
+                              if [ "${severity}" = error ]; then failed=1; fi
+                              ;;
+                          1) ;;
+                          *)
+                              echo "::error::ripgrep failed with ${found}"
+                              exit "${found}"
+                              ;;
+                      esac
+                  }
+
+                  # The character classes are written as escapes so this file
+                  # does not have to carry the characters it bans.
+                  scan error 'em-dash: use a hyphen, a comma, a period, or parentheses' '\x{2014}' .
+                  scan error 'curly quote: this corpus writes straight quotes' '[\x{2018}\x{2019}\x{201C}\x{201D}]' .
+                  scan error 'bold-header bullet: write the sentence instead of a label and a colon' \
+                      '^\s*[-*+]\s+\*\*[^*]*[A-Za-z][^*]*(:\s*\*\*|\*\*\s*:)' reference guides
+                  scan warning 'bold-header bullet outside the reference and guides trees' \
+                      '^\s*[-*+]\s+\*\*[^*]*[A-Za-z][^*]*(:\s*\*\*|\*\*\s*:)' --glob '!reference/**' --glob '!guides/**' .
+                  # "key" and "landscape" are on the standard's list and off this
+                  # one: this corpus writes about primary keys and key modules,
+                  # and those false positives would bury the real findings.
+                  scan warning 'AI-frequent vocabulary, rewrite a paragraph that carries three' \
+                      '(?i)\b(additionally|comprehensive|crucial|delve|deep dive|dive into|empower|enhance|facilitate|foster|garner|intricate|leverage|pivotal|showcase|streamline|tapestry|testament|underscore|utilize|vital|seamless|robust|boasts)\b' .
+
+                  exit "${failed}"
+
+    # A misspelling in prose. Stripping is what lets a real account name pass as
+    # code and fail as prose.
+    spelling:
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        steps:
+            - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+            - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+              with:
+                  node-version: '24'
+
+            - name: Strip code from every page
+              run: node .github/scripts/strip-code.mjs "${RUNNER_TEMP}/stripped"
+
+            - name: No misspelling in prose
+              uses: crate-ci/typos@8a48f81b6c64dcfea44b3633223084c4be58ac5f # v1.49.0
+              with:
+                  files: ${{ runner.temp }}/stripped
+                  config: ./_typos.toml
+
+    # A bare product token that is not title-cased. The corpus writes the account
+    # name and the product name in one sentence, and stripping is what separates
+    # them, which is why this is not folded into spelling.
+    casing:
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        steps:
+            - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+            - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+              with:
+                  node-version: '24'
+
+            - name: Install ripgrep
+              run: .github/scripts/install-ripgrep.sh
+
+            - name: Strip code from every page
+              run: node .github/scripts/strip-code.mjs "${RUNNER_TEMP}/stripped"
+
+            - name: Product names keep their casing
+              run: |
+                  cd "${RUNNER_TEMP}/stripped"
+
+                  # A bare token only. A repository name, a package name, a
+                  # hostname, and a path each carry a separator on one side, and
+                  # each of those is a lowercase identifier a reader has to be
+                  # able to copy.
+                  pattern='(?<![\w@./-])(?:atomicassets|atomicmarket|atomictools|atomichub|wharfkit|wax|antelope|ipfs)(?![\w./-])'
+                  rg --pcre2 --line-number --no-heading --color never -e "${pattern}" . && found=0 || found=$?
+
+                  case "${found}" in
+                      0) echo "::error::a product name is lowercase in prose, see the matches above"; exit 1 ;;
+                      1) echo "product names keep their casing" ;;
+                      *) echo "::error::ripgrep failed with ${found}"; exit "${found}" ;;
+                  esac
+
+    # The ledger and the pages, held to each other. This is the check nobody
+    # downstream can run.
+    validation-consistency:
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        steps:
+            - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+            - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+              with:
+                  node-version: '24'
+
+            - name: Every graded page has a row, and every row a page
+              run: node .github/scripts/check-validation-consistency.mjs
+
+    # Markdown structure. The rule set lives in .markdownlint-cli2.jsonc, so a
+    # contributor running the tool locally gets the same answer.
+    markdownlint:
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        steps:
+            - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+            - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+              with:
+                  node-version: '24'
+
+            - name: One H1, ATX headings, no trailing whitespace
+              run: npx --yes markdownlint-cli2@0.19.0
+
+    # A starter that stopped running. The signing arm is the only place this
+    # workflow holds a credential, and it is separated from every check a fork
+    # pull request runs, so a fork pull request runs with nothing sensitive in
+    # scope.
+    #
+    # The environment holds WAX_TESTNET_ACTOR and WAX_TESTNET_PRIVATE_KEY and
+    # must carry no required reviewer and no deployment branch policy. This job
+    # is a required check on every pull request, and either rule would leave
+    # that check unfinished rather than gate the one step that reads a key.
+    starters:
+        runs-on: ubuntu-latest
+        timeout-minutes: 20
+        environment: wax-testnet
+        steps:
+            - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+            - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+              with:
+                  node-version: '24'
+
+            # No key reaches this step. A starter that signs reads its two
+            # variables, finds neither, and exits zero naming the one it wanted,
+            # which is what a reader who cloned without keys sees too.
+            - name: Starters that need no key
+              run: |
+                  if [ ! -d starters ]; then
+                      echo "No starters/ directory yet. This arm starts running with the pull request that lands it."
+                      exit 0
+                  fi
+
+                  for starter in starters/*/; do
+                      echo "::group::${starter}"
+                      (
+                          cd "${starter}"
+                          if [ -f package-lock.json ]; then npm ci --no-audit --no-fund; else npm install --no-audit --no-fund; fi
+                          node --test
+                      )
+                      echo "::endgroup::"
+                  done
+
+            # This is the fork guard. A fork reaches this workflow only through
+            # `pull_request`, so excluding that event excludes every fork, and it
+            # is stricter than a head-repository test because it also keeps live
+            # signing off the pull-request path, where a flaky endpoint would
+            # train a reader to ignore a red check. A change that adds
+            # `pull_request` back has to add
+            # `github.event.pull_request.head.repo.full_name == github.repository`
+            # beside it, or the keys follow the workflow into a fork's pull
+            # request.
+            - name: Starters that sign on WAX testnet
+              if: github.event_name == 'push' || github.event_name == 'schedule'
+              env:
+                  WAX_TESTNET_ACTOR: ${{ secrets.WAX_TESTNET_ACTOR }}
+                  WAX_TESTNET_PRIVATE_KEY: ${{ secrets.WAX_TESTNET_PRIVATE_KEY }}
+              run: |
+                  if [ ! -d starters ]; then
+                      echo "No starters/ directory yet. This arm starts running with the pull request that lands it."
+                      exit 0
+                  fi
+
+                  if [ -z "${WAX_TESTNET_ACTOR}" ] || [ -z "${WAX_TESTNET_PRIVATE_KEY}" ]; then
+                      echo "::warning::WAX_TESTNET_ACTOR or WAX_TESTNET_PRIVATE_KEY is unset, so each signing starter skips itself"
+                  fi
+
+                  for starter in starters/*/; do
+                      echo "::group::${starter}"
+                      (
+                          cd "${starter}"
+                          if [ -f package-lock.json ]; then npm ci --no-audit --no-fund; else npm install --no-audit --no-fund; fi
+                          node --test
+                      )
+                      echo "::endgroup::"
+                  done
