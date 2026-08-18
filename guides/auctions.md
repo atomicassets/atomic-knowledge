@@ -1,7 +1,10 @@
 ---
 scope: AtomicMarket auction lifecycle on the V2 baseline - announce, transfer the asset into escrow, place deposit-backed bids, claim after the end, and cancel
 depends-on: [reference/atomicmarket/actions.md, guides/deposits.md]
-key-modules: ["atomicmarket-contract (v2.0.0-rc2): src/atomicmarket.cpp", "atomicassets-contract (v2.0.0-rc4): src/atomicassets.cpp"]
+key-modules:
+    - "atomicmarket-contract (v2.0.0-rc2): src/atomicmarket.cpp"
+    - "atomicassets-contract (v2.0.0-rc4): src/atomicassets.cpp"
+    - "@atomichub/atomicmarket 2.3.0 (atomicmarket-sdk v2.3.0, 36aee58): src/Actions/Generator.ts"
 ---
 
 # Working with auctions
@@ -103,6 +106,34 @@ Failure modes asserted in source:
 - No non-finished auction announced by this sender exists for this exact asset id set.
 
 Source: `atomicmarket-contract src/atomicmarket.cpp:1889-1943` (`receive_asset_transfer`)
+
+### Building the announce and escrow pair with the SDK
+
+The order above is the contract's, not a preference: the transfer's notification handler looks up an announced auction by its assets and seller and aborts when it finds none, so a transfer that arrives first fails. `@atomichub/atomicmarket` composes the pair in that order, with the `auction` memo literal filled in:
+
+```ts
+import { MarketActionBuilder } from '@atomichub/atomicmarket'
+
+const builder = new MarketActionBuilder('atomicmarket')
+
+const actions = builder.announceAuctionActions({
+  seller: session.actor.toString(),
+  asset_ids: ['1099511627887'],
+  starting_bid: '10.00000000 WAX',
+  duration: 86400,
+  maker_marketplace: 'mymarket',
+  assets_contract: 'atomicassets',
+})
+// -> [announceauct on atomicmarket, transfer on atomicassets with memo 'auction']
+
+await session.transact({
+  actions: actions.map((a) => ({ ...a, authorization: [session.permissionLevel] })),
+})
+```
+
+`duration` is the one field the builder checks: it must be a whole number inside the uint32 range, or `announceauct` throws before a transaction is built. That is a serialization bound rather than a chain rule, so the config's minimum and maximum auction duration still apply and are still the chain's to enforce. Nothing else is checked, and the composer carries no bundle opt-out, because an auction action is handed an auction id and cannot see how many assets the row holds. See [@atomichub/atomicmarket SDK](../reference/sdk/atomicmarket.md#the-five-composers) ("The five composers").
+
+Source: atomicmarket-sdk (v2.3.0, 36aee58) src/Actions/Generator.ts:615-639 (`announceAuctionActions`, the ordering rule and the `auction` memo), src/Actions/Generator.ts:312-323 (`announceauct` and its `duration` check), src/Actions/Generator.ts:713-729 (`_uint32`), src/Actions/Generator.ts:301-311 (the legacy bundle note on the auction family)
 
 ## Bid on an auction
 

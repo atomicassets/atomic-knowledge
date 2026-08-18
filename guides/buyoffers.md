@@ -1,7 +1,10 @@
 ---
 scope: How to create, accept, decline, and cancel AtomicMarket asset and template buyoffers, whose price leaves the buyer's deposited balance at creation
 depends-on: [reference/atomicmarket/actions.md, guides/deposits.md, reference/api.md]
-key-modules: ["atomicmarket-contract (v2.0.0-rc2): src/atomicmarket.cpp", "atomicassets-contract (v2.0.0-rc4): src/atomicassets.cpp"]
+key-modules:
+    - "atomicmarket-contract (v2.0.0-rc2): src/atomicmarket.cpp"
+    - "atomicassets-contract (v2.0.0-rc4): src/atomicassets.cpp"
+    - "@atomichub/atomicmarket 2.3.0 (atomicmarket-sdk v2.3.0, 36aee58): src/Actions/Generator.ts"
 ---
 
 # Buyoffers
@@ -97,6 +100,36 @@ await session.transact({
 Changed in V2: see [AtomicMarket V2 changes](../reference/atomicmarket/v2-changes.md#defensive-guards-in-the-v2-contract) ("Defensive guards in the V2 contract") for the `is_permutation` and empty-table guard fixes in `acceptbuyo`.
 
 Source: `atomicmarket-contract src/atomicmarket.cpp:1533-1626` (`acceptbuyo`), `atomicmarket-contract include/atomicmarket.hpp:260-265`
+
+#### Building the accept flow with the SDK
+
+Because `acceptbuyo` identifies its offer as the globally last created row rather than by an id, an `acceptbuyo` action built on its own is not safe to send. `@atomichub/atomicmarket` gives it no standalone builder method for that reason; the only way to reach it is `acceptBuyofferActions`, which emits the `createoffer` and the `acceptbuyo` together, in that order, with the `buyoffer` memo filled in:
+
+```ts
+import { MarketActionBuilder } from '@atomichub/atomicmarket'
+
+const builder = new MarketActionBuilder('atomicmarket')
+
+const actions = builder.acceptBuyofferActions({
+  recipient: session.actor.toString(),
+  buyoffer_id: '42',
+  asset_ids: ['1099511627776'],
+  expected_price: '10.00000000 WAX',
+  taker_marketplace: 'atomichub',
+  assets_contract: 'atomicassets',
+})
+// -> [createoffer on atomicassets with memo 'buyoffer', acceptbuyo on atomicmarket]
+
+await session.transact({
+  actions: actions.map((a) => ({ ...a, authorization: [session.permissionLevel] })),
+})
+```
+
+The composer fills `expected_asset_ids` from `asset_ids`, because the contract compares that list twice: once against the buyoffer row and once against the contents of the offer it reads. It does not accept the offer itself, since the market contract sends that `acceptoffer` inline and a pre-accepted offer is gone from the table before the contract can find it. Nothing else in the transaction may create an AtomicAssets offer between these two actions; actions appended after `acceptbuyo` are safe.
+
+The composer throws when `asset_ids` carries more than one id, unless `allow_v1_bundle_buyoffer: true` is set. Under V2 `acceptbuyo` refunds the escrowed price and erases a multi-asset row before it ever reads the offers table, so the transaction commits with the buyoffer gone, nothing sold, and the offer this flow created left dangling on the recipient's RAM until they cancel it. Set the flag only against a chain still running AtomicMarket V1, where bundle buyoffers accept correctly. See [@atomichub/atomicmarket SDK](../reference/sdk/atomicmarket.md#the-two-bundle-opt-out-flags) ("The two bundle opt-out flags").
+
+Source: atomicmarket-sdk (v2.3.0, 36aee58) src/Actions/Generator.ts:641-688 (`acceptBuyofferActions`, the last-offer placement rule, the bundle throw), src/Actions/Generator.ts:158-175 (`AcceptBuyofferInput` and `allow_v1_bundle_buyoffer`), src/Actions/Generator.ts:208-476 (the builder's action set, which carries no standalone `acceptbuyo`)
 
 ### Declining a buyoffer
 
@@ -247,6 +280,26 @@ await session.transact({
 ```
 
 Source: `atomicmarket-contract src/atomicmarket.cpp:1717-1794` (`fulfilltbuyo`), `atomicmarket-contract include/atomicmarket.hpp:308-314`
+
+#### Building the fulfill flow with the SDK
+
+`fulfilltbuyo` reads the last offer the same way `acceptbuyo` does, so it has no standalone builder method either. `fulfillTemplateBuyofferActions` emits the pair with the `tbuyoffer` memo filled in:
+
+```ts
+const actions = builder.fulfillTemplateBuyofferActions({
+  seller: session.actor.toString(),
+  buyoffer_id: '7',
+  asset_id: '1099511627777',
+  expected_price: '5.00000000 WAX',
+  taker_marketplace: 'atomichub',
+  assets_contract: 'atomicassets',
+})
+// -> [createoffer on atomicassets with memo 'tbuyoffer', fulfilltbuyo on atomicmarket]
+```
+
+It carries no bundle guard, because a template buyoffer names one asset by construction: `fulfilltbuyo` takes a single `asset_id` and the contract checks that the offer holds exactly that one asset. The placement rule from the accept flow above applies unchanged, and it is the SDK-side statement of the marketplace security consideration in this section: keep the offer immediately before the market action and let nothing else create an offer in between.
+
+Source: atomicmarket-sdk (v2.3.0, 36aee58) src/Actions/Generator.ts:690-707 (`fulfillTemplateBuyofferActions` and why it carries no bundle guard), src/Actions/Generator.ts:177-188 (`FulfillTemplateBuyofferInput`), src/Actions/Generator.ts:641-657 (the last-offer placement rule shared with the accept flow)
 
 ### Cancelling a template buyoffer
 
