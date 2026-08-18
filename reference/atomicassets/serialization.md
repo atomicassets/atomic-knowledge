@@ -1,5 +1,5 @@
 ---
-scope: The custom binary format atomicassets uses to encode attribute data - varint, zigzag, per-type wire encoding, arrays, and identifiers
+scope: The custom binary format the `atomicassets` contract uses to encode attribute data - varints, zigzag, per-type wire encoding, arrays, and identifiers
 depends-on: [reference/atomicassets/structure.md, reference/atomicassets/custom-types.md]
 key-modules: ["atomicassets-contract (v2.0.0-rc4): src/atomicassets.cpp, include/atomicassets.hpp"]
 ---

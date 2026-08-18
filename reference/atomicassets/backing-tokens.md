@@ -1,5 +1,5 @@
 ---
-scope: The atomicassets fungible-token backing mechanism - deposit, backing, and recovery - and its V2 deprecation
+scope: The `atomicassets` fungible-token backing mechanism - announcing a deposit, where backed value is stored, recovery through burnasset, and its V2 deprecation
 depends-on: [reference/atomicassets/structure.md, reference/atomicassets/actions.md]
 key-modules: ["atomicassets-contract (v2.0.0-rc4): src/atomicassets.cpp, include/atomicassets.hpp"]
 ---
@@ -16,7 +16,7 @@ Source: `src/atomicassets.cpp:990-1032` (announcedepo), `src/atomicassets.cpp:14
 
 ## The balances table is a general-purpose deposit ledger
 
-`balances_s` is one row per owner holding a vector of `asset` quantities, one entry per announced symbol, with no link to any specific asset. `withdraw` spends directly out of this pool back to the owner's wallet through the token contract recorded in `supported_tokens`. Historically `backasset` spent out of the same pool to attach value to an asset. The table itself is not backing-specific; it is whatever pre-funded balance any contract action needs.
+`balances_s` is one row per owner holding a vector of `asset` quantities, one entry per announced symbol, with no link to any specific asset. `withdraw` spends directly out of this pool back to the owner's account through the token contract recorded in `supported_tokens`. Historically `backasset` spent out of the same pool to attach value to an asset. The table itself is not backing-specific; it is whatever pre-funded balance any contract action needs.
 
 Source: `include/atomicassets.hpp:445-451` (`balances_s`), `src/atomicassets.cpp:1040-1070` (withdraw), `src/atomicassets.cpp:1768-1801` (internal_decrease_balance)
 

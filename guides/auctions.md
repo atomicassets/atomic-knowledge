@@ -1,5 +1,5 @@
 ---
-scope: AtomicMarket auction lifecycle - announce, escrow transfer, bid, claim, and cancel
+scope: AtomicMarket auction lifecycle on the V2 baseline - announce, transfer the asset into escrow, place deposit-backed bids, claim after the end, and cancel
 depends-on: [reference/atomicmarket/actions.md, guides/deposits.md]
 key-modules: ["atomicmarket-contract (v2.0.0-rc2): src/atomicmarket.cpp", "atomicassets-contract (v2.0.0-rc4): src/atomicassets.cpp"]
 ---

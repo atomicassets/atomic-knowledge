@@ -1,5 +1,5 @@
 ---
-scope: Workflow patterns for reading Atomic data over the HTTP API and get_table_rows
+scope: Workflow patterns for reading Atomic data over the HTTP API and get_table_rows - pagination caps, state filters, chain reads, and deterministic errors
 depends-on: [reference/api.md]
 key-modules: ["atomicmarket-contract (v2.0.0-rc2): src/atomicmarket.cpp", "atomicassets-contract (v2.0.0-rc4): src/atomicassets.cpp"]
 ---

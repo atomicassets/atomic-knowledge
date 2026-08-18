@@ -1,5 +1,5 @@
 ---
-scope: The ABI/C++ type system atomicassets uses to describe and carry attribute data - FORMAT, ATOMIC_ATTRIBUTE, ATTRIBUTE_MAP, and FORMAT_TYPE
+scope: The ABI/C++ type system the `atomicassets` contract uses to describe and carry attribute data - FORMAT, ATOMIC_ATTRIBUTE, ATTRIBUTE_MAP, and FORMAT_TYPE
 depends-on: [reference/atomicassets/serialization.md]
 key-modules: ["atomicassets-contract (v2.0.0-rc4): src/atomicassets.cpp, include/atomicassets.hpp"]
 ---

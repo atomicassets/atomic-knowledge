@@ -1,5 +1,5 @@
 ---
-scope: atomicassets-api indexer operational behavior - handler config, drain gating, freshness, migrations, CI
+scope: atomicassets-api indexer operational behavior - the required delphioracle handler, the reader-priority drain gate, sales-filter freshness, and migrations
 depends-on: []
 key-modules:
     - "atomicassets-api (main): src/filler/handlers/atomicmarket, definitions/migrations/, package.json"

@@ -1,5 +1,5 @@
 ---
-scope: How template and asset data layers combine into an asset's effective attributes
+scope: How the template and asset data layers combine into an asset's effective attributes, which layer wins a name collision, and what a reader has to do
 depends-on: [reference/atomicassets/structure.md, reference/atomicassets/serialization.md]
 key-modules: ["atomicassets-contract (v2.0.0-rc4): src/atomicassets.cpp, include/atomicassets.hpp"]
 ---

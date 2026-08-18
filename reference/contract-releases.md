@@ -1,5 +1,5 @@
 ---
-scope: AtomicAssets/AtomicMarket contract build, ABI patching, and on-chain deploy resource requirements
+scope: AtomicAssets and AtomicMarket contract builds - the raw and patched ABI split, what the patcher normalizes, and the resources and permission a setcode needs
 depends-on: []
 key-modules:
     - atomicassets-contract

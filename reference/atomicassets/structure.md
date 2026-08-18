@@ -1,12 +1,12 @@
 ---
-scope: The atomicassets data model - collections, schemas, templates, and assets - and the authorization model governing them
+scope: The AtomicAssets data model - collections, schemas, templates, and assets - the authorization model governing them, and how each table is scoped
 depends-on: []
 key-modules: ["atomicassets-contract (v2.0.0-rc4): src/atomicassets.cpp, include/atomicassets.hpp"]
 ---
 
 # AtomicAssets data model structure
 
-The `atomicassets` contract organizes assets in four levels: collections group schemas and templates and hold the authorization rules, schemas declare the attribute formats a collection's data serializes to, templates carry immutable data shared by many assets, and assets are the individual token instances. Baseline behavior below is V2, tag `v2.0.0-rc4` of `atomicassets-contract` (the release pinned for both testnets: `include/atomicassets.hpp`, `src/atomicassets.cpp`); "Changed in V2" notes call out where V1 differs enough to matter to an integrator.
+The `atomicassets` contract organizes assets in four levels: collections group schemas and templates and hold the authorization rules, schemas declare the attribute formats a collection's data serializes to, templates carry immutable data shared by many assets, and assets are the individual items an account owns. Baseline behavior below is V2, tag `v2.0.0-rc4` of `atomicassets-contract` (the release pinned for both testnets: `include/atomicassets.hpp`, `src/atomicassets.cpp`); "Changed in V2" notes call out where V1 differs enough to matter to an integrator.
 
 ## Collections
 
@@ -32,7 +32,7 @@ A schema is a named, ordered list of attribute definitions (`FORMAT { name, type
 
 A schema must include a `{"name": "name", "type": "string"}` line - every schema has a mandatory `name` attribute - and every attribute name inside a schema must be unique. Schema names are 1-12 characters.
 
-Schemas can only be extended, never edited retroactively: `extendschema` appends new `FORMAT` lines to the end of the existing vector, and `check_format` re-validates the whole extended vector, but no action can remove or reorder existing lines. This is a deliberate contract-level guarantee: the binary serialization format identifies each attribute by its position in the format vector (see data-precedence.md), so reordering or removing a line would silently corrupt every template and asset already serialized against that schema.
+Schemas can only be extended, never edited retroactively: `extendschema` appends new `FORMAT` lines to the end of the existing vector, and `check_format` re-validates the whole extended vector, but no action can remove or reorder existing lines. This is a deliberate contract-level guarantee: the binary serialization format identifies each attribute by its position in the format vector (see `reference/atomicassets/data-precedence.md`), so reordering or removing a line would silently corrupt every template and asset already serialized against that schema.
 
 Changed in V2: schema type descriptors. The `schema_types` table (`setschematyp` action) attaches an optional `FORMAT_TYPE { name, mediatype, info }` per attribute - a human-readable description and, for binary-carrying types, a media type hint (for example marking an `ipfs` attribute as a `.glb` 3D model). It is metadata only: it does not affect serialization and every named attribute must already exist in the schema's `format`. V1 has no equivalent table.
 
@@ -56,7 +56,7 @@ Live chain observation (wax.greymass.com, `scope=alien.worlds`, `table=templates
 
 ## Assets
 
-An asset is one token instance. Assets are scoped to their current owner (`assets` table scope = `owner`), keyed by `asset_id`, a `uint64_t` assigned from a single contract-wide counter (`config.asset_counter`, starting at 2^40 - chosen to stay clear of the low ID range other contracts and token standards commonly use).
+An asset is one individually owned item. Assets are scoped to their current owner (`assets` table scope = `owner`), keyed by `asset_id`, a `uint64_t` assigned from a single contract-wide counter (`config.asset_counter`, starting at 2^40 - chosen to stay clear of the low ID range other contracts and token standards commonly use).
 
 An asset's fields: `collection_name` and `schema_name` (fixed at mint time), `template_id` (-1 if none), `ram_payer` (who currently pays for the row's RAM - updated on transfer and on `setassetdata`), `backed_tokens` (a legacy field; native token backing is deprecated in V2 and `backasset` always fails), `immutable_serialized_data` (set once at mint, never changed again), and `mutable_serialized_data` (set at mint, replaceable via `setassetdata`).
 
@@ -64,7 +64,7 @@ Changed in V2: RAM-payer reassignment. Two actions let an asset's `ram_payer` be
 
 Source: `include/atomicassets.hpp:409-421` (assets table), `include/atomicassets.hpp:455` (asset_counter default), `src/atomicassets.cpp:697-788` (mintasset), `src/atomicassets.cpp:796-836` (setassetdata), `src/atomicassets.cpp:1079-1087` (backasset deprecated)
 
-Live chain observation (wax.api.atomicassets.io `/atomicassets/v1/assets?collection_name=alien.worlds&template_id=13728`): asset `1099511946686`, owned by `wombatmaster`, carries empty `immutable_data` and `mutable_data` objects of its own - all of its displayed attributes come from the template (see data-precedence.md).
+Live chain observation (wax.api.atomicassets.io `/atomicassets/v1/assets?collection_name=alien.worlds&template_id=13728`): asset `1099511946686`, owned by `wombatmaster`, carries empty `immutable_data` and `mutable_data` objects of its own - all of its displayed attributes come from the template (see `reference/atomicassets/data-precedence.md`).
 
 ## Authorization and the 24-account cap
 

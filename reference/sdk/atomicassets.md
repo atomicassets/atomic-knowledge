@@ -1,5 +1,5 @@
 ---
-scope: "@atomichub/atomicassets JavaScript/TypeScript SDK: ExplorerApi and RpcApi reads, attribute serialization, and v2 action building"
+scope: "@atomichub/atomicassets JavaScript/TypeScript SDK: ExplorerApi and RpcApi reads, attribute serialization, v2 action building, and the network factories"
 depends-on: [reference/api.md, reference/wharfkit.md, reference/atomicassets/serialization.md]
 key-modules:
     - "@atomichub/atomicassets 2.0.0 (atomicassets-sdk main, 80580c5): src/index.ts, src/API/Explorer/index.ts, src/API/Rpc/index.ts, src/Actions/Generator.ts, src/Serialization/index.ts, src/Schema/index.ts, src/Networks.ts"
@@ -117,7 +117,7 @@ The action objects the generator returns are already in the shape WharfKit's `se
 
 Source: atomicassets-sdk (main, 80580c5) src/Actions/Generator.ts (`EosioActionObject`, `EosioAuthorizationObject`, `_authorize`)
 
-## When to use the SDK versus raw HTTP or wharfkit table reads
+## When to use the SDK versus raw HTTP or WharfKit table reads
 
 Three read paths cover different needs, consistent with `guides/querying-the-api.md`:
 

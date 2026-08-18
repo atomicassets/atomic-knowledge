@@ -1,5 +1,5 @@
 ---
-scope: How atomicassets notifies collections and parties via require_recipient and notify_collection_accounts, and what a notified contract can and cannot assume
+scope: How `atomicassets` notifies collections and parties via require_recipient and notify_collection_accounts, and what a notified contract can and cannot assume
 depends-on: [reference/atomicassets/structure.md, reference/atomicassets/actions.md]
 key-modules: ["atomicassets-contract (v2.0.0-rc4): src/atomicassets.cpp, include/atomicassets.hpp"]
 ---

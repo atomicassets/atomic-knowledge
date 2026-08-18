@@ -1,5 +1,5 @@
 ---
-scope: nodeos RPC error semantics for WAX/Antelope chain reads relevant to Atomic integrations
+scope: nodeos RPC error semantics for WAX and Antelope chain reads - why error 3060002 means the account does not exist and why retrying that response is pointless
 depends-on: []
 key-modules: []
 ---

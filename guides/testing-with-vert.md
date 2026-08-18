@@ -1,5 +1,5 @@
 ---
-scope: Testing Antelope contracts in-process with @atomichub/vert, including AtomicAssets/AtomicMarket integrations
+scope: Testing Antelope contracts in-process with @atomichub/vert - the per-chain host-function gate, time control, the authorization model, and the known limits
 depends-on: [reference/atomicassets/actions.md]
 key-modules: ["@atomichub/vert 2.2.0 (commit a8a4160): src/antelope/blockchain.ts, src/antelope/vm.ts, src/antelope/table.ts, examples/"]
 ---

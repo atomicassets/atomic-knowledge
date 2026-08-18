@@ -1,5 +1,5 @@
 ---
-scope: "@atomichub/atomicmarket JavaScript/TypeScript SDK: AtomicMarketApi reads, the v2 royalty read layer, and royalty-config action building"
+scope: "@atomichub/atomicmarket JavaScript/TypeScript SDK: AtomicMarketApi reads of sales, auctions, and buyoffers, the v2 royalty read layer, and action building"
 depends-on: [reference/api.md, reference/atomicmarket/fees-and-royalties.md, reference/sdk/atomicassets.md]
 key-modules:
     - "@atomichub/atomicmarket 2.0.0 (atomicmarket-sdk main, 278bdfa): src/index.ts, src/API/Explorer/index.ts, src/API/Explorer/Objects.ts, src/Actions/Generator.ts, src/Networks.ts"
@@ -106,7 +106,7 @@ Source: atomicmarket-sdk (main, 278bdfa) src/Actions/Generator.ts (`MarketAction
 
 Source: atomicmarket-sdk (main, 278bdfa) src/Networks.ts (`marketApiForNetwork`, re-exported `AtomicHubNetwork`/`NETWORK_ENDPOINTS`); `wax` and `wax-testnet` factories verified live
 
-## When to use the SDK versus raw HTTP or wharfkit table reads
+## When to use the SDK versus raw HTTP or WharfKit table reads
 
 The read-path choice mirrors the AtomicAssets SDK, consistent with `guides/querying-the-api.md`:
 

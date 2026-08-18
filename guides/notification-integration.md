@@ -1,5 +1,5 @@
 ---
-scope: Building a third-party contract that reacts to atomicassets notifications - which notifications reach a listener, how to wire on_notify handlers, and the same-transaction safety rules
+scope: Building a third-party contract that reacts to AtomicAssets notifications - which ones reach a listener, how to wire on_notify, and the safety rules
 depends-on: [reference/atomicassets/notifications.md, reference/atomicassets/actions.md]
 key-modules: ["atomicassets-contract (v2.0.0-rc4): src/atomicassets.cpp, include/atomicassets.hpp"]
 ---
