@@ -18,9 +18,9 @@ The pages are read against these baselines:
 
 - `atomicassets-contract` at `v2.0.0`
 - `atomicmarket-contract` at `v2.0.0`
-- `atomicassets-api` at its `main` branch state, which carries no release tag; the streaming and rate-limit pages pin commit `f6419858`
+- `atomicassets-api` at tag `2.2.0`, commit `cf8bf323`, the version both hosted deployments report on `/health`
 - `atomictools-contract` at commit `d89ce79e4`, which the deployed `atomictoolsx` ABI on WAX matches exactly
-- `atomicassets-sdk` at main `80580c5` and `atomicmarket-sdk` at main `278bdfa`, both version 2.0.0
+- `atomicassets-sdk` at tag `v2.1.1`, commit `5c70c62`, and `atomicmarket-sdk` at tag `v2.4.1`, commit `437300b`
 - `@atomichub/vert` at `2.2.0`
 
 WAX mainnet still runs the V1 `atomicassets` and `atomicmarket` contracts while WAX testnet and jungle4 run V2, so an action that exists only in V2 fails when it is sent to mainnet (`reference/validation.md`).
