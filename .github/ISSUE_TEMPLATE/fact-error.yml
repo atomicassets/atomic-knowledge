@@ -1,0 +1,43 @@
+name: Fact error
+description: A statement in reference/ or guides/ is wrong
+title: "Fact error: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Every claim here was checked against contract source or a live read before it landed. When one is wrong, the page, the claim, and what you saw instead are what a maintainer needs to correct it. No fix has to be attached.
+  - type: input
+    id: page
+    attributes:
+      label: Page
+      description: The file the claim is on, for example reference/atomicmarket/fees-and-royalties.md
+    validations:
+      required: true
+  - type: textarea
+    id: claim
+    attributes:
+      label: Quoted claim
+      description: The sentence as the page writes it, quoted rather than paraphrased.
+    validations:
+      required: true
+  - type: textarea
+    id: observed
+    attributes:
+      label: What was observed instead
+      description: The chain response, error text, or API payload, verbatim.
+    validations:
+      required: true
+  - type: input
+    id: chain
+    attributes:
+      label: Chain and endpoint
+      description: For example WAX mainnet through wax.greymass.com, or wax.api.atomicassets.io.
+    validations:
+      required: true
+  - type: input
+    id: contract-version
+    attributes:
+      label: Contract version
+      description: The contract, indexer, or library version the observation was made against, if it is known.
+    validations:
+      required: false

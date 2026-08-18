@@ -1,0 +1,43 @@
+name: Missing fact
+description: A fact needed to build was absent from reference/ or guides/
+title: "Gap: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        A gap is a fact that was needed and was not there. Name the pages that were checked before concluding it is missing: a fact found in one page and not in the page the task started from is a missing cross-reference rather than missing content.
+  - type: input
+    id: page
+    attributes:
+      label: Page
+      description: The pages that were checked, for example reference/atomicmarket/fees-and-royalties.md
+    validations:
+      required: true
+  - type: textarea
+    id: claim
+    attributes:
+      label: The fact that was missing
+      description: What the pages had to state for the task to proceed.
+    validations:
+      required: true
+  - type: textarea
+    id: observed
+    attributes:
+      label: What was established instead
+      description: The chain response, error text, or API payload that settled the question, verbatim, and the source that was read to settle it.
+    validations:
+      required: true
+  - type: input
+    id: chain
+    attributes:
+      label: Chain and endpoint
+      description: For example WAX mainnet through wax.greymass.com, or wax.api.atomicassets.io.
+    validations:
+      required: true
+  - type: input
+    id: contract-version
+    attributes:
+      label: Contract version
+      description: The contract, indexer, or library version the observation was made against, if it is known.
+    validations:
+      required: false
