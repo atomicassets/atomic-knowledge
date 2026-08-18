@@ -1,56 +1,61 @@
 ---
-scope: Domain-to-file routing table and entry point for agents working in this repository
+scope: Outcome-to-file routing for agents working in this repository, plus the version pins a fact has to be re-checked against
 depends-on: []
 key-modules: []
 ---
 
 # AGENTS.md
 
-Start here. Identify the domain the task touches, then read the matching file below in full; see README.md for what this repository covers and how facts are validated.
+Start here. Find the outcome you are working toward below, read the file on that row in full, then come back for the next one. See README.md for what this repository covers and how its facts were validated.
 
 ## Routing table
 
-| Working on | Read |
+| To do this | Read |
 | --- | --- |
-| AtomicMarket fee model: maker/taker fees, collection fee timing, royalty splits, bonus fees | `reference/atomicmarket/fees-and-royalties.md` |
-| AtomicMarket marketplaces: registration, name constraints, maker/taker attribution, fee collection | `reference/atomicmarket/marketplaces.md` |
-| AtomicMarket RAM: who pays for which row, `pay*ram` actions, sizing for high-volume marketplaces | `reference/atomicmarket/ram.md` |
-| AtomicMarket action reference: every action, parameters, RAM payer, "Changed in V2" notes | `reference/atomicmarket/actions.md` |
-| AtomicMarket tables (schema, scopes, indexes) | `reference/atomicmarket/tables.md` |
-| AtomicMarket V2 behavior changes and defensive guards: bundle retirement, execution-time fees, trace-only royalty logs, guards | `reference/atomicmarket/v2-changes.md` |
-| AtomicAssets data model: collections, schemas, templates, assets | `reference/atomicassets/structure.md` |
-| AtomicAssets action reference: every action, parameters, auth, notifications, RAM payer, "Changed in V2" notes | `reference/atomicassets/actions.md` |
-| AtomicAssets tables (schema, scopes, indexes) | `reference/atomicassets/tables.md` |
-| AtomicAssets attribute type system: FORMAT, ATOMIC_ATTRIBUTE, ATTRIBUTE_MAP | `reference/atomicassets/custom-types.md` |
-| AtomicAssets attribute serialization: binary encoding of collection/template/asset data | `reference/atomicassets/serialization.md` |
-| AtomicAssets attribute data precedence: template vs asset immutable vs asset mutable data | `reference/atomicassets/data-precedence.md` |
-| AtomicAssets notifications: collection notify accounts, require_recipient targets per action | `reference/atomicassets/notifications.md` |
-| AtomicAssets backing tokens: deposit/backasset flow, balances table, burnasset recovery | `reference/atomicassets/backing-tokens.md` |
-| AtomicAssets V2 upgrade and indexer/chain compatibility | `reference/atomicassets/v2-upgrade.md` |
-| AtomicTools claim-links action reference: announce, fund, claim, cancel, the signature claim mechanism | `reference/atomictools/actions.md` |
-| AtomicTools tables (links, config): schema, scope, the assetidshash index | `reference/atomictools/tables.md` |
-| Asset media: IPFS references, field-name conventions (img/backimg/video), bare-CID vs URL parsing, gateway resolution, V2 media-type descriptors | `reference/media.md` |
-| Calling atomicassets-api HTTP endpoints: pagination limits, buyoffer lifecycle states, rate limits | `reference/api.md` |
-| atomicassets-api realtime/streaming: Socket.IO namespaces, events, room subscription, socket auth and limits | `reference/api-streaming.md` |
-| Running or extending the atomicassets-api indexer (also known as eosio-contract-api): handler configuration, drain gating, data freshness, migrations, CI | `reference/atomicassets-api.md` |
-| Building or deploying contract releases: ABI artifacts, setcode resource needs, deploy permissions | `reference/contract-releases.md` |
-| @wharfkit/antelope client behavior: table reads, authority checks, show_payer, eosjs migration | `reference/wharfkit.md` |
-| @atomichub/atomicassets JS/TS SDK: ExplorerApi/RpcApi reads, attribute serialization, V2 action building | `reference/sdk/atomicassets.md` |
-| @atomichub/atomicmarket JS/TS SDK: sales/auctions/buyoffers reads, V2 royalty read layer, royalty-config action building | `reference/sdk/atomicmarket.md` |
-| Chain RPC error semantics: account-not-found and error classification | `reference/chain.md` |
-| AtomicAssets creator flow end to end: create collection, schema, template, mint, transfer, burn | `guides/asset-lifecycle.md` |
-| AtomicAssets offers: two-sided trade offers, accept, decline, cancel | `guides/offers.md` |
-| AtomicMarket sales end to end: announce, purchase, cancel, Delphi-priced sales | `guides/sales.md` |
-| AtomicMarket auctions end to end: announce, bid, claim, cancel | `guides/auctions.md` |
-| AtomicMarket buyoffers and template buyoffers: create, accept, decline, cancel | `guides/buyoffers.md` |
-| AtomicMarket deposits: balances, deposit and withdraw, which actions consume balance | `guides/deposits.md` |
-| AtomicTools claim-links end to end: generate link key, announce, fund by transfer, claim by signature, cancel, reading links | `guides/links.md` |
-| Building a contract that reacts to AtomicAssets notifications: on_notify wiring, exact-match signatures, same-transaction safety | `guides/notification-integration.md` |
-| Testing Antelope contracts in-process with @atomichub/vert: setup, per-chain host functions, time and auth control, known limits | `guides/testing-with-vert.md` |
-| Querying the API and reading chain tables end to end | `guides/querying-the-api.md` |
+| Read assets, sales, and collections over HTTP, with no key and no account | `guides/querying-the-api.md` |
+| Look up one hosted-API endpoint: pagination caps, lifecycle states, rate limits, the two sales routes | `reference/api.md` |
+| Classify a chain RPC error, and tell a missing account apart from a broken node | `reference/chain.md` |
+| Read asset data and build AtomicAssets actions from JavaScript or TypeScript | `reference/sdk/atomicassets.md` |
+| Read market data and compose AtomicMarket flows from JavaScript or TypeScript | `reference/sdk/atomicmarket.md` |
+| Read a table or check an authority through the client library, or migrate off eosjs | `reference/wharfkit.md` |
+| Subscribe to live asset, sale, and auction events over Socket.IO | `reference/api-streaming.md` |
+| Show an asset's image or video from what the chain actually stores | `reference/media.md` |
+| Sign anything: build the session, pick the chain, install the signer | `guides/signing.md` |
+| Mint an asset on testnet, from collection and schema through transfer and burn | `guides/asset-lifecycle.md` |
+| Work out what a collection, a schema, a template, and an asset each own | `reference/atomicassets/structure.md` |
+| Look up one AtomicAssets action: parameters, authorization, RAM payer, V2 changes | `reference/atomicassets/actions.md` |
+| Read or index one AtomicAssets table row | `reference/atomicassets/tables.md` |
+| Choose an attribute type, or find out why a value was rejected | `reference/atomicassets/custom-types.md` |
+| Decode an attribute blob read straight from a chain table | `reference/atomicassets/serialization.md` |
+| Decide which layer an attribute value comes from when template and asset disagree | `reference/atomicassets/data-precedence.md` |
+| Find out whether a chain runs V2 yet, and what V2 added | `reference/atomicassets/v2-upgrade.md` |
+| Handle a token-backed asset minted before backing was deprecated | `reference/atomicassets/backing-tokens.md` |
+| List an asset for sale and settle the purchase, oracle-priced sales included | `guides/sales.md` |
+| Run an auction from announce through claim | `guides/auctions.md` |
+| Offer to buy an asset nobody has listed, or accept such an offer | `guides/buyoffers.md` |
+| Swap assets with another account without going through the market | `guides/offers.md` |
+| Fund a buyer's balance, or find out why a payout is still parked | `guides/deposits.md` |
+| Work out what a settlement actually pays: fee stack, royalty splits, the dust rule | `reference/atomicmarket/fees-and-royalties.md` |
+| Look up one AtomicMarket action | `reference/atomicmarket/actions.md` |
+| Read or index one AtomicMarket table row | `reference/atomicmarket/tables.md` |
+| Find what V2 changed on the market, bundle retirement and the guards included | `reference/atomicmarket/v2-changes.md` |
+| Run a storefront that earns maker and taker fees | `reference/atomicmarket/marketplaces.md` |
+| Size RAM for a busy marketplace, and find out who pays for which row | `reference/atomicmarket/ram.md` |
+| Hand assets to someone who has no account yet, through a claim link | `guides/links.md` |
+| Look up one AtomicTools action | `reference/atomictools/actions.md` |
+| Read the claim-link tables | `reference/atomictools/tables.md` |
+| React to contract notifications from a contract of your own | `guides/notification-integration.md` |
+| Find which action notifies which account, and what a handler may assume | `reference/atomicassets/notifications.md` |
+| Test contract logic in-process before spending a testnet deploy | `guides/testing-with-vert.md` |
+| Build and deploy a contract release: ABI artifacts, setcode resources, permissions | `reference/contract-releases.md` |
+| Run or extend the atomicassets-api indexer | `reference/atomicassets-api.md` |
 
-## How to use this repo as an agent
+## Working in this repository
 
-- Look up the domain file above before coding against a contract, the indexer, or the API: the facts there encode behavior you cannot guess from method signatures.
-- Each fact stands alone; take a section at face value and do not extrapolate beyond what it states.
-- When a fact names a specific library version (for example @wharfkit/antelope 1.1.1), re-check that fact when the dependency is upgraded.
+Read the routed file in full rather than searching it. The facts there encode behavior no method signature carries: which account is billed for a row, which read answers with a null instead of an error, which flag lets a transaction commit while delivering nothing.
+
+Take each section at face value and do not extrapolate past what it states. A page says what was checked, and what it does not say was not checked. `validation-log.md` records how every page was validated and against what.
+
+Re-check any fact that names a version when that dependency moves. The two SDK pages are pinned to `@atomichub/atomicassets` 2.1.1, read at tag `v2.1.1`, and `@atomichub/atomicmarket` 2.4.1, read at tag `v2.4.1`; the client-library page is pinned to `@wharfkit/antelope` 1.1.1, and the AtomicAssets and AtomicMarket contract pages to `v2.0.0-rc4` and `v2.0.0-rc2`. A fact read at one of those pins is a fact about that release, not about the package name.
+
+Two skills sit beside these pages. `skills/atomic-integration/SKILL.md` carries the procedures a routing table cannot: the mint flow, the market composers, and the network choice. `skills/report/SKILL.md` writes a difficulty report when a page here turned out wrong, missing, or misleading, in the field shape this repository's issue forms accept.
