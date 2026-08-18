@@ -4,4 +4,4 @@ Source: the repository and pinned tag or commit with the file and line ranges re
 
 Tier: source-read, live-chain, or both.
 
-Row in `validation-log.md` updated: yes, or why the change needs none.
+Row in `reference/validation.md` updated: yes, or why the change needs none.

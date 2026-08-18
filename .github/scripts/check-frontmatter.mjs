@@ -16,7 +16,7 @@ import { leadingHeading, pagesUnder, readPage, FrontmatterError } from './lib/pa
 
 /** Every tree the schema binds. `skills/` carries a skill's own frontmatter and README.md carries none. */
 const TREES = ['reference', 'guides', 'tutorials', 'concepts', 'learning'];
-const ROOT_PAGES = ['AGENTS.md', 'CLAUDE.md', 'validation-log.md'];
+const ROOT_PAGES = ['AGENTS.md', 'CLAUDE.md'];
 
 /**
  * The trees the docs site renders as routes. The band below is a meta

@@ -1,6 +1,6 @@
 /**
- * Reads the frontmatter block every page in this corpus carries, and walks the
- * page trees the checks run over.
+ * Reads the frontmatter block every page in this corpus carries, walks the page
+ * trees the checks run over, and cuts a named section out of a page.
  *
  * The reader covers the shapes `.github/frontmatter.schema.json` admits and
  * nothing else: a scalar, a flow sequence, and a block sequence, each of
@@ -120,6 +120,24 @@ export function leadingHeading(body) {
     }
 
     return null;
+}
+
+/**
+ * The body of one `## ` section, by its exact heading text, or null when the
+ * page has no such heading. The section runs to the next `## ` line or to the
+ * end of the page, which is what lets a caller read the last section of a file
+ * as well as one in the middle.
+ */
+export function section(source, heading) {
+    const lines = source.split('\n');
+    const start = lines.findIndex((line) => line.trimEnd() === `## ${heading}`);
+
+    if (start === -1) return null;
+
+    const rest = lines.slice(start + 1);
+    const end = rest.findIndex((line) => line.startsWith('## '));
+
+    return (end === -1 ? rest : rest.slice(0, end)).join('\n');
 }
 
 /** Every markdown page under `directory`, repository-relative, sorted. */

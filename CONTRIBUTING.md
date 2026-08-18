@@ -12,13 +12,13 @@ If a claim has not been checked against source at a pinned tag, or against a liv
 
 ## Tiers and the ledger
 
-`validation-log.md` grades every polished page:
+`reference/validation.md` grades every polished page:
 
 - `source-read`: read from the pinned contract or library source, so the fact is a property of code that does not move without a release.
 - `live-chain`: confirmed by a read against a live endpoint, so the fact is a property of observed behavior.
 - `both`: the page carries facts of each kind, or one fact was checked both ways.
 
-A change that adds a page, or that changes what a page claims, updates that page's row in `validation-log.md` with the tier and the baseline the page draws from. The ledger and the pages are one artifact; a page with no row is an unfinished change.
+A change that adds a page, or that changes what a page claims, updates that page's row in `reference/validation.md` with the tier and the baseline the page draws from. The ledger and the pages are one artifact; a page with no row is an unfinished change.
 
 ## Pull requests
 

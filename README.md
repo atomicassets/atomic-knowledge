@@ -12,7 +12,7 @@ Agents read `AGENTS.md`, whose routing table maps a task to the file that answer
 
 ## How facts are validated
 
-`validation-log.md` is the provenance ledger. It records, page by page, which source was read or which endpoint was probed, and it grades each page `source-read`, `live-chain`, or `both`. A claim that has not been checked that way stays in `learning/`, the unverified tier whose promotion gate is `learning/INSTRUCTIONS.md`.
+`reference/validation.md` is the provenance ledger. It records, page by page, which source was read or which endpoint was probed, and it grades each page `source-read`, `live-chain`, or `both`. A claim that has not been checked that way stays in `learning/`, the unverified tier whose promotion gate is `learning/INSTRUCTIONS.md`.
 
 The pages are read against these baselines:
 
@@ -23,7 +23,7 @@ The pages are read against these baselines:
 - `atomicassets-sdk` at main `80580c5` and `atomicmarket-sdk` at main `278bdfa`, both version 2.0.0
 - `@atomichub/vert` at `2.2.0`
 
-WAX mainnet still runs the V1 `atomicassets` and `atomicmarket` contracts while WAX testnet and jungle4 run V2, so an action that exists only in V2 fails when it is sent to mainnet (`validation-log.md`).
+WAX mainnet still runs the V1 `atomicassets` and `atomicmarket` contracts while WAX testnet and jungle4 run V2, so an action that exists only in V2 fails when it is sent to mainnet (`reference/validation.md`).
 
 ## What it covers
 

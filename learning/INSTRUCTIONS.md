@@ -30,7 +30,7 @@ An entry with no `Promote to:` line has no destination yet and should say so rat
 
 ## Verification tiers
 
-These tiers are used by `validation-log.md` at the repo root to record how each polished fact was checked:
+These tiers are used by `reference/validation.md` to record how each polished fact was checked:
 
 - **source-read**: verified by reading the pinned contract (or library) source directly; the fact is a property of code that does not change without a new release.
 - **live-chain**: confirmed by an actual read against a live endpoint (a nodeos RPC call or a hosted API request); the fact is a property of observed behavior at the time of the read.

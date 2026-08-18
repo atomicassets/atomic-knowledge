@@ -1,5 +1,5 @@
 ---
-scope: Provenance ledger - how each polished-tier page's facts were validated, and against what
+scope: Provenance ledger for this corpus - how every fact in the reference and guides trees was checked, what it was read against, and the tier each page carries
 depends-on: []
 key-modules: []
 ---
