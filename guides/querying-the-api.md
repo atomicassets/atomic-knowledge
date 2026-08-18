@@ -10,7 +10,35 @@ Workflow patterns for reading Atomic data, combining facts from the `reference/`
 
 For the full endpoint, parameter, and schema listing, use the deployment's Swagger UI (`https://wax.api.atomicassets.io/docs/` on the WAX reference deployment); see [atomicassets-api HTTP API](../reference/api.md#interactive-reference-swagger-ui) ("Interactive reference (Swagger UI)"), which also covers why no standalone OpenAPI JSON is published.
 
-The examples here use WAX mainnet hosts. The `atomicassets` and `atomicmarket` contract accounts have the same names on WAX testnet, but switching chains means swapping two hosts, not one. Point chain reads (`get_table_rows`) at a testnet node such as `https://waxtestnet.greymass.com`, and point HTTP API reads at the testnet reference deployment `https://test.wax.api.atomicassets.io` (the same atomicassets-api software indexing the testnet chain). The mainnet API host `wax.api.atomicassets.io` has no testnet data, so a testnet integrator that changes only the RPC node and keeps the mainnet API host reads an unrelated chain.
+## Switching to testnet means swapping two hosts, not one
+
+The examples here use WAX mainnet hosts. The `atomicassets` and `atomicmarket` contract accounts have the same names on WAX testnet, so nothing in an action's data changes, and that is exactly what makes the mistake easy to miss.
+
+| Read | WAX mainnet | WAX testnet |
+| --- | --- | --- |
+| Chain tables (`get_table_rows`) | `https://wax.greymass.com` | `https://waxtestnet.greymass.com` |
+| HTTP API | `https://wax.api.atomicassets.io` | `https://test.wax.api.atomicassets.io` |
+
+The testnet API host runs the same atomicassets-api software indexing the testnet chain. The mainnet host has no testnet data, so an integrator who changes only the RPC node and keeps the mainnet API host reads an unrelated chain and sees a working request return facts about someone else's assets. Testnet is also where the V2 contracts run, so a V2-only route such as the royalty read layer answers there and returns HTTP 416 everywhere on mainnet; see [atomicassets-api HTTP API](../reference/api.md#the-royalty-routes-answer-416-when-a-collection-has-no-config) ("The royalty routes answer 416 when a collection has no config").
+
+## Percent-encode every caller-supplied URL part
+
+Both SDKs percent-encode caller-supplied path segments and both the key and the value of every query parameter. A hand-rolled URL has to do the same. An asset id, collection, schema, template, or account name that carries `/`, `?`, or `#` escapes its own path segment and sends the request somewhere else; a data-filter key carrying `&` or `=` appends query parameters of its own.
+
+```
+// correct: encodeURIComponent (or the equivalent) on each path segment, and on both sides of every query pair
+// avoid: pasting a caller-supplied value straight into the URL string
+```
+
+Encoding the whole key is safe even where it looks unnecessary. The typed data filters carry a colon (`data:number.level`, `data:bool.foil`, `data:text.rarity`), which encodes to `data%3Anumber.level` on the wire, and the deployment answers both spellings identically:
+
+```sh
+curl 'https://wax.api.atomicassets.io/atomicassets/v1/templates?collection_name=alien.worlds&data:text.rarity=Common&limit=2'
+curl 'https://wax.api.atomicassets.io/atomicassets/v1/templates?collection_name=alien.worlds&data%3Atext.rarity=Common&limit=2'
+# both return the same two templates (906463, 906461)
+```
+
+See [@atomichub/atomicassets SDK](../reference/sdk/atomicassets.md#path-segments-and-query-keys-are-percent-encoded) ("Path segments and query keys are percent-encoded") for what the SDKs do on the caller's behalf.
 
 ## Paginate list endpoints under the limit cap
 

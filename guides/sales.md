@@ -1,7 +1,10 @@
 ---
 scope: AtomicMarket instant-sale lifecycle - announce, escrow through an AtomicAssets offer, purchase, cancel, and Delphi Oracle sales that settle in another token
 depends-on: [reference/atomicmarket/actions.md, reference/atomicmarket/fees-and-royalties.md, guides/offers.md]
-key-modules: ["atomicmarket-contract (v2.0.0-rc2): src/atomicmarket.cpp", "atomicassets-contract (v2.0.0-rc4): src/atomicassets.cpp"]
+key-modules:
+    - "atomicmarket-contract (v2.0.0-rc2): src/atomicmarket.cpp"
+    - "atomicassets-contract (v2.0.0-rc4): src/atomicassets.cpp"
+    - "@atomichub/atomicmarket 2.4.1 (atomicmarket-sdk v2.4.1, 437300b): src/Actions/Generator.ts, src/Actions/Delphi.ts"
 ---
 
 # Working with sales
@@ -106,6 +109,32 @@ Failure modes asserted in source:
 
 Source: `atomicmarket-contract src/atomicmarket.cpp:1950-2013` (`receive_asset_offer`)
 
+### Building the listing pair with the SDK
+
+Announcing alone lists nothing and offering alone dangles, so the two actions belong in one transaction. `@atomichub/atomicmarket` composes that pair, filling in the `sale` memo literal and the AtomicAssets contract account:
+
+```ts
+import { MarketActionBuilder } from '@atomichub/atomicmarket'
+
+const builder = new MarketActionBuilder('atomicmarket')
+
+const actions = builder.announceSaleActions({
+  seller: session.actor.toString(),
+  asset_ids: ['1099511627887'],
+  listing_price: '100.00000000 WAX',
+  settlement_symbol: '8,WAX',
+  maker_marketplace: 'mymarket',
+  assets_contract: 'atomicassets',
+})
+// -> [announcesale on atomicmarket, createoffer on atomicassets with memo 'sale']
+
+await session.transact({
+  actions: actions.map((a) => ({ ...a, authorization: [session.permissionLevel] })),
+})
+```
+
+The composer checks nothing. Whether the settlement symbol is a supported token, whether the listing and settlement symbols are a registered pair, and whether the marketplace exists are all chain state, and each refusal is a rejected transaction rather than a silent loss. See [@atomichub/atomicmarket SDK](../reference/sdk/atomicmarket.md#the-five-composers) ("The five composers").
+
 ## Purchase a sale
 
 ```json
@@ -162,6 +191,30 @@ Optionally guard against the sale changing between when a buyer reads it and whe
 `assertsale` requires no authorization and throws if the sale's current asset ids, listing price, or settlement symbol differ from what is asserted. V2 fixed a defensive bug here. See [AtomicMarket V2 changes](../reference/atomicmarket/v2-changes.md#defensive-guards-in-the-v2-contract) ("Defensive guards in the V2 contract") for the 3-iterator vs 4-iterator `is_permutation` fix behind `assertsale`'s length check.
 
 Source: `atomicmarket-contract src/atomicmarket.cpp:896-1015` (`purchasesale`, `assertsale`), `atomicmarket-contract src/atomicmarket.cpp:2468-2515` (`calc_settlement_price`)
+
+### Building the purchase triple with the SDK
+
+A purchase is three actions: assert the terms, deposit the settlement quantity into the market contract's balance, then purchase against that balance. The deposit transfer belongs to the settlement token's own contract, not to AtomicMarket, and carries the memo `deposit`. `purchaseSaleActions` composes all three:
+
+```ts
+const actions = builder.purchaseSaleActions({
+  buyer: session.actor.toString(),
+  sale_id: '7',
+  asset_ids: ['1099511627887'],
+  listing_price: '100.00000000 WAX',
+  settlement_symbol: '8,WAX',
+  intended_delphi_median: '0',
+  token_contract: 'eosio.token',
+  taker_marketplace: 'othermarket',
+})
+// -> [assertsale, transfer on eosio.token with memo 'deposit', purchasesale]
+```
+
+Only the purchase's place in that order is fixed. It spends the deposited balance and erases the sale row `assertsale` reads, so both of the others must precede it; the assert and the deposit may swap.
+
+The composer throws when `asset_ids` carries more than one id, unless `allow_v1_bundle_sale: true` is set. That guard exists because the bundle case is the one caller error the chain neither reverts nor refuses: under V2 `purchasesale` returns early for a multi-asset row, declining the offer and erasing it before touching any balance, while `assertsale` has already passed and the deposit has already credited the buyer. The transaction commits with the buyer paid, nothing delivered, and the tokens recoverable only through a separate `withdraw`. Set the flag only against a chain still running AtomicMarket V1, where bundles are ordinary listings. See [@atomichub/atomicmarket SDK](../reference/sdk/atomicmarket.md#the-two-bundle-opt-out-flags) ("The two bundle opt-out flags").
+
+Source: `atomicmarket-contract src/atomicmarket.cpp:896-1015` (`purchasesale` early return on a multi-asset row); atomicmarket-sdk (v2.4.1, 437300b) src/Actions/Generator.ts:493-592 (`purchaseSaleActions`, the emitted order, the bundle throw), src/Actions/Generator.ts:578-591 (the `deposit` memo and the settlement token's own contract)
 
 ## Cancel a sale
 
@@ -242,3 +295,18 @@ curl -X POST https://wax.greymass.com/v1/chain/get_table_rows \
 ```
 
 Source: `atomicmarket-contract src/atomicmarket.cpp:2468-2515` (`calc_settlement_price`)
+
+### What settlement_quantity has to be
+
+`purchasesale` spends the buyer's AtomicMarket balance, so the buyer funds it with a deposit transfer in the same transaction. The size and symbol of that transfer are `settlement_quantity`, and nothing on chain checks it: `assertsale` pins the listing terms and says nothing about the deposit. Two rules follow, and an integrator meets both before anything else about Delphi pricing matters.
+
+| The sale | What the deposit has to be | `intended_delphi_median` |
+| --- | --- | --- |
+| `settlement_symbol` differs from the listing price's own symbol | `settlement_quantity` is required, and it is denominated in the settlement symbol | the exact median the purchase asserts |
+| The two name one symbol | `settlement_quantity` may be omitted; a supplied one equals `listing_price` exactly | `0` |
+
+A cross-symbol sale settles the oracle conversion of its listing price, so reusing the listing price as the deposit sends an amount in the wrong symbol. A short deposit draws the difference from whatever balance the buyer already holds, and a wrong-symbol deposit credits a balance the purchase never spends. The whole symbol decides which row applies, precision and code both, so a sale listing `30.00 WAX` against `8,WAX` names two symbols and settles through the oracle like any other cross-symbol sale.
+
+`@atomichub/atomicmarket` enforces both rules in `purchaseSaleActions` and derives the amount for the first one: `deriveSettlementAmount(listingAmount, median, pair)` reproduces the contract's own conversion, and `formatQuantity` renders it as the quantity string the transfer needs. Reproducing the arithmetic by hand is the step to skip; deriving the exact rational floor instead of the contract's truncated double leaves the deposit a raw unit short and the purchase throws. See [@atomichub/atomicmarket SDK](../reference/sdk/atomicmarket.md#delphi-settlement-math-derivesettlementamount-and-formatquantity) ("Delphi settlement math").
+
+Source: `atomicmarket-contract src/atomicmarket.cpp:2468-2515` (`calc_settlement_price`, the same-symbol branch and the oracle branch); atomicmarket-sdk (v2.4.1, 437300b) src/Actions/Generator.ts:106-112 (the `settlement_quantity` contract), src/Actions/Generator.ts:522-576 (both branches enforced), src/Actions/Delphi.ts:72-122 (`deriveSettlementAmount` and the truncation it reproduces)
