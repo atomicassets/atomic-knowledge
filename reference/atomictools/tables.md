@@ -29,7 +29,7 @@ Secondary indexes: `assetidshash` (`checksum256`, index position 2, `key_type` `
 | `assets_transferred` | `bool` | `false` after `announcelink`; set `true` (with `same_payer`) by the transfer notification handler once the assets land. `claimlink` requires it to be `true`; `cancellink` returns the assets only when it is `true`. |
 | `memo` | `string` | Free-form, up to 256 characters. |
 
-A row exists from `announcelink` until the link is claimed or cancelled; both terminal actions erase it, so the `links` table holds only live (announced or funded, not yet resolved) links. Changed state is not recorded on chain beyond `assets_transferred`; the announced-versus-claimed-versus-cancelled distinction lives in the indexer (see "Reading links" in `guides/links.md`).
+A row exists from `announcelink` until the link is claimed or cancelled; both terminal actions erase it, so the `links` table holds only live (announced or funded, not yet resolved) links. Changed state is not recorded on chain beyond `assets_transferred`; the announced-versus-claimed-versus-cancelled distinction lives in the indexer (see "Reading links" in [the claim-links guide](../../guides/links.md)).
 
 Source: `include/atomictoolsx.hpp:88-102`, `src/link.cpp:21-98` (`announcelink`), `src/link.cpp:189-241` (funding), `src/link.cpp:107-159` (cancel/claim)
 

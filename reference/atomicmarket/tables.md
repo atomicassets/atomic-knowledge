@@ -8,9 +8,9 @@ key-modules: ["atomicmarket-contract (v2.0.0-rc2): src/atomicmarket.cpp, include
 
 Every entry cites its declaration in `include/atomicmarket.hpp` (paths relative to the atomicmarket-contract repo), baselined on the V2 source. "Changed in V2" notes compare against the V1 `atomicmarket-contract` source.
 
-See `reference/atomicmarket/marketplaces.md` ("Registering a marketplace with regmarket") for marketplace attribution and `reference/atomicmarket/fees-and-royalties.md` ("The collection fee applies at execution time, not at listing time") for execution-time collection fees and ("The royalty log actions are trace-only and dust always reconciles") for trace-only royalty logs. This page stays brief on those topics and cross-links instead of repeating them.
+See [AtomicMarket marketplaces](marketplaces.md#registering-a-marketplace-with-regmarket) ("Registering a marketplace with regmarket") for marketplace attribution and [AtomicMarket fees and royalties](fees-and-royalties.md#the-collection-fee-applies-at-execution-time-not-at-listing-time) ("The collection fee applies at execution time, not at listing time") for execution-time collection fees and ("The royalty log actions are trace-only and dust always reconciles") for trace-only royalty logs. This page stays brief on those topics and cross-links instead of repeating them.
 
-See `reference/atomicassets/v2-upgrade.md` ("Deployment status") for the live-chain read confirming the royalty tables below are source-verified but not yet observable on any publicly reachable chain.
+See [AtomicAssets V2 upgrade](../atomicassets/v2-upgrade.md#deployment-status) ("Deployment status") for the live-chain read confirming the royalty tables below are source-verified but not yet observable on any publicly reachable chain.
 
 ## sales
 
@@ -113,7 +113,7 @@ Every registered marketplace name usable in a `maker_marketplace`/`taker_marketp
 | `marketplace_name` | name | The registered marketplace name; primary key. |
 | `creator` | name | The account whose internal balance receives this marketplace's maker/taker cut. |
 
-The empty-string name (`""`) is always present after `init` runs, seeded with `creator = DEFAULT_MARKETPLACE_CREATOR` (`fees.atomic`); `setdefmktcr` can redirect it. See `reference/atomicmarket/marketplaces.md` ("The default marketplace and redirecting its fee recipient") for how this default marketplace shows up in listing rows that omit a marketplace.
+The empty-string name (`""`) is always present after `init` runs, seeded with `creator = DEFAULT_MARKETPLACE_CREATOR` (`fees.atomic`); `setdefmktcr` can redirect it. See [AtomicMarket marketplaces](marketplaces.md#the-default-marketplace-and-redirecting-its-fee-recipient) ("The default marketplace and redirecting its fee recipient") for how this default marketplace shows up in listing rows that omit a marketplace.
 
 Source: `include/atomicmarket.hpp:605-612`
 
@@ -121,7 +121,7 @@ Source: `include/atomicmarket.hpp:605-612`
 
 Scope: `get_self()`. Primary key: `owner.value`.
 
-The internal token ledger every settlement, deposit, and escrow moves through. A withdrawal (`withdraw`) is the only action that turns a balance into a real on-chain token transfer out of the contract. See `reference/atomicmarket/ram.md` ("The contract pays RAM for every balances row") for who pays this row's RAM and why a fully-withdrawn balance leaves no row behind.
+The internal token ledger every settlement, deposit, and escrow moves through. A withdrawal (`withdraw`) is the only action that turns a balance into a real on-chain token transfer out of the contract. See [AtomicMarket RAM](ram.md#the-contract-pays-ram-for-every-balances-row) ("The contract pays RAM for every balances row") for who pays this row's RAM and why a fully-withdrawn balance leaves no row behind.
 
 | Column | Type | Meaning |
 | --- | --- | --- |
@@ -134,7 +134,7 @@ Source: `include/atomicmarket.hpp:519-526`
 
 Singleton, scope: `get_self()`. Table name `config`, one row.
 
-Contract-wide configuration, mutated only by the admin actions. See `reference/atomicmarket/actions.md` ("Admin").
+Contract-wide configuration, mutated only by the admin actions. See [AtomicMarket actions](actions.md#admin) ("Admin").
 
 | Column | Type | Meaning |
 | --- | --- | --- |
@@ -152,7 +152,7 @@ Contract-wide configuration, mutated only by the admin actions. See `reference/a
 | `atomicassets_account` | name | The linked AtomicAssets contract account. Not settable through any action in this source; fixed at compile time to `atomicassets::ATOMICASSETS_ACCOUNT` (`atomicassets`). |
 | `delphioracle_account` | name | The linked Delphi Oracle contract account. Not settable through any action in this source; fixed at compile time to `delphioracle::DELPHIORACLE_ACCOUNT` (`delphioracle`). |
 
-See `reference/atomicassets/v2-upgrade.md` ("Deployment status") for the live read confirming `version` still reads `"1.3.3"` (the V1 default field set) on public WAX mainnet, jungle4 testnet, and wax-testnet RPC nodes; re-check before relying on it.
+See [AtomicAssets V2 upgrade](../atomicassets/v2-upgrade.md#deployment-status) ("Deployment status") for the live read confirming `version` still reads `"1.3.3"` (the V1 default field set) on public WAX mainnet, jungle4 testnet, and wax-testnet RPC nodes; re-check before relying on it.
 
 Source: `include/atomicmarket.hpp:638-653`
 
@@ -186,7 +186,7 @@ Source: `include/atomicmarket.hpp:615-622`
 
 Scope: `get_self()`. Primary key: `bonusfee_id`.
 
-Extra fee cuts layered on top of the maker/taker/collection split, scoped to a range of ids on one or more of the counters above. See `reference/atomicmarket/fees-and-royalties.md` ("Bonus fees are additive marketplace incentives layered on top") for how bonus fees stack with the other fee layers and why the settlement-time seller-remainder check is the only backstop against several bonus fees combined.
+Extra fee cuts layered on top of the maker/taker/collection split, scoped to a range of ids on one or more of the counters above. See [AtomicMarket fees and royalties](fees-and-royalties.md#bonus-fees-are-additive-marketplace-incentives-layered-on-top) ("Bonus fees are additive marketplace incentives layered on top") for how bonus fees stack with the other fee layers and why the settlement-time seller-remainder check is the only backstop against several bonus fees combined.
 
 | Column | Type | Meaning |
 | --- | --- | --- |
@@ -215,7 +215,7 @@ Per-collection royalty split configuration: how a collection's fee is divided be
 | `split_templates` | uint32_t | Relative weight of the template category. |
 | `split_attributes` | uint32_t | Relative weight of the attributes category. |
 
-The three split weights are relative, not fractions of 1: at settlement, only the categories that actually have a payee for the specific asset are kept, and their weights are renormalized against each other. See `reference/atomicmarket/fees-and-royalties.md` ("The royalty split engine divides the collection fee among founders, templates, and attributes") for the full settlement-time distribution mechanics, and ("The royalty log actions are trace-only and dust always reconciles") for why the royalty log actions, not this table, are the source of truth for what was actually paid.
+The three split weights are relative, not fractions of 1: at settlement, only the categories that actually have a payee for the specific asset are kept, and their weights are renormalized against each other. See [AtomicMarket fees and royalties](fees-and-royalties.md#the-royalty-split-engine-divides-the-collection-fee-among-founders-templates-and-attributes) ("The royalty split engine divides the collection fee among founders, templates, and attributes") for the full settlement-time distribution mechanics, and ("The royalty log actions are trace-only and dust always reconciles") for why the royalty log actions, not this table, are the source of truth for what was actually paid.
 
 Source: `include/atomicmarket.hpp:477-490`
 
@@ -252,4 +252,4 @@ Source: `include/atomicmarket.hpp:502-517`
 
 ## Rentals
 
-No rental table exists in either the V1 or the V2 source. See `reference/atomicmarket/actions.md` for the corresponding action-side confirmation and the descope note.
+No rental table exists in either the V1 or the V2 source. See [AtomicMarket actions](actions.md) for the corresponding action-side confirmation and the descope note.

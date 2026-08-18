@@ -8,7 +8,7 @@ key-modules: ["atomicassets-contract (v2.0.0-rc4): src/atomicassets.cpp, include
 
 Complete table reference for the `atomicassets` contract, baselined on tag `v2.0.0-rc4` of `atomicassets-contract` (the release pinned for both `wax-testnet` and `jungle4-testnet`). Struct and typedef citations are to `include/atomicassets.hpp`; behavior citations are to `src/atomicassets.cpp`. "Changed in V2" notes compare against the V1 `atomicassets-contract` source.
 
-Live-chain status: see `reference/atomicassets/v2-upgrade.md` ("Deployment status"); the V2-only tables below (`authorswaps`, `schematypes`, `templates2`) do not exist on WAX mainnet yet. An abandoned custodial-rentals design left a `holders` table on unreleased development branches; it ships in no tagged release and is not documented here. See `reference/atomicassets/actions.md` ("RAM-payer reassignment (replaces descoped custodial rentals)").
+Live-chain status: see [AtomicAssets V2 upgrade](v2-upgrade.md#deployment-status) ("Deployment status"); the V2-only tables below (`authorswaps`, `schematypes`, `templates2`) do not exist on WAX mainnet yet. An abandoned custodial-rentals design left a `holders` table on unreleased development branches; it ships in no tagged release and is not documented here. See [AtomicAssets actions](actions.md#ram-payer-reassignment-replaces-descoped-custodial-rentals) ("RAM-payer reassignment (replaces descoped custodial rentals)").
 
 Every table below is defined in `include/atomicassets.hpp:337-468`, and every scoped (non-self) table is fetched through a `get_*` helper at `include/atomicassets.hpp:476-490`.
 
@@ -53,7 +53,7 @@ Secondary indexes: none.
 | `market_fee` | `double` | `0 <= market_fee <= 0.15`. Read live by AtomicMarket at settlement time, not snapshotted at listing time. |
 | `serialized_data` | `vector<uint8_t>` | The collection's own attribute data (name, description, images, and so on), encoded against the single, contract-wide format in `config.collection_format`, not a per-collection format. |
 
-See `reference/atomicassets/structure.md` ("Authorization and the 24-account cap") for why both lists are capped at 24.
+See [AtomicAssets data model structure](structure.md#authorization-and-the-24-account-cap) ("Authorization and the 24-account cap") for why both lists are capped at 24.
 
 Source: `include/atomicassets.hpp:348-359`, `src/atomicassets.cpp:91-166` (`createcol`), `src/atomicassets.cpp:1804-1856` (`partial_read_collection`)
 
@@ -285,7 +285,7 @@ Secondary indexes: none.
 | `standard` | `name` | Constant `atomicassets`, set at `init` and never changed by any action. |
 | `version` | `string` | Contract-reported semver: defaults to `2.0.0` at `init` for this source tree, overwritten manually via `setversion`. Not auto-updated by `setcode`; it reflects whatever the deploying operator last set. |
 
-Live-chain status: see `reference/atomicassets/v2-upgrade.md` ("Deployment status").
+Live-chain status: see [AtomicAssets V2 upgrade](v2-upgrade.md#deployment-status) ("Deployment status").
 
 Source: `include/atomicassets.hpp:464-468`, `src/atomicassets.cpp:8-12` (`init`), `src/atomicassets.cpp:41-49` (`setversion`)
 

@@ -6,7 +6,7 @@ key-modules: ["atomicassets-contract (v2.0.0-rc4): src/atomicassets.cpp, include
 
 # AtomicAssets attribute type system
 
-The ABI/C++ types the `atomicassets` contract uses to describe and carry attribute data: the `FORMAT` schema-line struct, the `ATOMIC_ATTRIBUTE` variant, the `ATTRIBUTE_MAP` map type, and the V2-only `FORMAT_TYPE` metadata struct. This document covers the type system and its ABI/JSON representation; the byte-level encoding those types eventually produce is covered in `reference/atomicassets/serialization.md`, which is the file to read for wire format, not this one. Raw-vs-patched ABI mechanics are covered in `reference/contract-releases.md`; this file only notes where that concern touches these specific types. Full table shapes and scoping for `schemas`/`schematypes`/`templates`/`assets` are covered in `reference/atomicassets/structure.md`; this file focuses on the `FORMAT`/`FORMAT_TYPE`/`ATOMIC_ATTRIBUTE`/`ATTRIBUTE_MAP` types themselves. Contract citations below are against tag `v2.0.0-rc4` of `atomicassets-contract` (the release pinned for both testnets).
+The ABI/C++ types the `atomicassets` contract uses to describe and carry attribute data: the `FORMAT` schema-line struct, the `ATOMIC_ATTRIBUTE` variant, the `ATTRIBUTE_MAP` map type, and the V2-only `FORMAT_TYPE` metadata struct. This document covers the type system and its ABI/JSON representation; the byte-level encoding those types eventually produce is covered in [AtomicAssets attribute serialization](serialization.md), which is the file to read for wire format, not this one. Raw-vs-patched ABI mechanics are covered in [Contract releases and deployment](../contract-releases.md); this file only notes where that concern touches these specific types. Full table shapes and scoping for `schemas`/`schematypes`/`templates`/`assets` are covered in [AtomicAssets data model structure](structure.md); this file focuses on the `FORMAT`/`FORMAT_TYPE`/`ATOMIC_ATTRIBUTE`/`ATTRIBUTE_MAP` types themselves. Contract citations below are against tag `v2.0.0-rc4` of `atomicassets-contract` (the release pinned for both testnets).
 
 ## FORMAT declares one attribute's name and wire type
 
@@ -17,13 +17,13 @@ struct FORMAT {
 };
 ```
 
-A schema is a `vector<FORMAT>`, one line per attribute, and the position of a line in that vector is itself meaningful (see `reference/atomicassets/serialization.md`). `check_format` enforces three rules on a candidate `vector<FORMAT>`: every `name` is non-empty and at most 64 characters; every `type` matches one of the allowed type strings below; no two lines share a `name`; and at least one line must be exactly `{"name": "name", "type": "string"}`. That last rule is a distinct 64-character limit from `check_name_length`, which instead caps the *value* stored under an attribute literally named `name`, in every schema that defines one, rather than only the schema's own required `name` line. The two checks share a number but apply to different things: one to the schema's declared attribute-name string, the other to the data's `name`-valued string at write time.
+A schema is a `vector<FORMAT>`, one line per attribute, and the position of a line in that vector is itself meaningful (see [AtomicAssets attribute serialization](serialization.md)). `check_format` enforces three rules on a candidate `vector<FORMAT>`: every `name` is non-empty and at most 64 characters; every `type` matches one of the allowed type strings below; no two lines share a `name`; and at least one line must be exactly `{"name": "name", "type": "string"}`. That last rule is a distinct 64-character limit from `check_name_length`, which instead caps the *value* stored under an attribute literally named `name`, in every schema that defines one, rather than only the schema's own required `name` line. The two checks share a number but apply to different things: one to the schema's declared attribute-name string, the other to the data's `name`-valued string at write time.
 
 Source: `include/atomicdata.hpp:35-38` (struct), `include/checkformat.hpp:32-97` (`check_format`), `include/checkformat.hpp:43-44` (name length), `include/checkformat.hpp:95-96` (required `name` line), `src/atomicassets.cpp:1895-1905` (`check_name_length`)
 
 ## Allowed format type strings
 
-`check_format` accepts exactly these base type strings, each optionally suffixed with one `[]` (nested arrays are rejected; see `reference/atomicassets/serialization.md`):
+`check_format` accepts exactly these base type strings, each optionally suffixed with one `[]` (nested arrays are rejected; see [AtomicAssets attribute serialization](serialization.md)):
 
 `int8`, `int16`, `int32`, `int64`, `uint8`, `uint16`, `uint32`, `uint64`, `fixed8`, `fixed16`, `fixed32`, `fixed64`, `bool`, `ipfs`, `bytes`, `float`, `image`, `string`, `double`.
 
