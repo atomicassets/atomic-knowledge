@@ -11,7 +11,7 @@ key-modules:
 
 The full creator flow on the `atomicassets` contract: create a collection, define a schema, optionally create a template, mint assets, edit mutable data, transfer, and burn. Baseline is AtomicAssets V2; notes call out where V1 differed. Every data shape, required authorization, RAM payer, and failure mode below was checked against tag `v2.0.0-rc4` of `atomicassets-contract` (the release pinned for both testnets), `src/atomicassets.cpp`.
 
-Each step shows the action's data as plain JSON first, then the same call through `@wharfkit/session`'s `session.transact()`. `ATTRIBUTE_MAP` fields (`data`, `immutable_data`, `mutable_data`) serialize as an array of `{key, value}` pairs, where `value` is a two-element `[type, value]` variant. The `key`/`value` naming is only present in the patched release ABI; the raw CDT build names the same fields `first`/`second`. See [Contract releases and deployment](../reference/contract-releases.md#raw-vs-patched-abi) ("Raw vs patched ABI").
+Each step shows the action's data as plain JSON first, then the same call through `@wharfkit/session`'s `session.transact()`. See [Build a session and sign](signing.md) for how that `session` is constructed and which chain it points at. `ATTRIBUTE_MAP` fields (`data`, `immutable_data`, `mutable_data`) serialize as an array of `{key, value}` pairs, where `value` is a two-element `[type, value]` variant. The `key`/`value` naming is only present in the patched release ABI; the raw CDT build names the same fields `first`/`second`. See [Contract releases and deployment](../reference/contract-releases.md#raw-vs-patched-abi) ("Raw vs patched ABI").
 
 ## Collection naming rules
 
