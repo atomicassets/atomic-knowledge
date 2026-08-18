@@ -2,12 +2,12 @@
 scope: "@atomichub/atomicassets JavaScript/TypeScript SDK: ExplorerApi and RpcApi reads, attribute serialization, v2 action building, and the network factories"
 depends-on: [reference/api.md, reference/wharfkit.md, reference/atomicassets/serialization.md]
 key-modules:
-    - "@atomichub/atomicassets 2.1.0 (atomicassets-sdk v2.1.0, 0dbf061): src/index.ts, src/API/Explorer/index.ts, src/API/Rpc/index.ts, src/Actions/Generator.ts, src/Serialization/index.ts, src/Schema/index.ts, src/Networks.ts"
+    - "@atomichub/atomicassets 2.1.1 (atomicassets-sdk v2.1.1, 5c70c62): src/index.ts, src/API/Explorer/index.ts, src/API/Rpc/index.ts, src/Actions/Generator.ts, src/Serialization/index.ts, src/Schema/index.ts, src/Networks.ts"
 ---
 
 # @atomichub/atomicassets SDK
 
-The official JavaScript/TypeScript client for the AtomicAssets standard on Antelope chains. It reads asset data over the hosted API and directly from chain tables, serializes and deserializes attribute data, and builds v2 contract actions for a signer to sign. Version-sensitive facts below were read from the 2.1.0 source tree; re-verify against current source after an upgrade.
+The official JavaScript/TypeScript client for the AtomicAssets standard on Antelope chains. It reads asset data over the hosted API and directly from chain tables, serializes and deserializes attribute data, and builds v2 contract actions for a signer to sign. Version-sensitive facts below were read from the 2.1.1 source tree; re-verify against current source after an upgrade.
 
 ```
 npm install @atomichub/atomicassets
@@ -17,7 +17,7 @@ npm install @atomichub/atomicassets
 
 `@atomichub/atomicassets` declares no runtime `dependencies`; everything it needs (fetch, serialization, the queue) is either built in or supplied by the host runtime's global `fetch`. It publishes dual builds (`build/index.mjs` for `import`, `build/index.cjs` for `require`) with types for both, and requires Node `>=20`. The package declares `sideEffects: false`, so a bundler may drop what an application does not import: importing only `ActionBuilder` no longer pulls in the base58 coder, the parser table, or the action-name map. Every public type and value is re-exported from the package root, so consumers import from `@atomichub/atomicassets` and never reach into `build/` subpaths.
 
-Source: atomicassets-sdk (v2.1.0, 0dbf061) package.json:25 (`sideEffects: false`), package.json:27-28 (`engines.node >=20`), package.json (no `dependencies` key; `main`/`module`/`exports` dual build), src/index.ts:10-61 (flat root re-exports)
+Source: atomicassets-sdk (v2.1.1, 5c70c62) package.json:32 (`sideEffects: false`), package.json:34-35 (`engines.node >=20`), package.json (no `dependencies` key; `main`/`module`/`exports` dual build), src/index.ts:10-61 (flat root re-exports)
 
 ## ExplorerApi reads the hosted atomicassets-api
 
@@ -25,7 +25,7 @@ Source: atomicassets-sdk (v2.1.0, 0dbf061) package.json:25 (`sideEffects: false`
 
 Construction starts no network request. `explorerApi.action` is a read-only getter returning a promise of an `ExplorerActionGenerator` bound to the contract account in `/v1/config`; that config is fetched on first access, shared between concurrent accessors, and refetched on the next access after a failure. Because it is a getter it does not appear in `Object.keys` or a spread of the instance, and assigning to it throws.
 
-Source: atomicassets-sdk (v2.1.0, 0dbf061) src/API/Explorer/index.ts:59-64 (no constructor I/O, cached and cleared on failure), src/API/Explorer/index.ts:71-82 (constructor, bound fetch), src/API/Explorer/index.ts:84-103 (`action` getter)
+Source: atomicassets-sdk (v2.1.1, 5c70c62) src/API/Explorer/index.ts:84-89 (no constructor I/O, cached and cleared on failure), src/API/Explorer/index.ts:96-107 (constructor, bound fetch), src/API/Explorer/index.ts:109-128 (`action` getter)
 
 ### The getter surface
 
@@ -52,7 +52,7 @@ Every getter maps onto one API route and returns the response `data` payload alr
 | `getTemplates(options, page, limit, data)` | `/v1/templates` | `ITemplate[]` |
 | `countTemplates(options, data)` | `/v1/templates/_count` | `number` |
 | `getTemplate(collection, id)` | `/v1/templates/{collection}/{id}` | `ITemplate` |
-| `getTemplateStats(collection, name)` | `/v1/templates/{collection}/{name}/stats` | `ITemplateStats` |
+| `getTemplateStats(collection, id)` | `/v1/templates/{collection}/{id}/stats` | `ITemplateStats` |
 | `getTemplateLogs(collection, id, page, limit, order)` | `/v1/templates/{collection}/{id}/logs` | `ILog[]` |
 | `getTransfers(options, page, limit)` | `/v1/transfers` | `ITransfer[]` |
 | `countTransfers(options)` | `/v1/transfers/_count` | `number` |
@@ -70,19 +70,29 @@ Every getter maps onto one API route and returns the response `data` payload alr
 
 Options are typed per entity (`AssetsApiParams`, `TemplateApiParams`, `CollectionApiParams`, and so on), each carrying the filter, greylist, boundary, `sort`, and `order` fields that route accepts; `sort` and `order` values are the `AssetsSort`/`OrderParam` string enums exported from the root.
 
-Source: atomicassets-sdk (v2.1.0, 0dbf061) src/API/Explorer/index.ts:105-231 (getters and their routes), src/API/Explorer/index.ts:288-292 (`countEndpoint` appends `/_count`), src/API/Explorer/Params.ts, src/API/Explorer/Enums.ts
+Source: atomicassets-sdk (v2.1.1, 5c70c62) src/API/Explorer/index.ts:130-256 (getters and their routes), src/API/Explorer/index.ts:206-208 (`getTemplateStats` naming its second parameter `id`), src/API/Explorer/index.ts:314-318 (`countEndpoint` appends `/_count`), src/API/Explorer/Params.ts, src/API/Explorer/Enums.ts
 
 ### Path segments and query keys are percent-encoded
 
 Every caller-supplied path segment goes through `encodeURIComponent` where the path is assembled, so an asset id, collection, schema, template or account name carrying `/`, `?` or `#` cannot escape its own segment and rewrite the request target. The query side encodes both the key and the value, because the key is caller-supplied too: `buildDataOptions` splices a data-filter key and type into it, and an unencoded `&` or `=` there would smuggle extra parameters into the query. A hand-rolled URL that skips either step is the flaw this closes; see [Query the API and chain tables](../../guides/querying-the-api.md#percent-encode-every-caller-supplied-url-part) ("Percent-encode every caller-supplied URL part").
 
-Source: atomicassets-sdk (v2.1.0, 0dbf061) src/API/Explorer/index.ts:32-38 (`encodeSegment`), src/API/Explorer/index.ts:118-231 (every path segment encoded), src/API/Explorer/index.ts:248-251 (query key and value encoded)
+Source: atomicassets-sdk (v2.1.1, 5c70c62) src/API/Explorer/index.ts:32-63 (`encodeSegment`), src/API/Explorer/index.ts:143-256 (every path segment encoded), src/API/Explorer/index.ts:274-277 (query key and value encoded)
+
+### An empty or dot path segment is refused before the request
+
+Encoding alone does not cover every value that can move a request. `.` and `..` are unreserved characters, so `encodeURIComponent` leaves them intact, and the URL parser inside `fetch` then resolves the dot segment away and aims the read at a different route on the same origin. An empty id leaves a bare trailing slash, which turns a single-item route into the list route above it. In both cases the caller reads rows it never asked for and sees no failure at all, which is why this is refused rather than encoded.
+
+`encodeSegment` therefore rejects three values before the path is assembled. An empty string, `.`, and `..` each throw an error whose message names the argument and the offending value, for example `asset id ".." is not a valid path segment: it is empty or a dot segment, so it would rewrite the request path`, and a `null` or `undefined` argument throws `asset id is required` rather than reaching the path as the literal segment `undefined`. The throw is a plain `Error` and not an `ApiError`, because the guard fires while the path is built and no response exists yet to carry a status. Nothing is sent. The sixteen getters that place a caller value in a path all carry the check, across the asset, collection, schema, template, offer, and account routes, and a two-segment lookup checks both of its segments.
+
+A dot inside a segment is untouched, so an Antelope name such as `alice.gg` still reaches the request unchanged. Only a segment that is exactly `.` or `..` is a dot segment.
+
+Source: atomicassets-sdk (v2.1.1, 5c70c62) src/API/Explorer/index.ts:32-45 (why a dot segment survives encoding), src/API/Explorer/index.ts:46-63 (`encodeSegment` and both throws), src/API/Explorer/index.ts:143-255 (the sixteen guarded getters, `getSchema`/`getTemplate`/`getAccountCollection` guarding two segments each), test/explorer-url.test.ts:106-188 (nothing is sent, the message text, the dotted name passing)
 
 ### Typed data filters and the long-query POST switch
 
 The final `data` argument on `getAssets`/`getTemplates` targets the on-chain data filters: each entry `{ key, value, type? }` becomes a query field keyed `data.<key>`, `data:number.<key>`, or `data:bool.<key>` by the value's JS type (`type` defaults to `data`, and can be set to `template_data`/`immutable_data`/`mutable_data`). Percent-encoding then puts the colon on the wire as `%3A`, so `data:number.id=4` is sent as `data%3Anumber.id=4`. Requests whose query string reaches 1000 characters are sent as a POST with a JSON body instead of a GET, transparently to the caller.
 
-Source: atomicassets-sdk (v2.1.0, 0dbf061) src/API/Explorer/index.ts:40-56 (`buildDataOptions`), src/API/Explorer/index.ts:251 (`encodeURIComponent` on the key), src/API/Explorer/index.ts:254-270 (the 1000-character GET/POST switch)
+Source: atomicassets-sdk (v2.1.1, 5c70c62) src/API/Explorer/index.ts:65-81 (`buildDataOptions`), src/API/Explorer/index.ts:277 (`encodeURIComponent` on the key), src/API/Explorer/index.ts:280-296 (the 1000-character GET/POST switch)
 
 ### Reads against WAX mainnet
 
@@ -104,9 +114,9 @@ await api.getTemplates({ collection_name: 'pixeltycoons' }, 1, 2);
 // -> ITemplate[] of length 2
 ```
 
-Every getter throws `ApiError` on a non-200 response or a `success: false` body, so a rejected promise is the failure signal; there is no undefined-on-error path. List endpoints reject `limit` above the deployment cap (100 on the reference deployment) with HTTP 400, surfaced as an `ApiError`; bound `limit` to 100 and page through. See [atomicassets-api HTTP API](../api.md#list-endpoints-cap-limit-at-100) ("List endpoints cap limit at 100").
+Every getter throws `ApiError` on a non-200 response or a `success: false` body, so a rejected promise is the failure signal; there is no undefined-on-error path. A refused path segment is the one failure that is not an `ApiError`, because it is raised before a request exists. List endpoints reject `limit` above the deployment cap (100 on the reference deployment) with HTTP 400, surfaced as an `ApiError`; bound `limit` to 100 and page through. See [atomicassets-api HTTP API](../api.md#list-endpoints-cap-limit-at-100) ("List endpoints cap limit at 100").
 
-Source: atomicassets-sdk (v2.1.0, 0dbf061) src/API/Explorer/index.ts:277-283 (`fetchEndpoint` error handling); live reads against `https://wax.api.atomicassets.io`
+Source: atomicassets-sdk (v2.1.1, 5c70c62) src/API/Explorer/index.ts:303-309 (`fetchEndpoint` error handling); live reads against `https://wax.api.atomicassets.io`
 
 ## RpcApi reads chain tables directly, with a rate-limited queue and a cache
 
@@ -116,7 +126,7 @@ The getters return lazy wrapper objects, not plain rows. `getAsset(owner, id)` r
 
 Prefer `ExplorerApi` for anything the indexer answers: filtered lists, search, sort orders, counts, stats, and cross-owner enumeration (the `assets` table is scoped by owner on chain, so there is no chain-side path from a collection to its assets without knowing the owners). Reach for `RpcApi` when you need the unindexed chain truth: reading a specific row without indexer lag, or running against a node when no atomicassets-api deployment is available. The two clients do not share a cache.
 
-Source: atomicassets-sdk (v2.1.0, 0dbf061) src/API/Rpc/index.ts:32-44 (constructor, queue construction), src/API/Rpc/index.ts:80-166 (getters), src/API/Rpc/index.ts:172-181 (`getTableRows` forcing `limit: 101`, `json: true`), src/API/Rpc/Queue.ts:15 and :130-137 (`setInterval(..., ceil(1000/requestLimit))`, default 4), src/API/Rpc/RpcCache.ts:124 (15-minute TTL), src/API/Rpc/Asset.ts (lazy wrapper, precedence in `data()`)
+Source: atomicassets-sdk (v2.1.1, 5c70c62) src/API/Rpc/index.ts:32-44 (constructor, queue construction), src/API/Rpc/index.ts:80-166 (getters), src/API/Rpc/index.ts:172-181 (`getTableRows` forcing `limit: 101`, `json: true`), src/API/Rpc/Queue.ts:15 and :130-137 (`setInterval(..., ceil(1000/requestLimit))`, default 4), src/API/Rpc/RpcCache.ts:124 (15-minute TTL), src/API/Rpc/Asset.ts (lazy wrapper, precedence in `data()`)
 
 ## Serialization decodes table blobs; the attribute-map helpers build action data
 
@@ -138,7 +148,7 @@ deserialize(serialize(obj, codec), codec);
 // -> { name: 'Hero', level: 42, img: 'QmABC' }  (round-trips equal)
 ```
 
-Source: atomicassets-sdk (v2.1.0, 0dbf061) src/Serialization/index.ts (`serialize`/`deserialize`/`toByteArray`), src/Schema/index.ts:56-100 (`ObjectSchema`, `CachedObjectSchema`, the 500-entry bound), src/Actions/Generator.ts:54-91 (`ATOMIC_ATTRIBUTE`), src/Actions/Generator.ts:96-118 (`createAttributeMap`), src/Actions/Generator.ts:26-36 (`DecodedAttributeMap` accepting `first`/`second`); round-trip executed against a live schema read from `https://wax.api.atomicassets.io`
+Source: atomicassets-sdk (v2.1.1, 5c70c62) src/Serialization/index.ts (`serialize`/`deserialize`/`toByteArray`), src/Schema/index.ts:56-100 (`ObjectSchema`, `CachedObjectSchema`, the 500-entry bound), src/Actions/Generator.ts:54-91 (`ATOMIC_ATTRIBUTE`), src/Actions/Generator.ts:96-118 (`createAttributeMap`), src/Actions/Generator.ts:26-36 (`DecodedAttributeMap` accepting `first`/`second`); round-trip executed against a live schema read from `https://wax.api.atomicassets.io`
 
 ## Action building: a sync authorization-free builder and an async authorization-first generator
 
@@ -160,7 +170,7 @@ builder.mintasset('minteracct', 'pixeltycoons', 'heroes', 4, 'targetacct', immut
 //              immutable_data: [{ key: 'name', value: ['string', 'Hero'] }], mutable_data: [], tokens_to_back: [] } }
 ```
 
-Source: atomicassets-sdk (v2.1.0, 0dbf061) src/Actions/Generator.ts:14-18 (`EosioSimpleAction`), src/Actions/Generator.ts:524-526 (`_action` returning one object), src/Actions/Generator.ts:373-384 (8-argument `mintasset`), src/Actions/Generator.ts:516-518 (`transfer(from, to, asset_ids, memo)`), src/Actions/Generator.ts:529-536 and :855-857 (`ActionGenerator`, `_authorize` returning an array), src/Actions/Explorer.ts (`ExplorerActionGenerator` auto-serialization); `mintasset` output executed locally
+Source: atomicassets-sdk (v2.1.1, 5c70c62) src/Actions/Generator.ts:14-18 (`EosioSimpleAction`), src/Actions/Generator.ts:524-526 (`_action` returning one object), src/Actions/Generator.ts:373-384 (8-argument `mintasset`), src/Actions/Generator.ts:516-518 (`transfer(from, to, asset_ids, memo)`), src/Actions/Generator.ts:529-536 and :855-857 (`ActionGenerator`, `_authorize` returning an array), src/Actions/Explorer.ts (`ExplorerActionGenerator` auto-serialization); `mintasset` output executed locally
 
 ### Numeric parameters are checked against their ABI type and throw
 
@@ -177,31 +187,31 @@ Each numeric parameter is therefore checked against the ABI type of the field it
 
 The error text carries the field and the offending value, for example `max_supply 1.5 is not a uint32 (an integer 0 to 4294967295)`. What the contract requires beyond the ABI width, such as which market fee a collection may charge, stays the chain's to enforce and returns a legible error of its own.
 
-Source: atomicassets-sdk (v2.1.0, 0dbf061) src/Actions/Generator.ts:126-157 (`INT32_MIN`/`INT32_MAX`/`UINT32_MAX`, `assertFinite`, `assertInt32`, `assertUint32`), src/Actions/Generator.ts:276 and :451 (`market_fee`), src/Actions/Generator.ts:299 and :311 (`max_supply`), src/Actions/Generator.ts:330, :355, :394-395, :477 (`template_id`, `new_max_supply`), src/Actions/Generator.ts:379 (`mintasset` `template_id`)
+Source: atomicassets-sdk (v2.1.1, 5c70c62) src/Actions/Generator.ts:126-157 (`INT32_MIN`/`INT32_MAX`/`UINT32_MAX`, `assertFinite`, `assertInt32`, `assertUint32`), src/Actions/Generator.ts:276 and :451 (`market_fee`), src/Actions/Generator.ts:299 and :311 (`max_supply`), src/Actions/Generator.ts:330, :355, :394-395, :477 (`template_id`, `new_max_supply`), src/Actions/Generator.ts:379 (`mintasset` `template_id`)
 
 ### Native backing is deprecated on the action and on the mint parameter
 
 `backasset` carries a `@deprecated` tag on both the builder and the generator, and `mintasset` carries the same tag on its `tokens_to_back` parameter. AtomicAssets v2 ends `mintasset` with a check that `tokens_to_back` is empty and guards `backasset` the same way, so both abort there. Both still execute on a chain that has not migrated, which means a call that works says the chain has not arrived yet rather than that the path is supported. Pass `[]` and back nothing. The contract-side rule and its abort message are in [Create a collection and mint assets](../../guides/asset-lifecycle.md#mint-an-asset-mintasset) ("Mint an asset: mintasset").
 
-Source: atomicassets-sdk (v2.1.0, 0dbf061) src/Actions/Generator.ts:238-240 (`backasset` on the builder), src/Actions/Generator.ts:581-585 (`backasset` on the generator), src/Actions/Generator.ts:358-372 (`mintasset` `tokens_to_back`)
+Source: atomicassets-sdk (v2.1.1, 5c70c62) src/Actions/Generator.ts:238-240 (`backasset` on the builder), src/Actions/Generator.ts:581-585 (`backasset` on the generator), src/Actions/Generator.ts:358-372 (`mintasset` `tokens_to_back`)
 
 ## Network factories carry AtomicHub's public hosts
 
 `explorerApiForNetwork(network, options?)` and `rpcApiForNetwork(network, contract?, options?)` construct a preconfigured client against AtomicHub's public endpoints, and `NETWORK_ENDPOINTS` exposes the host map. The valid `AtomicHubNetwork` keys are `wax`, `wax-testnet`, `vaulta`, `xpr`, `xpr-testnet`, and `jungle4`. Each key currently maps its `api` and `rpc` to the same host (for example `wax` to `https://wax.api.atomicassets.io`), and the split is kept so the shapes survive if the hosts ever diverge. Any compatible deployment can still be passed straight to the `ExplorerApi`/`RpcApi` constructors instead of using a factory.
 
-Source: atomicassets-sdk (v2.1.0, 0dbf061) src/Networks.ts:9-48 (`AtomicHubNetwork`, `NETWORK_ENDPOINTS`, `explorerApiForNetwork`, `rpcApiForNetwork`); `wax` factory verified live
+Source: atomicassets-sdk (v2.1.1, 5c70c62) src/Networks.ts:9-48 (`AtomicHubNetwork`, `NETWORK_ENDPOINTS`, `explorerApiForNetwork`, `rpcApiForNetwork`); `wax` factory verified live
 
 ## Error types are exported for instanceof matching
 
 Failures throw typed `Error` subclasses, all exported from the root so consumers can `instanceof`-match them. `ApiError` carries an `isApiError = true` flag and a numeric `status` (the HTTP status, or 500 for a transport failure); it is what every `ExplorerApi` getter throws. `RpcError` wraps a node error response and pulls the deepest available message out of the nodeos `error.details`/`processed.except` envelope. `SerializationError`, `DeserializationError`, and `SchemaError` cover the codec paths and the numeric guards above, and `ExplorerError` the explorer-action path. Match on `ApiError` and read `.status` to distinguish an over-limit 400 from a 404 from a transport 500.
 
-Source: atomicassets-sdk (v2.1.0, 0dbf061) src/Errors/ApiError.ts, src/Errors/RpcError.ts, src/Errors/{Serialization,Deserialization,Schema,Explorer}Error.ts, src/index.ts:32-37 (root re-exports)
+Source: atomicassets-sdk (v2.1.1, 5c70c62) src/Errors/ApiError.ts, src/Errors/RpcError.ts, src/Errors/{Serialization,Deserialization,Schema,Explorer}Error.ts, src/index.ts:32-37 (root re-exports)
 
 ## SDK action output composes directly with @wharfkit session.transact
 
 The action objects the generator returns are already in the shape WharfKit's `session.transact({ actions })` accepts: `{ account, name, authorization, data }`, with each authorization entry an `{ actor, permission }` object matching the SDK's `EosioAuthorizationObject`. So a signer flow is `session.transact({ actions: await explorerApi.action.then(a => a.mintasset(auth, ...)) })`, where `auth = [{ actor, permission }]`. Because the data-bearing actions carry the attribute-map shape (not serialized bytes), the ABI encoding happens inside WharfKit and nodeos at transact time, the same as any hand-built action. The SDK's job ends at producing the action array. For WharfKit's table-read and authority behavior, and its eosjs-migration caveats, see [@wharfkit/antelope client behavior](../wharfkit.md).
 
-Source: atomicassets-sdk (v2.1.0, 0dbf061) src/Actions/Generator.ts:4-18 (`EosioActionObject`, `EosioAuthorizationObject`), src/Actions/Generator.ts:855-857 (`_authorize`)
+Source: atomicassets-sdk (v2.1.1, 5c70c62) src/Actions/Generator.ts:4-18 (`EosioActionObject`, `EosioAuthorizationObject`), src/Actions/Generator.ts:855-857 (`_authorize`)
 
 ## When to use the SDK versus raw HTTP or WharfKit table reads
 
