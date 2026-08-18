@@ -4,7 +4,7 @@ depends-on: [reference/atomicmarket/actions.md, guides/deposits.md]
 key-modules:
     - "atomicmarket-contract (v2.0.0-rc2): src/atomicmarket.cpp"
     - "atomicassets-contract (v2.0.0-rc4): src/atomicassets.cpp"
-    - "@atomichub/atomicmarket 2.3.0 (atomicmarket-sdk v2.3.0, 36aee58): src/Actions/Generator.ts"
+    - "@atomichub/atomicmarket 2.4.1 (atomicmarket-sdk v2.4.1, 437300b): src/Actions/Generator.ts"
 ---
 
 # Working with auctions
@@ -133,7 +133,7 @@ await session.transact({
 
 `duration` is the one field the builder checks: it must be a whole number inside the uint32 range, or `announceauct` throws before a transaction is built. That is a serialization bound rather than a chain rule, so the config's minimum and maximum auction duration still apply and are still the chain's to enforce. Nothing else is checked, and the composer carries no bundle opt-out, because an auction action is handed an auction id and cannot see how many assets the row holds. See [@atomichub/atomicmarket SDK](../reference/sdk/atomicmarket.md#the-five-composers) ("The five composers").
 
-Source: atomicmarket-sdk (v2.3.0, 36aee58) src/Actions/Generator.ts:615-639 (`announceAuctionActions`, the ordering rule and the `auction` memo), src/Actions/Generator.ts:312-323 (`announceauct` and its `duration` check), src/Actions/Generator.ts:713-729 (`_uint32`), src/Actions/Generator.ts:301-311 (the legacy bundle note on the auction family)
+Source: atomicmarket-sdk (v2.4.1, 437300b) src/Actions/Generator.ts:615-639 (`announceAuctionActions`, the ordering rule and the `auction` memo), src/Actions/Generator.ts:312-323 (`announceauct` and its `duration` check), src/Actions/Generator.ts:713-729 (`_uint32`), src/Actions/Generator.ts:301-311 (the legacy bundle note on the auction family)
 
 ## Bid on an auction
 

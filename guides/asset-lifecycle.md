@@ -4,7 +4,7 @@ depends-on: [reference/atomicassets/structure.md, reference/atomicassets/actions
 key-modules:
     - "atomicmarket-contract (v2.0.0-rc2): src/atomicmarket.cpp"
     - "atomicassets-contract (v2.0.0-rc4): src/atomicassets.cpp"
-    - "@atomichub/atomicassets 2.1.0 (atomicassets-sdk v2.1.0, 0dbf061): src/Actions/Generator.ts"
+    - "@atomichub/atomicassets 2.1.1 (atomicassets-sdk v2.1.1, 5c70c62): src/Actions/Generator.ts"
 ---
 
 # Create a collection and mint assets
@@ -232,7 +232,7 @@ The builder returns `{ account, name, data }` and signs nothing, so the object a
 
 The numeric parameters are the one thing the builder checks, and it throws a `SerializationError` naming the offending field before any transaction is built. `template_id` is validated as an int32, which keeps `-1` available as the no-template sentinel and rejects a `NaN` that a string-to-number conversion produced; `max_supply` on `createtempl` is validated as a uint32, so a fractional or negative supply fails at the call rather than on chain. Without that check a `NaN` reaches the signing library as `null`, because JSON has no form for it, and the mistake is gone before the chain can name it. The full parameter list is in [@atomichub/atomicassets SDK](../reference/sdk/atomicassets.md#numeric-parameters-are-checked-against-their-abi-type-and-throw) ("Numeric parameters are checked against their ABI type and throw").
 
-Source: atomicassets-sdk (v2.1.0, 0dbf061) src/Actions/Generator.ts:373-384 (`mintasset` and its `template_id` check), src/Actions/Generator.ts:126-156 (the numeric guards), src/Actions/Generator.ts:295-303 (`createtempl` `max_supply`), src/Actions/Generator.ts:358-372 (the `tokens_to_back` deprecation), src/Actions/Generator.ts:524-526 (`_action` returning one object)
+Source: atomicassets-sdk (v2.1.1, 5c70c62) src/Actions/Generator.ts:373-384 (`mintasset` and its `template_id` check), src/Actions/Generator.ts:126-156 (the numeric guards), src/Actions/Generator.ts:295-303 (`createtempl` `max_supply`), src/Actions/Generator.ts:358-372 (the `tokens_to_back` deprecation), src/Actions/Generator.ts:524-526 (`_action` returning one object)
 
 ## Update mutable data: setassetdata
 

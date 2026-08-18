@@ -4,7 +4,7 @@ depends-on: [reference/atomicmarket/actions.md, guides/deposits.md, reference/ap
 key-modules:
     - "atomicmarket-contract (v2.0.0-rc2): src/atomicmarket.cpp"
     - "atomicassets-contract (v2.0.0-rc4): src/atomicassets.cpp"
-    - "@atomichub/atomicmarket 2.3.0 (atomicmarket-sdk v2.3.0, 36aee58): src/Actions/Generator.ts"
+    - "@atomichub/atomicmarket 2.4.1 (atomicmarket-sdk v2.4.1, 437300b): src/Actions/Generator.ts"
 ---
 
 # Buyoffers
@@ -129,7 +129,7 @@ The composer fills `expected_asset_ids` from `asset_ids`, because the contract c
 
 The composer throws when `asset_ids` carries more than one id, unless `allow_v1_bundle_buyoffer: true` is set. Under V2 `acceptbuyo` refunds the escrowed price and erases a multi-asset row before it ever reads the offers table, so the transaction commits with the buyoffer gone, nothing sold, and the offer this flow created left dangling on the recipient's RAM until they cancel it. Set the flag only against a chain still running AtomicMarket V1, where bundle buyoffers accept correctly. See [@atomichub/atomicmarket SDK](../reference/sdk/atomicmarket.md#the-two-bundle-opt-out-flags) ("The two bundle opt-out flags").
 
-Source: atomicmarket-sdk (v2.3.0, 36aee58) src/Actions/Generator.ts:641-688 (`acceptBuyofferActions`, the last-offer placement rule, the bundle throw), src/Actions/Generator.ts:158-175 (`AcceptBuyofferInput` and `allow_v1_bundle_buyoffer`), src/Actions/Generator.ts:208-476 (the builder's action set, which carries no standalone `acceptbuyo`)
+Source: atomicmarket-sdk (v2.4.1, 437300b) src/Actions/Generator.ts:641-688 (`acceptBuyofferActions`, the last-offer placement rule, the bundle throw), src/Actions/Generator.ts:158-175 (`AcceptBuyofferInput` and `allow_v1_bundle_buyoffer`), src/Actions/Generator.ts:208-476 (the builder's action set, which carries no standalone `acceptbuyo`)
 
 ### Declining a buyoffer
 
@@ -299,7 +299,7 @@ const actions = builder.fulfillTemplateBuyofferActions({
 
 It carries no bundle guard, because a template buyoffer names one asset by construction: `fulfilltbuyo` takes a single `asset_id` and the contract checks that the offer holds exactly that one asset. The placement rule from the accept flow above applies unchanged, and it is the SDK-side statement of the marketplace security consideration in this section: keep the offer immediately before the market action and let nothing else create an offer in between.
 
-Source: atomicmarket-sdk (v2.3.0, 36aee58) src/Actions/Generator.ts:690-707 (`fulfillTemplateBuyofferActions` and why it carries no bundle guard), src/Actions/Generator.ts:177-188 (`FulfillTemplateBuyofferInput`), src/Actions/Generator.ts:641-657 (the last-offer placement rule shared with the accept flow)
+Source: atomicmarket-sdk (v2.4.1, 437300b) src/Actions/Generator.ts:690-707 (`fulfillTemplateBuyofferActions` and why it carries no bundle guard), src/Actions/Generator.ts:177-188 (`FulfillTemplateBuyofferInput`), src/Actions/Generator.ts:641-657 (the last-offer placement rule shared with the accept flow)
 
 ### Cancelling a template buyoffer
 

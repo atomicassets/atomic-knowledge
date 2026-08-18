@@ -4,7 +4,7 @@ depends-on: [reference/atomicmarket/actions.md, reference/atomicmarket/fees-and-
 key-modules:
     - "atomicmarket-contract (v2.0.0-rc2): src/atomicmarket.cpp"
     - "atomicassets-contract (v2.0.0-rc4): src/atomicassets.cpp"
-    - "@atomichub/atomicmarket 2.3.0 (atomicmarket-sdk v2.3.0, 36aee58): src/Actions/Generator.ts, src/Actions/Delphi.ts"
+    - "@atomichub/atomicmarket 2.4.1 (atomicmarket-sdk v2.4.1, 437300b): src/Actions/Generator.ts, src/Actions/Delphi.ts"
 ---
 
 # Working with sales
@@ -214,7 +214,7 @@ Only the purchase's place in that order is fixed. It spends the deposited balanc
 
 The composer throws when `asset_ids` carries more than one id, unless `allow_v1_bundle_sale: true` is set. That guard exists because the bundle case is the one caller error the chain neither reverts nor refuses: under V2 `purchasesale` returns early for a multi-asset row, declining the offer and erasing it before touching any balance, while `assertsale` has already passed and the deposit has already credited the buyer. The transaction commits with the buyer paid, nothing delivered, and the tokens recoverable only through a separate `withdraw`. Set the flag only against a chain still running AtomicMarket V1, where bundles are ordinary listings. See [@atomichub/atomicmarket SDK](../reference/sdk/atomicmarket.md#the-two-bundle-opt-out-flags) ("The two bundle opt-out flags").
 
-Source: `atomicmarket-contract src/atomicmarket.cpp:896-1015` (`purchasesale` early return on a multi-asset row); atomicmarket-sdk (v2.3.0, 36aee58) src/Actions/Generator.ts:493-592 (`purchaseSaleActions`, the emitted order, the bundle throw), src/Actions/Generator.ts:578-591 (the `deposit` memo and the settlement token's own contract)
+Source: `atomicmarket-contract src/atomicmarket.cpp:896-1015` (`purchasesale` early return on a multi-asset row); atomicmarket-sdk (v2.4.1, 437300b) src/Actions/Generator.ts:493-592 (`purchaseSaleActions`, the emitted order, the bundle throw), src/Actions/Generator.ts:578-591 (the `deposit` memo and the settlement token's own contract)
 
 ## Cancel a sale
 
@@ -309,4 +309,4 @@ A cross-symbol sale settles the oracle conversion of its listing price, so reusi
 
 `@atomichub/atomicmarket` enforces both rules in `purchaseSaleActions` and derives the amount for the first one: `deriveSettlementAmount(listingAmount, median, pair)` reproduces the contract's own conversion, and `formatQuantity` renders it as the quantity string the transfer needs. Reproducing the arithmetic by hand is the step to skip; deriving the exact rational floor instead of the contract's truncated double leaves the deposit a raw unit short and the purchase throws. See [@atomichub/atomicmarket SDK](../reference/sdk/atomicmarket.md#delphi-settlement-math-derivesettlementamount-and-formatquantity) ("Delphi settlement math").
 
-Source: `atomicmarket-contract src/atomicmarket.cpp:2468-2515` (`calc_settlement_price`, the same-symbol branch and the oracle branch); atomicmarket-sdk (v2.3.0, 36aee58) src/Actions/Generator.ts:106-112 (the `settlement_quantity` contract), src/Actions/Generator.ts:522-576 (both branches enforced), src/Actions/Delphi.ts:72-122 (`deriveSettlementAmount` and the truncation it reproduces)
+Source: `atomicmarket-contract src/atomicmarket.cpp:2468-2515` (`calc_settlement_price`, the same-symbol branch and the oracle branch); atomicmarket-sdk (v2.4.1, 437300b) src/Actions/Generator.ts:106-112 (the `settlement_quantity` contract), src/Actions/Generator.ts:522-576 (both branches enforced), src/Actions/Delphi.ts:72-122 (`deriveSettlementAmount` and the truncation it reproduces)
