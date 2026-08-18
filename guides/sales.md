@@ -15,6 +15,18 @@ A sale is a lazy-accept escrow: `announcesale` only records a row, it never move
 
 Purchases and bids draw on the buyer's AtomicMarket balance rather than moving tokens directly. See [Balances and deposits](deposits.md) for the transfer-with-memo deposit flow and balance mechanics; this guide only shows where a step requires a sufficient balance. Each write below runs through a `session` built in [Build a session and sign](signing.md).
 
+```mermaid
+flowchart TD
+    N["announcesale: sale row created, nothing moves"]
+    O["createoffer: asset offered to the market contract"]
+    P["purchasesale: buyer pays, offer accepted, asset moves"]
+    X["cancelsale: row erased, asset never moved"]
+    N --> O
+    O --> P
+    N --> X
+    O --> X
+```
+
 ## Announce a sale
 
 `announcesale` creates the sale row. It moves nothing: the asset stays with the seller until the escrow offer is created and accepted.

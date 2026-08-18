@@ -8,6 +8,17 @@ key-modules: ["atomicmarket-contract (v2.0.0-rc2): src/atomicmarket.cpp, include
 
 The full fee model applied to a sale, auction, or buyoffer settlement on the `atomicmarket` contract: the maker and taker marketplace fees, the protocol-configured market fee bounds, the AtomicAssets collection fee and when it is read, and the V2 royalty split engine that divides the collection's share among founders, template owners, and attribute-matched recipients.
 
+```mermaid
+flowchart TD
+    P["Buyer pays the listing price"]
+    P --> M["Deduct maker marketplace fee"]
+    M --> T["Deduct taker marketplace fee"]
+    T --> C["Deduct collection fee"]
+    C --> B["Deduct active bonus fees"]
+    B --> S["Remainder credited to the seller"]
+    C --> R["Collection fee split: founders, template, attributes"]
+```
+
 ## Every settlement stacks four fee layers before the seller is paid
 
 A sale, auction claim, or buyoffer acceptance all route through `internal_payout_sale`, which deducts, in order: the maker marketplace fee, the taker marketplace fee, the collection fee, and any active bonus fees, crediting each recipient before adding the remainder to the seller's balance. The maker and taker rates come from the `config` singleton's `maker_market_fee` and `taker_market_fee` fields (0.01 each by default) and are computed as `fee_rate * quantity.amount` cast to an integer token amount, credited to the registered marketplace's `creator` account. A strict `seller_cut_quantity.amount > 0` assertion is the final backstop: if the stacked fees would leave the seller nothing (or a negative remainder), the whole settlement reverts rather than silently zeroing the payout.
