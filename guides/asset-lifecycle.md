@@ -1,7 +1,10 @@
 ---
 scope: Creator flow on the `atomicassets` contract - create a collection, define a schema, optionally a template, mint assets, edit mutable data, transfer, and burn
 depends-on: [reference/atomicassets/structure.md, reference/atomicassets/actions.md, reference/wharfkit.md]
-key-modules: ["atomicmarket-contract (v2.0.0-rc2): src/atomicmarket.cpp", "atomicassets-contract (v2.0.0-rc4): src/atomicassets.cpp"]
+key-modules:
+    - "atomicmarket-contract (v2.0.0-rc2): src/atomicmarket.cpp"
+    - "atomicassets-contract (v2.0.0-rc4): src/atomicassets.cpp"
+    - "@atomichub/atomicassets 2.1.0 (atomicassets-sdk v2.1.0, 0dbf061): src/Actions/Generator.ts"
 ---
 
 # Create a collection and mint assets
@@ -200,6 +203,36 @@ Pass `template_id: -1` to mint a templateless asset carrying its own `immutable_
 **Changed in V2:** native token backing (the `tokens_to_back` parameter and the `backasset` action) is deprecated: any non-empty `tokens_to_back` aborts the mint, and `backasset` unconditionally fails. Under V1 both were functional and moved real token balances onto the asset.
 
 Source: `atomicassets-contract src/atomicassets.cpp:697-788` (`mintasset`, backing guard at `:786-787`), V1 backing behavior in this repo's V1 tree (`contracts/atomicassets-contract/src/atomicassets.cpp`)
+
+### Building the same mint through the SDK
+
+`@atomichub/atomicassets` builds the identical action object and types the attribute map on the way in, so the eight positional arguments stay in ABI order and `createAttributeMap` picks the `ATOMIC_ATTRIBUTE` variant for each field:
+
+```ts
+import { ActionBuilder, createAttributeMap } from '@atomichub/atomicassets'
+
+const builder = new ActionBuilder('atomicassets')
+const mutable = createAttributeMap({ level: 1 }, { level: 'uint32' })
+
+const mint = builder.mintasset(
+  session.actor.toString(), // authorized_minter
+  'mycollectn1',            // collection_name
+  'cards',                  // schema_name
+  123456,                   // template_id, -1 for a templateless asset
+  'collector.wam',          // new_asset_owner
+  [],                       // immutable_data
+  mutable,                  // mutable_data
+  [],                       // tokens_to_back
+)
+
+await session.transact({ action: { ...mint, authorization: [session.permissionLevel] } })
+```
+
+The builder returns `{ account, name, data }` and signs nothing, so the object above is the same payload the hand-written snippet sends. `tokens_to_back` is `[]` deliberately: the parameter carries a deprecation tag for the abort documented above.
+
+The numeric parameters are the one thing the builder checks, and it throws a `SerializationError` naming the offending field before any transaction is built. `template_id` is validated as an int32, which keeps `-1` available as the no-template sentinel and rejects a `NaN` that a string-to-number conversion produced; `max_supply` on `createtempl` is validated as a uint32, so a fractional or negative supply fails at the call rather than on chain. Without that check a `NaN` reaches the signing library as `null`, because JSON has no form for it, and the mistake is gone before the chain can name it. The full parameter list is in [@atomichub/atomicassets SDK](../reference/sdk/atomicassets.md#numeric-parameters-are-checked-against-their-abi-type-and-throw) ("Numeric parameters are checked against their ABI type and throw").
+
+Source: atomicassets-sdk (v2.1.0, 0dbf061) src/Actions/Generator.ts:373-384 (`mintasset` and its `template_id` check), src/Actions/Generator.ts:126-156 (the numeric guards), src/Actions/Generator.ts:295-303 (`createtempl` `max_supply`), src/Actions/Generator.ts:358-372 (the `tokens_to_back` deprecation), src/Actions/Generator.ts:524-526 (`_action` returning one object)
 
 ## Update mutable data: setassetdata
 
