@@ -394,3 +394,15 @@ public licenses.
 
 Creative Commons may be contacted at creativecommons.org.
 
+=======================================================================
+
+Scope
+
+This license covers the documentation in this repository: every markdown
+file, including the pages under reference/ and guides/, the routing files
+at the repository root, and the agent skills under skills/.
+
+Runnable projects (the starters/ directory, when present) and the code samples
+inside fenced blocks in those markdown files are licensed under the MIT License
+instead.
+See LICENSE-CODE.

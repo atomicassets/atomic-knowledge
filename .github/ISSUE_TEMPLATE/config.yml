@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Read the rendered corpus
+    url: https://docs.atomicassets.io
+    about: The same pages as this repository, served at a pinned revision.
