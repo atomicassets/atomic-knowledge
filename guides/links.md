@@ -64,7 +64,7 @@ Source: `src/link.cpp:21-98`
 
 ## Step 3: fund the link
 
-Funding is a normal AtomicAssets `transfer` to the `atomictoolsx` account with the memo `"link"`; there is no atomictools action for it. The asset ids must be the same set announced in step 2 (order does not matter).
+Funding is a normal AtomicAssets `transfer` to the `atomictoolsx` account with the memo `"link"`; there is no AtomicTools action for it. The asset ids must be the same set announced in step 2 (order does not matter).
 
 ```json
 {

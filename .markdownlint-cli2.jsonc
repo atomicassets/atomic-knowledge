@@ -1,0 +1,32 @@
+// Structure rules for every page in this corpus. The set is small on purpose:
+// a rule here either protects what the docs site needs or protects a diff, and
+// everything else is a preference this corpus does not hold.
+{
+    "globs": ["**/*.md"],
+    "ignores": ["node_modules", ".git", ".github/PULL_REQUEST_TEMPLATE.md"],
+    "config": {
+        // Only the rules below run.
+        "default": false,
+
+        // ATX headings only. A setext heading cannot express an H3, so a page
+        // that starts with one has no room to grow a level.
+        "MD003": { "style": "atx" },
+
+        // No trailing whitespace. It is invisible in review and it turns a
+        // one-word correction into a two-change diff line.
+        "MD009": true,
+
+        // One H1 per page. The docs site takes the page title from the leading
+        // H1, so a second one is a title the site silently drops.
+        "MD025": true,
+
+        // The body opens with that H1. The site's transform throws on a page
+        // that does not, which turns an upstream defect into a failed sync.
+        "MD041": true,
+
+        // Line length is off. This corpus writes a claim and its citation on
+        // one line so a finding cites one line, and wrapping would spread a
+        // single fact across a diff.
+        "MD013": false
+    }
+}
