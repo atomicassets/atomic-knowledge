@@ -35,7 +35,9 @@ Source: `src/atomicmarket.cpp:174-248` (`setmarketfee`, `addbonusfee`), `src/ato
 
 `announcesale`, `announceauct`, and `createbuyo` all read the collection's fee once at creation and store it on the row (`collection_fee`), but that stored value is written only for indexing: the `lognew*` actions emit it so indexers can display a listing's fee without a second lookup. At settlement, `internal_payout_sale` calls `partial_read_collection` again and uses whatever the collection's fee is at that moment, completely ignoring the value stored on the row. A collection author can raise or lower the fee at any time and the new rate applies immediately to every already-open listing; the buyer still pays the listed price, so only the seller/collection split moves. The live value is re-asserted to `0 <= fee <= 0.15` before use, because a fee outside that range (including a negative value, which is undefined behavior once cast to an unsigned integer) must not reach the payout math.
 
-Source: `src/atomicmarket.cpp:2593-2609` (live collection fee read and range check), `src/atomicmarket.cpp:744-809` (`announcesale` storing the listing-time fee for logging only)
+Nothing lets a seller cap this exposure per listing: `assertsale` asserts the asset ids, the listing price, and the settlement symbol, and takes no fee parameter, so no guard action can pin a maximum collection fee for a settlement. A front end that shows a seller the expected payout reads the live collection fee at the moment of sale rather than the `collection_fee` stored on the row.
+
+Source: `src/atomicmarket.cpp:2593-2609` (live collection fee read and range check), `src/atomicmarket.cpp:744-809` (`announcesale` storing the listing-time fee for logging only), `src/atomicmarket.cpp:993-1015` and `include/atomicmarket.hpp:206` (`assertsale` parameter list, with no fee field)
 
 ## The royalty split engine divides the collection fee among founders, templates, and attributes
 
