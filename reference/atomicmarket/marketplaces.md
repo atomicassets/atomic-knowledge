@@ -1,5 +1,5 @@
 ---
-scope: How a frontend or dapp registers as a marketplace on the shared atomicmarket contract, and how maker/taker attribution and fee crediting flow through it
+scope: How a frontend or dapp registers as a marketplace on the shared `atomicmarket` contract, and how maker/taker attribution and fee crediting flow through it
 depends-on: [reference/atomicmarket/tables.md]
 key-modules: ["atomicmarket-contract (v2.0.0-rc2): src/atomicmarket.cpp, include/atomicmarket.hpp"]
 ---

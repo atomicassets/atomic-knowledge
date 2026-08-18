@@ -1,5 +1,5 @@
 ---
-scope: What changed in the atomicassets V2 upgrade, the indexer/chain compatibility surface it creates, and live-chain deployment status
+scope: What changed in the AtomicAssets V2 upgrade, the indexer/chain compatibility surface it creates, and live-chain deployment status
 depends-on: []
 key-modules: ["atomicassets-contract (v2.0.0-rc4): src/atomicassets.cpp, include/atomicassets.hpp"]
 ---

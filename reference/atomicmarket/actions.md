@@ -1,5 +1,5 @@
 ---
-scope: Action reference for the atomicmarket contract's admin, marketplace, balance, royalty split config, sales, auction, buyoffer, template buyoffer, RAM, notification handler, and event log surfaces
+scope: Action reference for the `atomicmarket` contract's admin, marketplace, balance, royalty split config, sales, auction, buyoffer, template buyoffer, RAM, notification handler, and event log surfaces
 depends-on: [reference/atomicmarket/tables.md, reference/atomicassets/actions.md]
 key-modules: ["atomicmarket-contract (v2.0.0-rc2): src/atomicmarket.cpp, include/atomicmarket.hpp"]
 ---

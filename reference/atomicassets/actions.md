@@ -1,5 +1,5 @@
 ---
-scope: Complete action reference for the atomicassets contract
+scope: Complete action reference for the `atomicassets` contract
 depends-on: [reference/atomicassets/structure.md, reference/atomicassets/tables.md]
 key-modules: ["atomicassets-contract (v2.0.0-rc4): src/atomicassets.cpp, include/atomicassets.hpp"]
 ---

@@ -1,5 +1,5 @@
 ---
-scope: Complete table reference for the atomictools contract (links / config)
+scope: Complete table reference for the AtomicTools contract (links / config)
 depends-on: [reference/atomictools/actions.md]
 key-modules: ["atomictools-contract (commit d89ce79e4): include/atomictoolsx.hpp, src/link.cpp"]
 ---

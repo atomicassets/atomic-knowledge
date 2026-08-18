@@ -1,5 +1,5 @@
 ---
-scope: The full fee model for a sale, auction, or buyoffer settlement on atomicmarket - marketplace fees, fee bounds, collection fee timing, and the V2 royalty split engine
+scope: The full fee model for a sale, auction, or buyoffer settlement on `atomicmarket` - marketplace fees, fee bounds, collection fee timing, and the V2 royalty split engine
 depends-on: [reference/atomicmarket/tables.md, reference/atomicmarket/marketplaces.md]
 key-modules: ["atomicmarket-contract (v2.0.0-rc2): src/atomicmarket.cpp, include/atomicmarket.hpp"]
 ---

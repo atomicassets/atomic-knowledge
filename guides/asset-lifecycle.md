@@ -1,5 +1,5 @@
 ---
-scope: Creator flow on the atomicassets contract - collections, schemas, templates, minting, mutable-data edits, transfer, burn
+scope: Creator flow on the `atomicassets` contract - collections, schemas, templates, minting, mutable-data edits, transfer, burn
 depends-on: [reference/atomicassets/structure.md, reference/atomicassets/actions.md, reference/wharfkit.md]
 key-modules: ["atomicmarket-contract (v2.0.0-rc2): src/atomicmarket.cpp", "atomicassets-contract (v2.0.0-rc4): src/atomicassets.cpp"]
 ---

@@ -1,5 +1,5 @@
 ---
-scope: The atomictools claim-link workflow end to end - announce, fund, claim by signature, cancel, and reading links via chain and the hosted API
+scope: The AtomicTools claim-link workflow end to end - announce, fund, claim by signature, cancel, and reading links via chain and the hosted API
 depends-on: [reference/atomictools/actions.md, reference/atomictools/tables.md, reference/atomicassets/actions.md]
 key-modules: ["atomictools-contract (commit d89ce79e4): src/link.cpp, include/atomictoolsx.hpp", "atomicassets-api: src/filler/handlers/atomictools"]
 ---

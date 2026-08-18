@@ -1,5 +1,5 @@
 ---
-scope: The atomicassets createoffer/acceptoffer trade primitive, and how AtomicMarket sales are built on it
+scope: The `atomicassets` createoffer/acceptoffer trade primitive, and how AtomicMarket sales are built on it
 depends-on: [reference/atomicassets/actions.md]
 key-modules: ["atomicmarket-contract (v2.0.0-rc2): src/atomicmarket.cpp", "atomicassets-contract (v2.0.0-rc4): src/atomicassets.cpp"]
 ---
