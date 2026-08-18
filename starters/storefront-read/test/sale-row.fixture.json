@@ -1,0 +1,38 @@
+{
+  "market_contract": "atomicmarket",
+  "assets_contract": "atomicassets",
+  "sale_id": "173901315",
+  "seller": "luckynfts.gm",
+  "buyer": null,
+  "offer_id": "182777767",
+  "price": {
+    "token_contract": "eosio.token",
+    "token_symbol": "WAX",
+    "token_precision": 8,
+    "median": null,
+    "amount": "8299554999"
+  },
+  "listing_symbol": "WAX",
+  "listing_price": "8299554999",
+  "assets": [
+    {
+      "contract": "atomicassets",
+      "asset_id": "1099515375551",
+      "owner": "luckynfts.gm",
+      "name": "Widow Maker",
+      "collection": {
+        "collection_name": "alien.worlds"
+      },
+      "schema": {
+        "schema_name": "arms.worlds"
+      }
+    }
+  ],
+  "maker_marketplace": "market.wax",
+  "taker_marketplace": null,
+  "collection": {
+    "collection_name": "alien.worlds",
+    "market_fee": 0.01
+  },
+  "state": 1
+}

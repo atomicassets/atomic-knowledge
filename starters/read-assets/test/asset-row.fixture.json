@@ -1,0 +1,31 @@
+{
+  "contract": "atomicassets",
+  "asset_id": "1099925383114",
+  "owner": "federation",
+  "name": "Standard Shovel",
+  "is_transferable": true,
+  "is_burnable": true,
+  "template_mint": "9850900",
+  "collection": {
+    "collection_name": "alien.worlds",
+    "name": "Alien Worlds",
+    "author": "federation",
+    "market_fee": 0.01
+  },
+  "schema": {
+    "schema_name": "tool.worlds"
+  },
+  "data": {
+    "img": "QmYm1FG7LxhF3mFUaVmVEVqRztEmByVbHwL6ZWXwVY2dvb",
+    "ease": 10,
+    "luck": 5,
+    "name": "Standard Shovel",
+    "type": "Extractor",
+    "delay": 80,
+    "shine": "Stone",
+    "cardid": 1,
+    "rarity": "Abundant",
+    "backimg": "QmaUNXHeeFvMGD4vPCC3vpGTr77tJvBHjh1ndUm4J7o4tP",
+    "difficulty": 0
+  }
+}

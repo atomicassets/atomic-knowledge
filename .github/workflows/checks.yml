@@ -299,21 +299,20 @@ jobs:
               with:
                   node-version: '24'
 
-            # No key reaches this step. A starter that signs reads its two
-            # variables, finds neither, and exits zero naming the one it wanted,
-            # which is what a reader who cloned without keys sees too.
-            - name: Starters that need no key
+            # No key reaches this step, which is why it runs on every event. The
+            # two read-only starters exercise the live API here; the three
+            # signing ones prove the path a reader who cloned without keys
+            # takes, exiting zero and naming the variable they wanted. The
+            # install also leaves node_modules in place for the arm below.
+            - name: Every starter's tests, with no key in scope
               run: |
-                  if [ ! -d starters ]; then
-                      echo "No starters/ directory yet. This arm starts running with the pull request that lands it."
-                      exit 0
-                  fi
+                  set -euo pipefail
 
                   for starter in starters/*/; do
                       echo "::group::${starter}"
                       (
                           cd "${starter}"
-                          if [ -f package-lock.json ]; then npm ci --no-audit --no-fund; else npm install --no-audit --no-fund; fi
+                          npm ci --no-audit --no-fund
                           node --test
                       )
                       echo "::endgroup::"
@@ -328,27 +327,33 @@ jobs:
             # `github.event.pull_request.head.repo.full_name == github.repository`
             # beside it, or the keys follow the workflow into a fork's pull
             # request.
+            #
+            # The three run in this order because each needs what the one before
+            # it wrote: mint-asset mints into a collection create-collection
+            # made, and list-a-sale lists what mint-asset minted.
             - name: Starters that sign on WAX testnet
               if: github.event_name == 'push' || github.event_name == 'schedule'
               env:
                   WAX_TESTNET_ACTOR: ${{ secrets.WAX_TESTNET_ACTOR }}
                   WAX_TESTNET_PRIVATE_KEY: ${{ secrets.WAX_TESTNET_PRIVATE_KEY }}
               run: |
-                  if [ ! -d starters ]; then
-                      echo "No starters/ directory yet. This arm starts running with the pull request that lands it."
-                      exit 0
-                  fi
+                  set -euo pipefail
 
-                  if [ -z "${WAX_TESTNET_ACTOR}" ] || [ -z "${WAX_TESTNET_PRIVATE_KEY}" ]; then
+                  # Defaulted rather than read bare. The step env always defines
+                  # both keys, but an unset one under `set -u` would abort the
+                  # arm before it could report why.
+                  if [ -z "${WAX_TESTNET_ACTOR:-}" ] || [ -z "${WAX_TESTNET_PRIVATE_KEY:-}" ]; then
                       echo "::warning::WAX_TESTNET_ACTOR or WAX_TESTNET_PRIVATE_KEY is unset, so each signing starter skips itself"
                   fi
 
-                  for starter in starters/*/; do
+                  # Named rather than globbed. The order is load-bearing, and a
+                  # read-only starter run here would repeat what the arm above
+                  # already proved.
+                  for starter in create-collection mint-asset list-a-sale; do
                       echo "::group::${starter}"
                       (
-                          cd "${starter}"
-                          if [ -f package-lock.json ]; then npm ci --no-audit --no-fund; else npm install --no-audit --no-fund; fi
-                          node --test
+                          cd "starters/${starter}"
+                          node src/index.js
                       )
                       echo "::endgroup::"
                   done
