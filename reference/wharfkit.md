@@ -1,5 +1,5 @@
 ---
-scope: "@wharfkit/antelope client library behavior for table reads, authority checks, and payer unwrapping"
+scope: "@wharfkit/antelope client library behavior for table reads, authority checks, and payer unwrapping, each verified against version 1.1.1 of the package"
 depends-on: []
 key-modules:
     - "@wharfkit/antelope"

@@ -1,5 +1,5 @@
 ---
-scope: "@atomichub/atomicmarket JavaScript/TypeScript SDK: AtomicMarketApi reads, the v2 royalty read layer, and royalty-config action building"
+scope: "@atomichub/atomicmarket JavaScript/TypeScript SDK: AtomicMarketApi reads of sales, auctions, and buyoffers, the v2 royalty read layer, and action building"
 depends-on: [reference/api.md, reference/atomicmarket/fees-and-royalties.md, reference/sdk/atomicassets.md]
 key-modules:
     - "@atomichub/atomicmarket 2.0.0 (atomicmarket-sdk main, 278bdfa): src/index.ts, src/API/Explorer/index.ts, src/API/Explorer/Objects.ts, src/Actions/Generator.ts, src/Networks.ts"

@@ -1,5 +1,5 @@
 ---
-scope: Complete action reference for the AtomicTools contract (links / claimlinks)
+scope: Complete action reference for the AtomicTools contract at account `atomictoolsx` - the link lifecycle, the signature claim, funding, and the log actions
 depends-on: [reference/atomictools/tables.md, reference/atomicassets/actions.md]
 key-modules: ["atomictools-contract (commit d89ce79e4): src/link.cpp, src/auth.cpp, include/atomictoolsx.hpp"]
 ---

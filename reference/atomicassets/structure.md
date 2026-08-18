@@ -1,5 +1,5 @@
 ---
-scope: The AtomicAssets data model - collections, schemas, templates, and assets - and the authorization model governing them
+scope: The AtomicAssets data model - collections, schemas, templates, and assets - the authorization model governing them, and how each table is scoped
 depends-on: []
 key-modules: ["atomicassets-contract (v2.0.0-rc4): src/atomicassets.cpp, include/atomicassets.hpp"]
 ---

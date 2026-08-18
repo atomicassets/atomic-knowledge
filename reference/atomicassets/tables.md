@@ -1,5 +1,5 @@
 ---
-scope: Complete table reference for the `atomicassets` contract
+scope: Complete table reference for the `atomicassets` contract - collections, schemas, templates, assets, offers, balances, config, and the V2-only tables
 depends-on: [reference/atomicassets/structure.md]
 key-modules: ["atomicassets-contract (v2.0.0-rc4): src/atomicassets.cpp, include/atomicassets.hpp"]
 ---

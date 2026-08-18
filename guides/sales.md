@@ -1,5 +1,5 @@
 ---
-scope: AtomicMarket instant-sale lifecycle - announce, escrow, purchase, cancel, and Delphi-priced sales
+scope: AtomicMarket instant-sale lifecycle - announce, escrow through an AtomicAssets offer, purchase, cancel, and Delphi Oracle sales that settle in another token
 depends-on: [reference/atomicmarket/actions.md, reference/atomicmarket/fees-and-royalties.md, guides/offers.md]
 key-modules: ["atomicmarket-contract (v2.0.0-rc2): src/atomicmarket.cpp", "atomicassets-contract (v2.0.0-rc4): src/atomicassets.cpp"]
 ---

@@ -1,5 +1,5 @@
 ---
-scope: atomicassets-api HTTP API behavior - Swagger reference, list-endpoint pagination limits, buyoffer lifecycle states
+scope: atomicassets-api HTTP API behavior - Swagger reference, the 100-row list cap, template buyoffer lifecycle states, per-endpoint state values, and rate limits
 depends-on: []
 key-modules:
     - "atomicassets-api (main): src/api/server.ts, src/api/namespaces/*/openapi.ts"

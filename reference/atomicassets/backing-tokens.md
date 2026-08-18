@@ -1,5 +1,5 @@
 ---
-scope: The `atomicassets` fungible-token backing mechanism - deposit, backing, and recovery - and its V2 deprecation
+scope: The `atomicassets` fungible-token backing mechanism - announcing a deposit, where backed value is stored, recovery through burnasset, and its V2 deprecation
 depends-on: [reference/atomicassets/structure.md, reference/atomicassets/actions.md]
 key-modules: ["atomicassets-contract (v2.0.0-rc4): src/atomicassets.cpp, include/atomicassets.hpp"]
 ---
