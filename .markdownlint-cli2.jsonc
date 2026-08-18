@@ -3,7 +3,14 @@
 // everything else is a preference this corpus does not hold.
 {
     "globs": ["**/*.md"],
-    "ignores": ["node_modules", ".git", ".github/PULL_REQUEST_TEMPLATE.md"],
+
+    // Recursive, not top-level. Each starter installs its dependencies into
+    // its own node_modules, and a bare "node_modules" would leave every
+    // dependency's README under this rule set the moment a contributor runs
+    // the tool after an install. Continuous integration never sees them,
+    // because the job that runs this installs nothing, so the mismatch would
+    // land only on the reader running it locally.
+    "ignores": ["**/node_modules", "**/.git", ".github/PULL_REQUEST_TEMPLATE.md"],
     "config": {
         // Only the rules below run.
         "default": false,

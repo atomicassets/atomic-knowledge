@@ -1,0 +1,20 @@
+{
+  "name": "create-collection",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Sign createcol on WAX testnet for a throwaway collection derived from the signing account",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@atomichub/atomicassets": "2.1.1",
+    "@wharfkit/session": "1.6.1",
+    "@wharfkit/wallet-plugin-privatekey": "1.1.0"
+  }
+}
