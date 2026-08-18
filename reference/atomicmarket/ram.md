@@ -1,7 +1,7 @@
 ---
 scope: Who pays RAM for each `atomicmarket` table row, the voluntary pay*ram re-homing actions, and sizing implications for a high-volume marketplace or dapp
 depends-on: [reference/atomicmarket/tables.md]
-key-modules: ["atomicmarket-contract (v2.0.0-rc2): src/atomicmarket.cpp, include/atomicmarket.hpp"]
+key-modules: ["atomicmarket-contract (v2.0.0-rc2): src/atomicmarket.cpp, include/atomicmarket.hpp", "AntelopeIO/leap (v5.0.3): chain RAM-billing constants"]
 ---
 
 # AtomicMarket RAM
@@ -10,9 +10,9 @@ Who pays the RAM for each `atomicmarket` table row, the voluntary `pay*ram` acti
 
 ## The contract pays RAM for every balances row
 
-`internal_add_balance`, the only function that creates or grows a `balances` row, always uses `get_self()` as the RAM payer, never the account the balance belongs to. This is true regardless of why the balance exists: a marketplace's maker/taker fee cut, a royalty recipient's split payout, a token deposit, or a seller's proceeds all land in a `balances` row paid for by the `atomicmarket` contract account itself. There is one row per owner (scope `get_self()`, primary key `owner.value`), holding a `vector<asset>` of per-symbol quantities rather than one row per token type, so a single account accruing balances in several token symbols still only costs one row's worth of base RAM. `internal_decrease_balance` erases the row entirely once its last quantity reaches zero (and merely shrinks the quantities vector if other symbols remain), so a fully-withdrawn balance gives its RAM back rather than leaving an empty row behind.
+`internal_add_balance`, the only function that creates or grows a `balances` row, always uses `get_self()` as the RAM payer, never the account the balance belongs to. This is true regardless of why the balance exists: a marketplace's maker/taker fee cut, a royalty recipient's split payout, a token deposit, or a seller's proceeds all land in a `balances` row paid for by the `atomicmarket` contract account itself. There is one row per owner (scope `get_self()`, primary key `owner.value`), holding a `vector<asset>` of per-symbol quantities rather than one row per token type, so a single account accruing balances in several token symbols still only costs one row's worth of base RAM. `internal_decrease_balance` erases the row entirely once its last quantity reaches zero (and merely shrinks the quantities vector if other symbols remain), so a fully-withdrawn balance gives its RAM back rather than leaving an empty row behind. A row costs 121 + 16 x N bytes for any N up to 127, N being the number of distinct token symbols in `quantities`: the chain's fixed 112-byte row overhead plus the packed payload (the 8-byte `owner`, a 1-byte vector length prefix, and 16 bytes per `asset`). At 128 symbols the length prefix takes a second byte and the constant becomes 122, which no live token configuration approaches.
 
-Source: `src/atomicmarket.cpp:2993-3026` (`internal_add_balance`), `src/atomicmarket.cpp:3034-3070` (`internal_decrease_balance`), `include/atomicmarket.hpp:519-526` (`balances_s`)
+Source: `src/atomicmarket.cpp:2993-3026` (`internal_add_balance`), `src/atomicmarket.cpp:3034-3070` (`internal_decrease_balance`), `include/atomicmarket.hpp:519-526` (`balances_s`); for the byte cost, `AntelopeIO/leap` at `v5.0.3`: `libraries/chain/include/eosio/chain/contract_table_objects.hpp:249-253` (`billable_size_v<key_value_object>` = 112) and `libraries/chain/apply_context.cpp:813` (`db_store_i64` bills that overhead plus the packed row size); live WAX mainnet reads via `wax.greymass.com` `POST /v1/history/get_transaction`: tx `cabbeb2b2760c4d0e3a70363e902362b468775ad98ef970d71e1d2ad1a4788c3` (a memo-`deposit` transfer billing `atomicmarket` exactly +137, which is 121 + 16 for one symbol) and two corroborating settlement transactions showing the same +137/-137 pair
 
 ## Sellers and buyers pay RAM for their own listing rows by default
 

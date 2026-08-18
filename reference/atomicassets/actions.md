@@ -1,7 +1,7 @@
 ---
 scope: Complete action reference for the `atomicassets` contract - admin, collections, schemas, templates, assets, RAM-payer reassignment, transfers, and offers
 depends-on: [reference/atomicassets/structure.md, reference/atomicassets/tables.md]
-key-modules: ["atomicassets-contract (v2.0.0-rc4): src/atomicassets.cpp, include/atomicassets.hpp"]
+key-modules: ["atomicassets-contract (v2.0.0-rc4): src/atomicassets.cpp, include/atomicassets.hpp", "AntelopeIO/leap (v5.0.3): chain RAM-billing constants"]
 ---
 
 # AtomicAssets actions
@@ -410,9 +410,9 @@ Source: `include/atomicassets.hpp:303-308`, `src/atomicassets.cpp:1535-1547`
 
 Required authorization: `from`.
 
-Notifies `from` and `to` directly via `require_recipient`, then calls `internal_transfer`, which: requires `to` to exist and differ from `from`; requires every asset to currently belong to `from` and, if templated, to have `transferable = true`; and, if this is the first asset `to` has ever held (an empty scope), makes `from` pay for the new scope's RAM by emplacing and immediately erasing a placeholder row (so the action fails outright if `from` cannot cover that RAM). Sends one `logtransfer` per distinct collection touched by the batch (grouped by `std::map<name, ...>` key order, not caller-supplied order), each of which fans out to that collection's `notify_accounts`.
+Notifies `from` and `to` directly via `require_recipient`, then calls `internal_transfer`, which: requires `to` to exist and differ from `from`; requires every asset to currently belong to `from` and, if templated, to have `transferable = true`; and, if this is the first asset `to` has ever held (an empty scope), makes `from` pay for the new scope's RAM by emplacing and immediately erasing a placeholder row (so the action fails outright if `from` cannot cover that RAM); that charge is exactly 112 bytes, the billable size the chain gives a `table_id_object`, the record that carries one table scope, and it stays with `from` while the scope exists. Sends one `logtransfer` per distinct collection touched by the batch (grouped by `std::map<name, ...>` key order, not caller-supplied order), each of which fans out to that collection's `notify_accounts`.
 
-Source: `include/atomicassets.hpp:30-35`, `src/atomicassets.cpp:76-86`, `src/atomicassets.cpp:1665-1761` (`internal_transfer`)
+Source: `include/atomicassets.hpp:30-35`, `src/atomicassets.cpp:76-86`, `src/atomicassets.cpp:1665-1761` (`internal_transfer`); for the 112-byte figure, `AntelopeIO/leap` at `v5.0.3`: `libraries/chain/include/eosio/chain/config.hpp:108,140,146` and `libraries/chain/include/eosio/chain/contract_table_objects.hpp:244-247` (`billable_size_v<table_id_object>` = align_up(44 + 2x32, 16) = 112), charged at `libraries/chain/apply_context.cpp:691`; live WAX mainnet read via `wax.greymass.com` `POST /v1/history/get_transaction`, tx `1ec40244151f86b361f9fa18de6ed7bb1413608792141538e0de531a53c55393`, whose `account_ram_deltas` bill the sender exactly +112
 
 ### createoffer
 
