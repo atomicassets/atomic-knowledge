@@ -11,7 +11,7 @@ key-modules:
 
 How to create, accept, decline, and cancel AtomicMarket buyoffers, for both single assets and templates. Baseline is AtomicMarket V2 (`atomicmarket-contract`); "Changed in V2" notes call out where V1 behaved differently. Lifecycle-state facts for the indexer and hosted API (LISTED/CANCELED/SOLD, no row cleanup, `state` filtering) are validated in [atomicassets-api HTTP API](../reference/api.md) and [Query the API and chain tables](querying-the-api.md); this guide cross-links them rather than repeating them. Deposit and balance mechanics are covered in [Balances and deposits](deposits.md).
 
-A buyoffer is a buyer-initiated, escrowed offer: the price is deducted from the buyer's deposited balance immediately at creation (see [Balances and deposits](deposits.md)), before the counterparty has agreed to anything. WAX mainnet currently runs AtomicMarket V1; see [AtomicMarket tables](../reference/atomicmarket/tables.md#config) ("config") for the live-version check. The V1 behavior noted below is the live behavior only for as long as mainnet stays on V1.
+A buyoffer is a buyer-initiated, escrowed offer: the price is deducted from the buyer's deposited balance immediately at creation (see [Balances and deposits](deposits.md)), before the counterparty has agreed to anything. WAX mainnet currently runs AtomicMarket V1; see [AtomicMarket tables](../reference/atomicmarket/tables.md#config) ("config") for the live-version check. The V1 behavior noted below is the live behavior only for as long as mainnet stays on V1. Each write below runs through a `session` built in [Build a session and sign](signing.md).
 
 ## Asset buyoffers
 

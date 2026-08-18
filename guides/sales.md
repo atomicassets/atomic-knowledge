@@ -13,7 +13,7 @@ The full lifecycle of an AtomicMarket instant sale (V2 baseline): announcing, es
 
 A sale is a lazy-accept escrow: `announcesale` only records a row, it never moves the asset. The asset stays in the seller's account until a buyer calls `purchasesale`, which accepts the underlying AtomicAssets offer and transfers the asset in the same transaction. Multiple live sale rows for the same asset are therefore valid chain state, typically a stale listing left by a previous owner after a transfer or an earlier purchase, or listings from one seller covering different asset bundles that share an asset. An indexer showing several listings for one asset is faithfully mirroring the chain; reconcilers should not delete them as drift.
 
-Purchases and bids draw on the buyer's AtomicMarket balance rather than moving tokens directly. See [Balances and deposits](deposits.md) for the transfer-with-memo deposit flow and balance mechanics; this guide only shows where a step requires a sufficient balance.
+Purchases and bids draw on the buyer's AtomicMarket balance rather than moving tokens directly. See [Balances and deposits](deposits.md) for the transfer-with-memo deposit flow and balance mechanics; this guide only shows where a step requires a sufficient balance. Each write below runs through a `session` built in [Build a session and sign](signing.md).
 
 ## Announce a sale
 

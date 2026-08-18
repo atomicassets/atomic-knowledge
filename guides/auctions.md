@@ -11,7 +11,7 @@ key-modules:
 
 The full lifecycle of an AtomicMarket auction (V2 baseline): announcing, transferring the asset into escrow, bidding, ending, claiming, and cancelling.
 
-Unlike a sale, an auction takes actual custody of the asset: the seller transfers it to the `atomicmarket` contract account, and it sits there until claimed or the auction is cancelled before any bid lands. Bids are deposit-backed: a bidder's AtomicMarket balance is debited when they bid, and refunded if outbid. See [Balances and deposits](deposits.md) for the transfer-with-memo deposit flow; this guide only shows where a step requires a sufficient balance.
+Unlike a sale, an auction takes actual custody of the asset: the seller transfers it to the `atomicmarket` contract account, and it sits there until claimed or the auction is cancelled before any bid lands. Bids are deposit-backed: a bidder's AtomicMarket balance is debited when they bid, and refunded if outbid. See [Balances and deposits](deposits.md) for the transfer-with-memo deposit flow; this guide only shows where a step requires a sufficient balance. Each write below runs through a `session` built in [Build a session and sign](signing.md).
 
 ## Announce an auction
 

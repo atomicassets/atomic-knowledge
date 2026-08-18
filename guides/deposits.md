@@ -14,7 +14,7 @@ AtomicMarket never moves tokens directly between accounts during a sale, auction
 
 A deposit is a normal token transfer to the `atomicmarket` account with the memo `deposit`, exactly. `receive_token_transfer` (the `*::transfer` notification handler) checks the memo case-sensitively and rejects anything else with `"invalid memo"`. No other memo is treated as a deposit, and there is no separate `deposit` action to call. It also validates the incoming token against the config's supported-token list by both the sending contract and the symbol together (see "Supported tokens" below); a token with a matching symbol from an unrecognized contract is rejected even if another supported contract issues that same symbol.
 
-The first deposit for an owner and symbol creates the `balances` row; a later deposit of the same symbol increments the existing entry in place; a deposit of a different (already-supported) symbol appends a new entry to that owner's `quantities` vector.
+The first deposit for an owner and symbol creates the `balances` row; a later deposit of the same symbol increments the existing entry in place; a deposit of a different (already-supported) symbol appends a new entry to that owner's `quantities` vector. The `session` the snippet below signs through is built in [Build a session and sign](signing.md).
 
 ```json
 {
