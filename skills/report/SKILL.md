@@ -28,7 +28,7 @@ If a finding cannot be described without exposing something that must stay priva
 ## Steps
 
 1. Review the conversation for every place atomic-knowledge docs caused friction: a fact that turned out false, a fact needed but absent, a fact that was true but pointed toward the wrong approach, or a design pattern the docs should have taught up front.
-2. For each instance, work out which category it falls in (see below), which file and section it concerns, how confident you are, whether it got resolved and how, and roughly how many tool uses it cost before resolution.
+2. For each instance, fill every field below: the category, the page and section, the claim quoted as the page writes it, what was observed instead, the chain and endpoint it was observed on, the version it was observed against, the confidence, whether it got resolved and how, and roughly how many tool uses it cost before resolution.
 3. Sanitize every finding per the rule above.
 4. Determine the consuming project's root (the top of its own git working tree, not atomic-knowledge's). Create `.claude/atomic-knowledge/reports/` there if it does not exist, and write the report to `.claude/atomic-knowledge/reports/<short-slug>.md`, where `<short-slug>` is a kebab-case summary of the task (3-6 words) with a 4-character random hex suffix (`openssl rand -hex 2`) to avoid collisions between reports from concurrent sessions.
 5. Print the file path when done. If the session hit no documentation difficulties, write nothing and say so.
@@ -48,13 +48,19 @@ Each finding:
 ```
 ## [5-10 word summary of the finding]
 - category: [doc-error | doc-gap | doc-misleading | design-pattern]
-- file: [atomic-knowledge path(s), e.g. reference/atomicmarket/fees-and-royalties.md, or "none identifiable"]
+- page: [atomic-knowledge path(s), e.g. reference/atomicmarket/fees-and-royalties.md, or "none identifiable"]
+- claim: [the sentence as the page writes it, quoted; for a gap, the fact the pages had to state]
+- observed: [the chain response, error text, or API payload that settled it, verbatim]
+- chain: [chain and endpoint, e.g. WAX mainnet through wax.greymass.com]
+- contract-version: [the contract, indexer, or library version the observation was made against, or "unknown"]
 - confidence: [verified | inferred]
 - resolved: [yes, how it was resolved | no]
 - cost: [tool uses spent before resolving or giving up, rounded to the nearest 5]
 
 [Freeform body]
 ```
+
+The five fields from `page` through `contract-version` are the atomic-knowledge issue forms, field for field, so a maintainer opens an issue by pasting one finding across rather than re-deriving it. The `category` picks the form: a `doc-error` or `doc-misleading` finding fills the fact-error form; a `doc-gap` or `design-pattern` finding fills the missing-fact form. The last three fields have no form field and stay in the report.
 
 ## Categories
 
@@ -67,11 +73,17 @@ Each finding:
 
 ## Fields
 
-- **category**: exactly one of the four above; split a finding that spans two.
-- **file**: the specific atomic-knowledge file and, if identifiable, section or heading. Say "none identifiable" rather than guessing.
-- **confidence**: `verified` if checked against contract/indexer source or a live chain or API read; `inferred` if it is your best understanding but unconfirmed. Default to `inferred` when unsure.
-- **resolved**: state the actual fix if resolved (the working code or approach is the strongest evidence). If unresolved, say what was tried.
-- **cost**: tool uses (searches, reads, failed attempts) spent on this specific issue. This is the proxy for how much the gap hurt; it drives ordering, not a precision metric.
+| Field | What it holds |
+| --- | --- |
+| `category` | Exactly one of the four above. Split a finding that spans two. |
+| `page` | The specific atomic-knowledge file and, where identifiable, the section or heading. For a `doc-gap`, every page that was read before concluding the fact was missing, because a fact present on one page and absent from the page the task started at is a missing cross-reference rather than missing content. Say "none identifiable" rather than guessing. |
+| `claim` | The sentence as the page writes it, quoted rather than paraphrased. For a `doc-gap` or a `design-pattern`, the fact or pattern the pages had to state for the task to proceed. |
+| `observed` | The chain response, error text, or API payload that settled the question, verbatim, with the contract or indexer source file and line range if source was read to settle it. |
+| `chain` | The chain and the endpoint the observation came from, for example WAX mainnet through `wax.greymass.com`. |
+| `contract-version` | The contract, indexer, or library version the observation was made against. Say "unknown" rather than guessing; the form treats it as optional. |
+| `confidence` | `verified` if checked against contract or indexer source or a live chain or API read, `inferred` if it is a best understanding and unconfirmed. Default to `inferred` when unsure. |
+| `resolved` | The actual fix if resolved, since the working code or approach is the strongest evidence. If unresolved, what was tried. |
+| `cost` | Tool uses (searches, reads, failed attempts) spent on this specific issue. This is the proxy for how much the gap hurt; it drives ordering and is not a precision metric. |
 
 ## Prioritization
 
@@ -79,16 +91,12 @@ Order findings by cost descending. A finding that took 30 tool uses to work arou
 
 ## Freeform body guidance
 
-Write the body so a maintainer with no session context can act on it without asking follow-up questions.
+Write the body so a maintainer with no session context can act on it without asking follow-up questions. The fields above already carry the quoted claim and the observation, so the body carries what they cannot:
 
-Include:
-- What the doc said (quote it) or state plainly that the fact was absent.
-- What was expected based on the doc, and what actually happened (error text, chain response, indexer behavior) verbatim.
+- What was expected from the page, and why the observed behavior contradicts it rather than merely differing from it.
 - The working pattern, if resolved: the strongest evidence a fix is correct is the code that now works.
-- Contract or indexer source file and line range, if source was read to settle the question. This saves the maintainer from repeating the search.
-- The workaround used, kept separate from what the doc should say instead; they are often different.
-
-For `doc-gap` findings, name which atomic-knowledge files were checked before concluding the fact was missing. A gap found after checking one file may really be a missing cross-reference, not missing content.
+- The workaround used, kept separate from what the page should say instead; they are often different.
+- Where the fact belongs, if the page it was looked for on is not the page it should live on.
 
 Do not include:
 - Vague complaints ("the docs were confusing") without the doc text and the observed behavior side by side.
