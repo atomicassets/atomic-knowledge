@@ -22,8 +22,8 @@ const GRADED = ['reference', 'guides'];
 /** Every tree that carries `key-modules`, so a new one is covered when it lands. */
 const PINNED = ['reference', 'guides', 'tutorials', 'concepts'];
 
-/** The ledger's own path. U8 moves it into the rendered tree; both spellings resolve. */
-const LEDGER = ['validation-log.md', 'reference/validation.md'];
+/** The ledger's own path. It sits in a graded tree and takes no row of its own. */
+const LEDGER = 'reference/validation.md';
 
 const root = resolve(process.argv[2] ?? process.cwd());
 
@@ -36,12 +36,10 @@ function section(source, heading) {
 }
 
 async function readLedger() {
-    for (const path of LEDGER) {
-        try {
-            return { path, source: await readFile(join(root, path), 'utf8') };
-        } catch (error) {
-            if (error.code !== 'ENOENT') throw error;
-        }
+    try {
+        return { path: LEDGER, source: await readFile(join(root, LEDGER), 'utf8') };
+    } catch (error) {
+        if (error.code !== 'ENOENT') throw error;
     }
 
     return null;
@@ -51,7 +49,7 @@ const ledger = await readLedger();
 const findings = [];
 
 if (ledger === null) {
-    console.error(`error: no provenance ledger at ${LEDGER.join(' or ')}`);
+    console.error(`error: no provenance ledger at ${LEDGER}`);
     process.exit(1);
 }
 

@@ -62,7 +62,7 @@ Start here. Find the outcome you are working toward below, read the file on that
 
 Read the routed file in full rather than searching it. The facts there encode behavior no method signature carries: which account is billed for a row, which read answers with a null instead of an error, which flag lets a transaction commit while delivering nothing.
 
-Take each section at face value and do not extrapolate past what it states. A page says what was checked, and what it does not say was not checked. `validation-log.md` records how every page was validated and against what. It grades `reference/` and `guides/` only: a tutorial's claim is that its steps run, and a concepts page restates facts the pages it links already carry, so neither takes a row there.
+Take each section at face value and do not extrapolate past what it states. A page says what was checked, and what it does not say was not checked. `reference/validation.md` records how every page was validated and against what. It grades `reference/` and `guides/` only: a tutorial's claim is that its steps run, and a concepts page restates facts the pages it links already carry, so neither takes a row there.
 
 Re-check any fact that names a version when that dependency moves. The two SDK pages are pinned to `@atomichub/atomicassets` 2.1.1, read at tag `v2.1.1`, and `@atomichub/atomicmarket` 2.4.1, read at tag `v2.4.1`; the client-library page is pinned to `@wharfkit/antelope` 1.1.1, and the AtomicAssets and AtomicMarket contract pages to `v2.0.0-rc4` and `v2.0.0-rc2`. A fact read at one of those pins is a fact about that release, not about the package name.
 

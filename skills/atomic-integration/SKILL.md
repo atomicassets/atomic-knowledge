@@ -84,4 +84,4 @@ Full detail: `reference/sdk/atomicmarket.md` for the composers and the settlemen
 
 ## Version pins
 
-Re-check a fact that names a version when that dependency moves. This skill is written against `@atomichub/atomicassets` 2.1.1 and `@atomichub/atomicmarket` 2.4.1, and the contract behavior against `atomicassets-contract` v2.0.0-rc4 and `atomicmarket-contract` v2.0.0-rc2. `validation-log.md` records how each page was validated and against what.
+Re-check a fact that names a version when that dependency moves. This skill is written against `@atomichub/atomicassets` 2.1.1 and `@atomichub/atomicmarket` 2.4.1, and the contract behavior against `atomicassets-contract` v2.0.0-rc4 and `atomicmarket-contract` v2.0.0-rc2. `reference/validation.md` records how each page was validated and against what.
