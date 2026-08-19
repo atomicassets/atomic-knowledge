@@ -160,7 +160,7 @@ await session.transact({
 ```
 
 - Required authorization: the link's `creator`.
-- If the link was funded, the assets are returned to `creator` via an inline AtomicAssets `transfer` with memo `"Cancelled link"`; if it was only announced and never funded, the row is simply erased.
+- If the link was funded, the assets are returned to `creator` via an inline AtomicAssets `transfer` with memo `"Cancelled link"`; if it was only announced and never funded, the row is erased.
 - Fails when: no link with `link_id` exists, or the caller is not its creator.
 
 Source: `src/link.cpp:107-124`

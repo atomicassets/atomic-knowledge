@@ -37,7 +37,7 @@ void on_transfer(name from, name to, std::vector<uint64_t> asset_ids, std::strin
 
 The string is `contract::action`. For the direct path, bind the primary action the party is named on: `atomicassets::transfer`, and `atomicassets::logmint` for mints (the notification is sent from the inline `logmint`, not from `mintasset` itself). For the collection path, bind the inline `log*` action that carries the fan-out: `atomicassets::logtransfer`, `atomicassets::logmint`, `atomicassets::logburnasset`, `atomicassets::logsetdata`, `atomicassets::logsetdatatl`, `atomicassets::logrampayer`.
 
-The trap: the handler's parameter list must match the notifying action's ABI parameters exactly, in order and type. If it does not, the handler is silently never dispatched. There is no error and no failed transaction; the notification simply does not match the handler, so the reaction just never runs. The exact signatures, from the pinned contract, are:
+The trap: the handler's parameter list must match the notifying action's ABI parameters exactly, in order and type. If it does not, the handler is silently never dispatched. There is no error and no failed transaction; the notification does not match the handler, so the reaction never runs. The exact signatures, from the pinned contract, are:
 
 | Bind to | Parameters, in order |
 | --- | --- |

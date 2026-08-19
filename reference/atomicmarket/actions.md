@@ -8,7 +8,7 @@ key-modules: ["atomicmarket-contract (v2.0.0): src/atomicmarket.cpp, include/ato
 
 Every entry cites its declaration in `include/atomicmarket.hpp` and its body in `src/atomicmarket.cpp` (paths relative to the atomicmarket-contract repo), baselined on the V2 source. "Changed in V2" notes compare against the V1 `atomicmarket-contract` source.
 
-See [AtomicMarket marketplaces](marketplaces.md#registering-a-marketplace-with-regmarket) ("Registering a marketplace with regmarket") for marketplace attribution, [AtomicMarket fees and royalties](fees-and-royalties.md#the-collection-fee-applies-at-execution-time-not-at-listing-time) ("The collection fee applies at execution time, not at listing time") for execution-time collection fees, ("The royalty log actions are trace-only and dust always reconciles") for trace-only royalty logs, and [AtomicMarket V2 changes](v2-changes.md#defensive-guards-in-the-v2-contract) ("Defensive guards in the V2 contract") for defensive guards. Bundle retirement is covered inline via this page's own "Changed in V2" notes.
+See [AtomicMarket marketplaces](marketplaces.md#registering-a-marketplace-with-regmarket) ("Registering a marketplace with regmarket") for marketplace attribution, [AtomicMarket fees and royalties](fees-and-royalties.md#the-collection-fee-applies-at-execution-time-not-at-listing-time) ("The collection fee applies at execution time, not at listing time") for execution-time collection fees, [AtomicMarket fees and royalties](fees-and-royalties.md#the-royalty-log-actions-are-trace-only-and-dust-always-reconciles) ("The royalty log actions are trace-only and dust always reconciles") for trace-only royalty logs, and [AtomicMarket V2 changes](v2-changes.md#defensive-guards-in-the-v2-contract) ("Defensive guards in the V2 contract") for defensive guards. Bundle retirement is covered inline via this page's own "Changed in V2" notes.
 
 Custodial rentals do not appear anywhere in this source tree: neither the V1 baseline nor the V2 source declare any rent-prefixed action or table. A custodial rental feature was explored during V2 development and descoped before shipping; this page can only confirm the feature's absence from both source trees, not the history of the descope itself.
 
@@ -435,7 +435,7 @@ Source: `include/atomicmarket.hpp:308-314`, `src/atomicmarket.cpp:1717-1794`
 
 ## RAM
 
-Each of these three actions re-homes the RAM payer of an existing row to `payer` by erasing and re-emplacing it under the new payer, with no other field changes and no token movement. See [AtomicMarket RAM](ram.md#sellers-and-buyers-pay-ram-for-their-own-listing-rows-by-default) ("Sellers and buyers pay RAM for their own listing rows by default") for who pays RAM by default, and ("Practical sizing implications for a high-volume marketplace") for the sizing implications for a high-volume marketplace.
+Each of these three actions re-homes the RAM payer of an existing row to `payer` by erasing and re-emplacing it under the new payer, with no other field changes and no token movement. See [AtomicMarket RAM](ram.md#sellers-and-buyers-pay-ram-for-their-own-listing-rows-by-default) ("Sellers and buyers pay RAM for their own listing rows by default") for who pays RAM by default, and [AtomicMarket RAM](ram.md#practical-sizing-implications-for-a-high-volume-marketplace) ("Practical sizing implications for a high-volume marketplace") for the sizing implications for a high-volume marketplace.
 
 ### paysaleram
 

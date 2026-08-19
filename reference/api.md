@@ -17,7 +17,7 @@ Source: `atomicassets-api src/api/server.ts` (`swagger.setup` mounted at `/docs`
 
 ## List endpoints cap limit at 100
 
-The atomicassets-api validates the `limit` query parameter on list endpoints such as `/atomicmarket/v1/buyoffers` and `/atomicmarket/v1/sales` against a maximum that defaults to 100; requests above the cap are rejected with HTTP 400 and `{"success": false, "message": "Invalid value for parameter limit"}` rather than being clamped. The cap is an operator-configurable server setting (`limits` in the API config), so the reference deployment at wax.api.atomicassets.io enforces 100. Pagination code must therefore bound `limit` to 100 and use `page`, and counting code must treat a non-2xx response as an error: an HTTP client helper that returns undefined or empty on failure will silently turn an over-limit request into a zero count.
+The atomicassets-api validates the `limit` query parameter on list endpoints such as `/atomicmarket/v1/buyoffers` and `/atomicmarket/v1/sales` against a maximum that defaults to 100; requests above the cap are rejected with HTTP 400 and `{"success": false, "message": "Invalid value for parameter limit"}` rather than being clamped. The cap is an operator-configurable server setting (`limits` in the API config), so the reference deployment at wax.api.atomicassets.io enforces 100. Pagination code must therefore bound `limit` to 100 and use `page`, and counting code must treat a non-2xx response as an error: an HTTP client helper that returns undefined or empty on failure silently turns an over-limit request into a zero count.
 
 ## Two sales list routes answer on the hosted deployment
 
@@ -46,7 +46,7 @@ Every AtomicMarket listing endpoint returns a numeric `state`, but the enum diff
 - **Sales** (`/v1/sales`, `/v1/sales/{id}`): `WAITING=0`, `LISTED=1`, `CANCELED=2`, `SOLD=3`, `INVALID=4`. A completed purchase reads `state=3`.
 - **Auctions** (`/v1/auctions`): `WAITING=0`, `LISTED=1`, `CANCELED=2`, `SOLD=3`, `INVALID=4` (INVALID = the auction ended with no bid).
 - **Buyoffers** (`/v1/buyoffers`): `PENDING=0`, `DECLINED=1`, `CANCELED=2`, `ACCEPTED=3`, `INVALID=4`.
-- **Template buyoffers** (`/v1/template_buyoffers`): `LISTED=0`, `CANCELED=1`, `SOLD=2` (see the section above).
+- **Template buyoffers** (`/v1/template_buyoffers`): `LISTED=0`, `CANCELED=1`, `SOLD=2` (see "Template buyoffers keep all lifecycle states").
 
 Sales, auctions, and buyoffers share the value `0` for a not-yet-active listing (assets/funds not escrowed) and `2` for CANCELED, but the "settled" value is `3` (SOLD / ACCEPTED), not the `2` a template buyoffer uses. Do not carry a `SOLD=2` assumption from the template-buyoffer enum across to the other three endpoints.
 

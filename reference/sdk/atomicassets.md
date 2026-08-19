@@ -15,7 +15,7 @@ npm install @atomichub/atomicassets
 
 ## The package has zero runtime dependencies and ships ESM and CJS
 
-`@atomichub/atomicassets` declares no runtime `dependencies`; everything it needs (fetch, serialization, the queue) is either built in or supplied by the host runtime's global `fetch`. It publishes dual builds (`build/index.mjs` for `import`, `build/index.cjs` for `require`) with types for both, and requires Node `>=20`. The package declares `sideEffects: false`, so a bundler may drop what an application does not import: importing only `ActionBuilder` no longer pulls in the base58 coder, the parser table, or the action-name map. Every public type and value is re-exported from the package root, so consumers import from `@atomichub/atomicassets` and never reach into `build/` subpaths.
+`@atomichub/atomicassets` declares no runtime `dependencies`; everything it needs (fetch, serialization, the queue) is either built in or supplied by the host runtime's global `fetch`. It publishes dual builds (`build/index.mjs` for `import`, `build/index.cjs` for `require`) with types for both, and requires Node `>=20`. The package declares `sideEffects: false`, so a bundler may drop what an application does not import: importing only `ActionBuilder` does not pull in the base58 coder, the parser table, or the action-name map. Every public type and value is re-exported from the package root, so consumers import from `@atomichub/atomicassets` and never reach into `build/` subpaths.
 
 Source: atomicassets-sdk (v2.1.1, 5c70c62) package.json:32 (`sideEffects: false`), package.json:34-35 (`engines.node >=20`), package.json (no `dependencies` key; `main`/`module`/`exports` dual build), src/index.ts:10-61 (flat root re-exports)
 
@@ -191,13 +191,13 @@ Source: atomicassets-sdk (v2.1.1, 5c70c62) src/Actions/Generator.ts:126-157 (`IN
 
 ### Native backing is deprecated on the action and on the mint parameter
 
-`backasset` carries a `@deprecated` tag on both the builder and the generator, and `mintasset` carries the same tag on its `tokens_to_back` parameter. AtomicAssets v2 ends `mintasset` with a check that `tokens_to_back` is empty and guards `backasset` the same way, so both abort there. Both still execute on a chain that has not migrated, which means a call that works says the chain has not arrived yet rather than that the path is supported. Pass `[]` and back nothing. The contract-side rule and its abort message are in [Create a collection and mint assets](../../guides/asset-lifecycle.md#mint-an-asset-mintasset) ("Mint an asset: mintasset").
+`backasset` carries a `@deprecated` tag on both the builder and the generator, and `mintasset` carries the same tag on its `tokens_to_back` parameter. AtomicAssets v2 ends `mintasset` with a check that `tokens_to_back` is empty and guards `backasset` the same way, so both abort there. Both still execute on a chain that has not migrated, which means a call that works says the chain has not upgraded rather than that the path is supported. Pass `[]` and back nothing. The contract-side rule and its abort message are in [Create a collection and mint assets](../../guides/asset-lifecycle.md#mint-an-asset-mintasset) ("Mint an asset: mintasset").
 
 Source: atomicassets-sdk (v2.1.1, 5c70c62) src/Actions/Generator.ts:238-240 (`backasset` on the builder), src/Actions/Generator.ts:581-585 (`backasset` on the generator), src/Actions/Generator.ts:358-372 (`mintasset` `tokens_to_back`)
 
 ## Network factories carry AtomicHub's public hosts
 
-`explorerApiForNetwork(network, options?)` and `rpcApiForNetwork(network, contract?, options?)` construct a preconfigured client against AtomicHub's public endpoints, and `NETWORK_ENDPOINTS` exposes the host map. The valid `AtomicHubNetwork` keys are `wax`, `wax-testnet`, `vaulta`, `xpr`, `xpr-testnet`, and `jungle4`. Each key currently maps its `api` and `rpc` to the same host (for example `wax` to `https://wax.api.atomicassets.io`), and the split is kept so the shapes survive if the hosts ever diverge. Any compatible deployment can still be passed straight to the `ExplorerApi`/`RpcApi` constructors instead of using a factory.
+`explorerApiForNetwork(network, options?)` and `rpcApiForNetwork(network, contract?, options?)` construct a preconfigured client against AtomicHub's public endpoints, and `NETWORK_ENDPOINTS` exposes the host map. The valid `AtomicHubNetwork` keys are `wax`, `wax-testnet`, `vaulta`, `xpr`, `xpr-testnet`, and `jungle4`. Each key maps its `api` and `rpc` to the same host (for example `wax` to `https://wax.api.atomicassets.io`), and the split is kept so the shapes survive if the hosts ever diverge. Any compatible deployment can still be passed straight to the `ExplorerApi`/`RpcApi` constructors instead of using a factory.
 
 Source: atomicassets-sdk (v2.1.1, 5c70c62) src/Networks.ts:9-48 (`AtomicHubNetwork`, `NETWORK_ENDPOINTS`, `explorerApiForNetwork`, `rpcApiForNetwork`); `wax` factory verified live
 

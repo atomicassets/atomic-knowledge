@@ -8,7 +8,7 @@ key-modules: ["atomicassets-contract (v2.0.0): src/atomicassets.cpp, include/ato
 
 Complete action reference for the `atomicassets` contract, baselined on tag `v2.0.0` of `atomicassets-contract` (the release pinned for both `wax-testnet` and `jungle4-testnet`). Every entry cites its declaration in `include/atomicassets.hpp` and its body in `src/atomicassets.cpp`. "Changed in V2" notes compare against the V1 `atomicassets-contract` source.
 
-Live-chain status: see [AtomicAssets V2 upgrade](v2-upgrade.md#deployment-status) ("Deployment status"). None of the V2-only actions on this page are callable on WAX mainnet yet.
+Live-chain status: see [AtomicAssets V2 upgrade](v2-upgrade.md#deployment-status) ("Deployment status"). None of the V2-only actions on this page are callable on WAX mainnet.
 
 ## Admin
 
@@ -253,7 +253,7 @@ Source: `include/atomicassets.hpp:137-142`, `src/atomicassets.cpp:849-916`
 
 Required authorization: `authorized_editor`, checked via `check_has_collection_auth`.
 
-Erases the `templates` row (and its `templates2` row, if any) only while `issued_supply == 0`. Sends no notification at all, unlike every other collection-editing action in this group: an indexer that only watches `notify_collection_accounts` fan-out will not observe a deletion, though it remains visible as the top-level action in the transaction trace. Changed in V2: does not exist in V1 (a V1 template, once created, can never be removed even with zero issued supply).
+Erases the `templates` row (and its `templates2` row, if any) only while `issued_supply == 0`. Sends no notification at all, unlike every other collection-editing action in this group: an indexer that only watches `notify_collection_accounts` fan-out does not observe a deletion, though it remains visible as the top-level action in the transaction trace. Changed in V2: does not exist in V1 (a V1 template, once created, can never be removed even with zero issued supply).
 
 Source: `include/atomicassets.hpp:144-148`, `src/atomicassets.cpp:603-633`
 
@@ -293,7 +293,7 @@ Source: `include/atomicassets.hpp:156-161`, `src/atomicassets.cpp:664-699`
 - `new_asset_owner: name`: must be an existing account.
 - `immutable_data: ATTRIBUTE_MAP`
 - `mutable_data: ATTRIBUTE_MAP`
-- `tokens_to_back: vector<asset>`: must be empty (see below).
+- `tokens_to_back: vector<asset>`: must be empty (see this action's "Changed in V2" note).
 
 Required authorization: `authorized_minter`, checked via `check_has_collection_auth`.
 
@@ -568,7 +568,7 @@ Sent by `createtempl2` (when given non-empty mutable data) and `settempldata`. C
 
 Source: `include/atomicassets.hpp:295-301`, `src/atomicassets.cpp:1525-1537`
 
-`logrampayer`, sent by `setrampayer` and `setlastpayer`, is documented under "RAM-payer reassignment (replaces descoped custodial rentals)" below rather than in this group.
+`logrampayer`, sent by `setrampayer` and `setlastpayer`, is documented under "RAM-payer reassignment (replaces descoped custodial rentals)" rather than in this group.
 
 ### logbackasset
 

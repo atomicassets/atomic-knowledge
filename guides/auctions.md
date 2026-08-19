@@ -115,7 +115,7 @@ AtomicMarket's `atomicassets::transfer` notification handler matches the transfe
 
 Failure modes asserted in source:
 
-- `asset_ids` must contain exactly one id: a transfer of more than one asset can no longer activate an auction (only a legacy pre-V2 bundle auction row could ever match one, and those can only be cancelled; see below).
+- `asset_ids` must contain exactly one id: a transfer of more than one asset can no longer activate an auction (only a legacy pre-V2 bundle auction row could ever match one, and those can only be cancelled; see "Cancel an auction").
 - No non-finished auction announced by this sender exists for this exact asset id set.
 
 Source: `atomicmarket-contract src/atomicmarket.cpp:1889-1943` (`receive_asset_transfer`)
@@ -207,7 +207,7 @@ Source: `atomicmarket-contract src/atomicmarket.cpp:1183-1265` (`auctionbid`), `
 
 ## Auction end and claiming
 
-An auction has no explicit "end" action: `end_time` simply passing is what makes it claimable. From that point, either side may claim in either order.
+An auction has no explicit "end" action: `end_time` passing is what makes it claimable. From that point, either side may claim in either order.
 
 ### Buyer claim: `auctclaimbuy`
 

@@ -36,7 +36,7 @@ For a given attribute name, the effective value a reader should present is chose
 1. Template immutable data (if the asset has a `template_id >= 0` and the template defines that attribute)
 2. Asset immutable data
 3. Asset mutable data
-4. Template mutable data (V2), which the reference reader folds in below all three above (see the note below); the contract prescribes no slot for it, so this ranking is the reader's choice, not a chain-level rule.
+4. Template mutable data (V2), which the `atomicassets-api` reference reader ranks beneath the other three layers; the contract prescribes no slot for it, so this ranking is the reader's choice, not a chain-level rule.
 
 This means the template's immutable value for a given key always wins over anything set at the asset level for that same key, even a value an editor later pushes through `setassetdata`. In practice, collections avoid this collision by design: shared attributes (name, artwork, rarity) live on the template, and only attributes the template doesn't define (a serial number, a leveling stat, a one-off trait) are set at the asset level - but the contract does not enforce that separation, so nothing stops an attribute name from existing in more than one layer, and readers must resolve the collision the same way every time.
 
@@ -51,7 +51,7 @@ To compute an asset's effective attributes from scratch:
 1. Fetch the asset row and deserialize `immutable_serialized_data` and `mutable_serialized_data` against the asset's `schema_name` format (the schema as it currently exists - schema extensions are backward compatible with old serialized data since new lines only add higher identifiers).
 2. If `template_id >= 0`, fetch the template row and deserialize its `immutable_serialized_data` against the same schema format.
 3. If the reader supports V2 template mutable data, fetch the `templates2` row for that `template_id` (it may not exist) and deserialize its `mutable_serialized_data`.
-4. Merge in this order, letting each later step override matching keys: template mutable data, then asset mutable data, then asset immutable data, then template immutable data. That is the order the `atomicassets-api` reference reader uses (template mutable at the bottom, template immutable at the top). The contract prescribes no order of its own, so a reader with a different use case is free to place the template mutable layer elsewhere; this order simply matches the reference implementation.
+4. Merge in this order, letting each later step override matching keys: template mutable data, then asset mutable data, then asset immutable data, then template immutable data. That is the order the `atomicassets-api` reference reader uses (template mutable at the bottom, template immutable at the top). The contract prescribes no order of its own, so a reader with a different use case is free to place the template mutable layer elsewhere; this order matches the reference implementation.
 5. Treat a key absent from all fetched layers as unset, not as an empty string or zero - the serialization format never encodes "no value" as anything other than the key's absence.
 
 Source: derived from `src/atomicassets.cpp:700-791`, `src/atomicassets.cpp:799-839`, `src/atomicassets.cpp:849-910`, `src/atomicassets.cpp:1582-1658`, `include/atomicdata.hpp:488-524`, cross-checked against `atomicassets-api src/api/namespaces/atomicassets/format.ts:1-36`

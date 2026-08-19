@@ -110,12 +110,12 @@ await session.transact({
 
 Authorization: the seller (the same account that ran `announcesale`).
 
-AtomicMarket's `atomicassets::lognewoffer` handler matches the offer to a sale by hashing `sender_asset_ids` and scanning sale rows with that hash for one whose seller equals the offer's sender, then records the `offer_id` on the sale row and emits `logsalestart`. This is the validated "lazy accept" mechanism: the sale only becomes purchasable once this offer exists, and a seller who changes their mind before this step can simply not create the offer (or cancel it) with no on-chain trace beyond the sale row itself.
+AtomicMarket's `atomicassets::lognewoffer` handler matches the offer to a sale by hashing `sender_asset_ids` and scanning sale rows with that hash for one whose seller equals the offer's sender, then records the `offer_id` on the sale row and emits `logsalestart`. This is the validated "lazy accept" mechanism: the sale only becomes purchasable once this offer exists, and a seller who changes their mind before this step can decline to create the offer (or cancel it) with no on-chain trace beyond the sale row itself.
 
 Failure modes asserted in source:
 
 - `recipient_asset_ids` must be empty: the sale offer cannot ask for anything back.
-- `sender_asset_ids` must contain exactly one id: an offer for more than one asset can no longer activate a sale (only a legacy pre-V2 bundle sale row could ever match one, and those can't be purchased; see below).
+- `sender_asset_ids` must contain exactly one id: an offer for more than one asset can no longer activate a sale (only a legacy pre-V2 bundle sale row could ever match one, and those can't be purchased; see "Cancel a sale").
 - No unclaimed sale row exists with this sender as seller for this exact asset id set.
 - The matched sale row already has an offer (`offer_id != -1`): a sale can only be activated once.
 
@@ -178,7 +178,7 @@ await session.transact({
 
 Authorization: the buyer. The buyer's AtomicMarket balance must already cover the settlement price (`guides/deposits.md`): `purchasesale` debits the balance, it does not accept a token transfer inline.
 
-`intended_delphi_median` only matters for a Delphi-priced sale (see below); for a same-token sale it must be `0`. `purchasesale` computes the settlement price, debits the buyer, pays out the seller/marketplaces/collection, accepts the AtomicAssets offer, and transfers the asset to the buyer, then erases the sale row, all in one action.
+`intended_delphi_median` only matters for a Delphi-priced sale (see "Delphi (oracle) sales"); for a same-token sale it must be `0`. `purchasesale` computes the settlement price, debits the buyer, pays out the seller/marketplaces/collection, accepts the AtomicAssets offer, and transfers the asset to the buyer, then erases the sale row, all in one action.
 
 Failure modes asserted in source:
 
@@ -287,7 +287,7 @@ curl -X POST https://wax.greymass.com/v1/chain/get_table_rows \
   -d '{"code":"delphioracle","scope":"delphioracle","table":"pairs","json":true,"limit":1,"lower_bound":"waxpusd","upper_bound":"waxpusd"}'
 ```
 
-The mainnet deployment queried above currently reports version `1.3.3` (V1); see [AtomicMarket tables](../reference/atomicmarket/tables.md#config) ("config") for the live-version caveat. The `config` and oracle `pairs`/`datapoints` table layouts are unchanged between V1 and V2, so the read above illustrates the shape correctly either way; only the settlement-side behavior documented below (single-asset listings, execution-time fees) differs.
+The mainnet deployment queried above reports version `1.3.3` (V1); see [AtomicMarket tables](../reference/atomicmarket/tables.md#config) ("config") for the live-version caveat. The `config` and oracle `pairs`/`datapoints` table layouts are unchanged between V1 and V2, so the read above illustrates the shape correctly either way; only the settlement-side behavior documented below (single-asset listings, execution-time fees) differs.
 
 Source: `atomicmarket-contract src/atomicmarket.cpp:120-166` (`adddelphi`), `atomicmarket-contract include/delphioracle-interface.hpp:1-67`
 
