@@ -25,9 +25,9 @@ Work on WAX testnet first. Every flow below is the same on mainnet, and the mist
 
 Switching network swaps both hosts, never one. The `atomicassets` and `atomicmarket` contract accounts carry the same names on both chains, so nothing in an action's data changes and a half-switched integration reads an unrelated chain while every request keeps answering 200.
 
-WAX testnet is where V2 runs. WAX mainnet still runs the V1 contracts, and jungle4 carries the V2 code with its tables unseeded, so any V2-only behavior (the royalty layer, the bundle retirement, the new tables) is exercisable on testnet and absent on mainnet. The contract's own `version` field does not settle which one a chain runs; table presence does.
+WAX testnet is where V2 runs. WAX mainnet still runs the V1 contracts, and jungle4 carries the V2 code with its tables unseeded, so any V2-only behavior (the royalty layer, the bundle retirement, the tables V2 adds) is exercisable on testnet and absent on mainnet. The contract's own `version` field does not settle which one a chain runs; table presence does.
 
-Reads need no key, no account, and no registration. A key is needed only to sign. Build the session first, from `guides/signing.md`, which carries the install lines, the chain ids, and the actor and permission pair.
+Reads need no key, no account, and no registration. A key is needed only to sign. Build the session first, from [Build a session and sign](../../guides/signing.md), which carries the install lines, the chain ids, and the actor and permission pair.
 
 ## Mint an asset
 
@@ -43,7 +43,7 @@ Native token backing is gone in V2. A non-empty `tokens_to_back` aborts the mint
 
 Build the mint through `@atomichub/atomicassets` rather than by hand. `ActionBuilder.mintasset()` takes the eight parameters in ABI order and returns one plain `{ account, name, data }` object for the session to sign, and `createAttributeMap` turns a plain object plus a per-field type lookup into the attribute-map shape, so no schema fetch is needed to build one. The builder checks the numeric parameters and throws a `SerializationError` naming the offending field before any transaction exists: `template_id` is checked as an int32, which keeps `-1` usable and rejects the `NaN` a string-to-number conversion produces, and `createtempl`'s `max_supply` is checked as a uint32, so a fractional or negative supply fails at the call. Without that check a `NaN` reaches the signer as `null`, because JSON has no form for it, and the mistake is invisible by the time the chain sees it.
 
-Full detail: `guides/asset-lifecycle.md` for the flow and every failure mode, `reference/sdk/atomicassets.md` for the builder surface.
+Full detail: [Create a collection and mint assets](../../guides/asset-lifecycle.md) for the flow and every failure mode, [@atomichub/atomicassets SDK](../../reference/sdk/atomicassets.md) for the builder surface.
 
 ## Compose an AtomicMarket flow
 
@@ -80,8 +80,8 @@ Set either flag only against a chain still running AtomicMarket V1, where bundle
 
 Both refusals rule out a transaction the chain would take. Depositing more than the sale costs leaves the surplus sitting as balance, and depositing nothing lets a standing balance pay; each is legitimate for a caller who means it and indistinguishable from a wrong amount for one who does not, and the composer cannot see a balance to tell them apart. To do either deliberately, assemble `assertsale`, your own transfer, and `purchasesale` by hand, which assert nothing.
 
-Full detail: `reference/sdk/atomicmarket.md` for the composers and the settlement math, `guides/sales.md`, `guides/auctions.md`, and `guides/buyoffers.md` for the lifecycle each one drives.
+Full detail: [@atomichub/atomicmarket SDK](../../reference/sdk/atomicmarket.md) for the composers and the settlement math, [Working with sales](../../guides/sales.md), [Working with auctions](../../guides/auctions.md), and [Buyoffers](../../guides/buyoffers.md) for the lifecycle each one drives.
 
 ## Version pins
 
-Re-check a fact that names a version when that dependency moves. This skill is written against `@atomichub/atomicassets` 2.1.1 and `@atomichub/atomicmarket` 2.4.1, and the contract behavior against `atomicassets-contract` v2.0.0-rc4 and `atomicmarket-contract` v2.0.0-rc2. `reference/validation.md` records how each page was validated and against what.
+Re-check a fact that names a version when that dependency moves. This skill is written against `@atomichub/atomicassets` 2.1.1 and `@atomichub/atomicmarket` 2.4.1, and the contract behavior against `atomicassets-contract` v2.0.0-rc4 and `atomicmarket-contract` v2.0.0-rc2. [Validation log](../../reference/validation.md) records how each page was validated and against what.

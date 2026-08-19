@@ -8,7 +8,7 @@ key-modules: ["atomicassets-contract (v2.0.0): src/atomicassets.cpp, include/ato
 
 Complete table reference for the `atomicassets` contract, baselined on tag `v2.0.0` of `atomicassets-contract` (the release pinned for both `wax-testnet` and `jungle4-testnet`). Struct and typedef citations are to `include/atomicassets.hpp`; behavior citations are to `src/atomicassets.cpp`. "Changed in V2" notes compare against the V1 `atomicassets-contract` source.
 
-Live-chain status: see [AtomicAssets V2 upgrade](v2-upgrade.md#deployment-status) ("Deployment status"); the V2-only tables below (`authorswaps`, `schematypes`, `templates2`) do not exist on WAX mainnet yet. An abandoned custodial-rentals design left a `holders` table on unreleased development branches; it ships in no tagged release and is not documented here. See [AtomicAssets actions](actions.md#ram-payer-reassignment-replaces-descoped-custodial-rentals) ("RAM-payer reassignment (replaces descoped custodial rentals)").
+Live-chain status: see [AtomicAssets V2 upgrade](v2-upgrade.md#deployment-status) ("Deployment status"); the V2-only tables on this page (`authorswaps`, `schematypes`, `templates2`) do not exist on WAX mainnet. An abandoned custodial-rentals design left a `holders` table on unreleased development branches; it ships in no tagged release and is not documented here. See [AtomicAssets actions](actions.md#ram-payer-reassignment-replaces-descoped-custodial-rentals) ("RAM-payer reassignment (replaces descoped custodial rentals)").
 
 Every table below is defined in `include/atomicassets.hpp:337-468`, and every scoped (non-self) table is fetched through a `get_*` helper at `include/atomicassets.hpp:476-490`.
 

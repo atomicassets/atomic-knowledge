@@ -49,9 +49,9 @@ Source: `atomicmarket-contract src/atomicmarket.cpp:1870-1882` (`receive_token_t
 
 These actions deduct from the caller's deposited balance rather than accepting a token transfer inline, because the balance must already be escrowed before the contract can commit to a trade:
 
-- **`createbuyo`** / **`createtbuyo`**: the offered `price` is deducted from the buyer's balance at creation time, before any counterparty has acted. See [Buyoffers](buyoffers.md).
-- **`auctionbid`**: the `bid` amount is deducted from the bidder's balance when the bid is placed. If the bid outbids an existing bidder, that bidder's previous bid is credited back to their balance (not transferred to their account); they must `withdraw` it themselves.
-- **`purchasesale`**: the settlement price (which can differ from the listed price for stable-priced sales, via `calc_settlement_price`) is deducted from the buyer's balance at purchase time.
+- `createbuyo` and `createtbuyo`: the offered `price` is deducted from the buyer's balance at creation time, before any counterparty has acted. See [Buyoffers](buyoffers.md).
+- `auctionbid`: the `bid` amount is deducted from the bidder's balance when the bid is placed. If the bid outbids an existing bidder, that bidder's previous bid is credited back to their balance (not transferred to their account); they must `withdraw` it themselves.
+- `purchasesale`: the settlement price (which can differ from the listed price for stable-priced sales, via `calc_settlement_price`) is deducted from the buyer's balance at purchase time.
 
 Declining, cancelling, or being outbid always credits the balance back rather than transferring tokens out. Every one of these paths goes through the same `internal_add_balance` / `internal_decrease_balance` pair that deposits and withdrawals use.
 
@@ -94,7 +94,7 @@ Source: `atomicmarket-contract src/atomicmarket.cpp:2993-3026` (`internal_add_ba
 
 ## Supported tokens
 
-There is no separate `tokenconfigs` table. Supported tokens live as a `vector<TOKEN>` field (`supported_tokens`, each entry a `{token_contract, token_symbol}` pair) inside the `config` singleton, scoped to the contract itself. A live read against WAX mainnet confirms the shape (production is currently on AtomicMarket V1; this part of `config` is unchanged in V2):
+There is no separate `tokenconfigs` table. Supported tokens live as a `vector<TOKEN>` field (`supported_tokens`, each entry a `{token_contract, token_symbol}` pair) inside the `config` singleton, scoped to the contract itself. A live read against WAX mainnet confirms the shape (production runs AtomicMarket V1; this part of `config` is unchanged in V2):
 
 ```json
 {

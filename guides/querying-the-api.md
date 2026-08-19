@@ -58,7 +58,7 @@ Always treat a non-2xx response as an error. An HTTP helper that returns undefin
 
 ## Filter template buyoffers by state
 
-`/v1/template_buyoffers` applies no state filter by default and rows are never deleted, so an unfiltered query returns LISTED (0), CANCELED (1), and SOLD (2) offers together. Pass `state=0` when you only want active offers:
+`/v1/template_buyoffers` applies no state filter by default and rows are never deleted, so an unfiltered query returns LISTED (0), CANCELED (1), and SOLD (2) offers together. When you only want active offers, pass `state=0`:
 
 ```sh
 curl 'https://wax.api.atomicassets.io/atomicmarket/v1/template_buyoffers?state=0&limit=100&page=1'
@@ -68,12 +68,12 @@ Do not rely on socket notifications for lifecycle tracking: only new offers are 
 
 ## Read chain tables with get_table_rows
 
-When reading contract tables directly over `/v1/chain/get_table_rows`, three behaviors matter:
+When reading contract tables directly over `/v1/chain/get_table_rows`, four behaviors matter:
 
-- **Numeric keys need `key_type: 'i64'`.** @wharfkit/antelope's typed `client.v1.chain.get_table_rows` infers `key_type` only from typed bound instances; plain string or number bounds fall back to `key_type: 'name'` and are silently misread as account names, returning wrong ranges. Pass `key_type: 'i64'` explicitly (or typed bounds) for tables keyed by numeric ids. See [@wharfkit/antelope client behavior](../reference/wharfkit.md#typed-get_table_rows-is-not-a-drop-in-for-dynamic-reads) ("Typed get_table_rows is not a drop-in for dynamic reads").
-- **`show_payer` shapes differ by transport.** The raw endpoint wraps each row as `{ data, payer }`; the typed WharfKit client unwraps rows and moves payers into an index-aligned `ram_payers` array on the response. Read `response.ram_payers[i]` with the typed client, or call the raw endpoint with `json: true, show_payer: true` to keep the envelope. See [@wharfkit/antelope client behavior](../reference/wharfkit.md#show_payer-rows-are-unwrapped-into-ram_payers) ("show_payer rows are unwrapped into ram_payers").
-- **Large uint64 values arrive as strings.** nodeos serializes uint64 values above 2^32 as JSON strings and smaller values as JSON numbers; current `sale_id`/`auction_id`/`offer_id` values arrive as numbers, but asset ids (around 2^40) arrive as strings. Parse id fields defensively rather than assuming one shape. See [AtomicMarket V2 changes](../reference/atomicmarket/v2-changes.md#large-integers-serialize-as-strings) ("Large integers serialize as strings").
-- **The `assets` table is scoped by owner, with no collection or template index.** Enumerating every asset in a collection or template is an API-only capability: `/atomicassets/v1/assets?collection_name=...` joins across owners, but `get_table_rows` on `assets` takes the owner account as `scope`, so there is no chain-side path from a collection to its asset list without already knowing the owners. To read one specific asset over the chain, use its current owner as `scope` and its `asset_id` as an `i64`-typed bound.
+- Numeric keys need `key_type: 'i64'`. @wharfkit/antelope's typed `client.v1.chain.get_table_rows` infers `key_type` only from typed bound instances; plain string or number bounds fall back to `key_type: 'name'` and are silently misread as account names, returning wrong ranges. Pass `key_type: 'i64'` explicitly (or typed bounds) for tables keyed by numeric ids. See [@wharfkit/antelope client behavior](../reference/wharfkit.md#typed-get_table_rows-is-not-a-drop-in-for-dynamic-reads) ("Typed get_table_rows is not a drop-in for dynamic reads").
+- `show_payer` shapes differ by transport. The raw endpoint wraps each row as `{ data, payer }`; the typed WharfKit client unwraps rows and moves payers into an index-aligned `ram_payers` array on the response. Read `response.ram_payers[i]` with the typed client, or call the raw endpoint with `json: true, show_payer: true` to keep the envelope. See [@wharfkit/antelope client behavior](../reference/wharfkit.md#show_payer-rows-are-unwrapped-into-ram_payers) ("show_payer rows are unwrapped into ram_payers").
+- Large uint64 values arrive as strings. nodeos serializes uint64 values above 2^32 as JSON strings and smaller values as JSON numbers; current `sale_id`/`auction_id`/`offer_id` values arrive as numbers, but asset ids (around 2^40) arrive as strings. Parse id fields defensively rather than assuming one shape. See [AtomicMarket V2 changes](../reference/atomicmarket/v2-changes.md#large-integers-serialize-as-strings) ("Large integers serialize as strings").
+- The `assets` table is scoped by owner, with no collection or template index. Enumerating every asset in a collection or template is an API-only capability: `/atomicassets/v1/assets?collection_name=...` joins across owners, but `get_table_rows` on `assets` takes the owner account as `scope`, so there is no chain-side path from a collection to its asset list without already knowing the owners. To read one specific asset over the chain, use its current owner as `scope` and its `asset_id` as an `i64`-typed bound.
 
 ## Classify deterministic errors before retrying
 

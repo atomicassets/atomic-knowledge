@@ -48,7 +48,7 @@ Source: live reads, `https://wax.api.atomicassets.io/atomicassets/v1/schemas/<co
 
 ## Media values are bare IPFS references, in several shapes
 
-The stored value is a bare content reference with no URI scheme and no gateway host - not a `ipfs://` URL and not an `https://` URL. Across the sampled collections the value takes several shapes, and defensive parsing has to accept all of them:
+The stored value is a bare content reference with no URI scheme and no gateway host - not an `ipfs://` URL and not an `https://` URL. Across the sampled collections the value takes several shapes, and defensive parsing has to accept all of them:
 
 - **Bare CIDv0** - a Base58 `Qm...` multihash, for example `img: "QmXHzdok8Sxvhj1tPXYk7vG6hnWayFU1WnvoPpieDsh55X"` (alien.worlds). This is the dominant form.
 - **Bare CIDv1** - a Base32 `bafy...` string, for example `video: "bafybeiejeflvsf3h5j7j6q5cie4andjxv6qkbnekk2hahujezm3srpn4bu"` (official.wax `walkers`). A parser that only recognizes the `Qm` prefix drops these.

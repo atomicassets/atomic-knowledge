@@ -64,7 +64,7 @@ The body now carries a `core_liquid_balance` field reading `"500.00000000 WAX"`.
 
 ## Step 3: install the packages and build the session
 
-Make a directory, install two packages, and write the session once. Everything after this imports it.
+Make a directory, install three packages, and write the session once. Everything after this imports it.
 
 ```
 mkdir first-collection && cd first-collection

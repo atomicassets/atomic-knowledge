@@ -74,7 +74,7 @@ Accepting re-verifies ownership of every listed asset, then runs both transfers 
 
 - Required authorization: the offer's `recipient`.
 - RAM payer: split, not uniform. Assets moving from recipient to sender use the offer's current RAM payer as the scope payer for any new scope the sender needs; assets moving from sender to recipient have the recipient cover their own new scope. In practice this means accepting an offer that requires you to hold an asset type for the first time can implicitly charge your own RAM, not the offer creator's.
-- Fails when: the sender or recipient no longer owns one of the listed assets (see below).
+- Fails when: the sender or recipient no longer owns one of the listed assets (see "What invalidates an offer").
 
 Source: `atomicassets-contract src/atomicassets.cpp:1302-1353`, `atomicassets-contract src/atomicassets.cpp:1668-1764` (`internal_transfer`, shared transfer logic)
 
@@ -155,8 +155,8 @@ Source: `atomicassets-contract src/atomicassets.cpp:1380-1398`
 
 `createoffer` checks ownership and transferability once, at creation. Nothing re-checks a pending offer afterward; ownership is only re-verified when someone calls `acceptoffer`. Between those two points, an offer can go stale in two ways:
 
-- **The asset moved.** The owner transferred it away (a plain `transfer`, or by accepting a different offer that touched the same asset id), so it's no longer in the expected owner's scope.
-- **The asset was burned.** `burnasset` erases the row outright.
+- The asset moved. The owner transferred it away (a plain `transfer`, or by accepting a different offer that touched the same asset id), so it's no longer in the expected owner's scope.
+- The asset was burned. `burnasset` erases the row outright.
 
 Either way, `acceptoffer` fails with `"Offer sender doesn't own at least one of the provided assets"` (or the recipient equivalent), and the offer row is left untouched, since the failed transaction makes no state changes. The contract appends the offending id to that string as a ` (ID: <asset_id>)` suffix (the same suffix `createoffer` and `transfer` add to their ownership and transferability errors), so a match on the message should allow for the trailing id. A stale offer is not pruned automatically: it stays in the `offers` table, discoverable by anyone reading it, until its sender calls `canceloffer`, its recipient calls `declineoffer`, or a failed `acceptoffer` prompts one of them to clean it up. Indexers and UIs that show pending offers should not assume a listed offer is still fulfillable.
 

@@ -14,7 +14,7 @@ AtomicAssets V2 is a non-breaking, additive, in-place upgrade of the V1 contract
 
 ## Deployment status
 
-WAX mainnet was still running V1 at the time of writing. A live `get_abi` read against `atomicassets` on `wax.greymass.com` (`POST /v1/chain/get_abi {"account_name":"atomicassets"}`, checked 2026-07-06) returns a 35-action ABI matching the V1 action list exactly, and a `get_table_rows` read of `tokenconfigs` on the same account reports `version: "1.2.3"`. None of the V2-only actions (`createauswap`, `setrampayer`, `setlastpayer`, `logrampayer`, `settempldata`, `logsetdatatl`, `setschematyp`) or tables (`authorswaps`, `schematypes`, `templates2`) are present or callable there yet, and `backasset` is still a live, non-deprecated action on that chain rather than the aborting stub V2 ships.
+WAX mainnet runs V1. A live `get_abi` read against `atomicassets` on `wax.greymass.com` (`POST /v1/chain/get_abi {"account_name":"atomicassets"}`, checked 2026-07-06) returns a 35-action ABI matching the V1 action list exactly, and a `get_table_rows` read of `tokenconfigs` on the same account reports `version: "1.2.3"`. None of the V2-only actions (`createauswap`, `setrampayer`, `setlastpayer`, `logrampayer`, `settempldata`, `logsetdatatl`, `setschematyp`) or tables (`authorswaps`, `schematypes`, `templates2`) are present or callable there, and `backasset` is still a live, non-deprecated action on that chain rather than the aborting stub V2 ships.
 
 Re-check `tokenconfigs.version` (or `get_abi`) on any target chain before relying on V2-only behavior. `version` is only as accurate as the operator's last `setversion` call, so treat `get_abi`'s actual action/table list as the authoritative check when the two could disagree.
 

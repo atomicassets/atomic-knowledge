@@ -200,7 +200,7 @@ Pass `template_id: -1` to mint a templateless asset carrying its own `immutable_
 - RAM payer: `authorized_minter`, not `new_asset_owner`. The new row lives in the owner's scope, but the minter pays for it, so a minter without enough RAM staked blocks its own mint regardless of the recipient's resources.
 - Fails when: `template_id` is neither `-1` nor an existing template id; the template belongs to a different schema than `schema_name`; the template's `max_supply` is already reached (`"The template's maxsupply has already been reached"`); `new_asset_owner` isn't a registered account; or `tokens_to_back` is non-empty (`"Native backing has been deprecated on the AtomicAssets Contract"`).
 
-**Changed in V2:** native token backing (the `tokens_to_back` parameter and the `backasset` action) is deprecated: any non-empty `tokens_to_back` aborts the mint, and `backasset` unconditionally fails. Under V1 both were functional and moved real token balances onto the asset.
+Changed in V2: native token backing (the `tokens_to_back` parameter and the `backasset` action) is deprecated: any non-empty `tokens_to_back` aborts the mint, and `backasset` unconditionally fails. Under V1 both were functional and moved real token balances onto the asset.
 
 Source: `atomicassets-contract src/atomicassets.cpp:700-791` (`mintasset`, backing guard at `:789-790`), V1 backing behavior in this repo's V1 tree (`contracts/atomicassets-contract/src/atomicassets.cpp`)
 

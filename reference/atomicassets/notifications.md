@@ -43,7 +43,7 @@ Source: `src/atomicassets.cpp:76-86` (transfer), `src/atomicassets.cpp:1188-1276
 
 ## What a notified contract can and cannot rely on
 
-A notification is delivered inline, in the same transaction as the triggering action: a notified contract's own handler runs as part of that transaction and can abort it by throwing, so being on a `notify_accounts` list is a way to gate or observe an action, not a read-only subscription. What arrives is only the notifying action's own parameters (for example `logsetdata` carries the deserialized old and new mutable data); a notified contract that needs anything beyond that has to query the tables itself. The set of accounts notified for a collection is read fresh at the moment the `log*` action runs, not cached from an earlier point in the transaction. Two things a notified contract cannot assume: it will not hear anything about `canceloffer` or `declineoffer`, since neither sends any notification, and grouping of a multi-asset `transfer` into per-collection `logtransfer` calls follows `std::map<name, ...>` key order, not the order the caller supplied asset ids in.
+A notification is delivered inline, in the same transaction as the triggering action: a notified contract's own handler runs as part of that transaction and can abort it by throwing, so being on a `notify_accounts` list is a way to gate or observe an action, not a read-only subscription. What arrives is only the notifying action's own parameters (for example `logsetdata` carries the deserialized old and new mutable data); a notified contract that needs anything beyond that has to query the tables itself. The set of accounts notified for a collection is read fresh at the moment the `log*` action runs, not cached from an earlier point in the transaction. Two things a notified contract cannot assume: it hears nothing about `canceloffer` or `declineoffer`, since neither sends any notification, and grouping of a multi-asset `transfer` into per-collection `logtransfer` calls follows `std::map<name, ...>` key order, not the order the caller supplied asset ids in.
 
 Source: `src/atomicassets.cpp:1826-1859` (`partial_read_collection`), `src/atomicassets.cpp:1883-1891` (`notify_collection_accounts`), `src/atomicassets.cpp:1668-1764` (internal_transfer collection grouping)
 
@@ -55,4 +55,4 @@ Source: `src/atomicassets.cpp:917-943` (setrampayer), `src/atomicassets.cpp:946-
 
 ## Live-chain status
 
-See [AtomicAssets V2 upgrade](v2-upgrade.md#deployment-status) ("Deployment status"). Every V2-only notification point above is source-verified against the `v2.0.0` contract but had not shipped to WAX mainnet at the time of this check.
+See [AtomicAssets V2 upgrade](v2-upgrade.md#deployment-status) ("Deployment status"). Every V2-only notification point on this page is source-verified against the `v2.0.0` contract and has not shipped to WAX mainnet.
