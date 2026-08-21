@@ -2,6 +2,15 @@
 
 What each release of this corpus changed, one release per tag. `Corrected` comes first in every release, because a fact that was wrong is what a returning reader has to see before anything else. The other sections are `Added`, `Revalidated`, and `Removed`, in that order, and a section with nothing in it is left out.
 
+## 2026.08.4
+
+### Added
+
+- `reference/numeric-values-in-json.md` records what JSON type a numeric attribute value takes on each read path: nodeos widens every float to a double on construction and prints it as a quoted seventeen-place decimal, `@wharfkit/antelope` objectifies one to a string in its own form instead (`toFixed(7)` for a float32 at 1.x, `Number.toString` for a float64, and the same shortest-round-trip form for both widths from the 2.x commit that drops the `Float32` override), and a hosted API answers with a number wherever the value was decoded from serialized bytes and with a string in that client-library form wherever it entered through the ABI action path.
+- The same page records that `toFixed(7)` keeps seven decimal places rather than seven significant digits at 1.x, so a float32 value that needs more than seven fractional decimals does not survive the client library's string form there. A sample of 20,000 random values per decade found no failures at or above 1, climbing to 99 percent between 0.01 and 0.02 and 100 percent at or below 0.001, rates over a sample rather than a bound on the interval. It also records that nodeos's own seventeen fixed places bounds the string without making it lossless: a double under `5e-18` prints as zero, and a matching per-decade measurement of `toFixed(17)` round trips finds failures climbing from 27 percent to 91 percent as magnitude falls below 0.1.
+- The page attributes the string-versus-number split on the ABI action path to each indexer's own decode call site (`atomicassets-api`'s own `Serializer.objectify` call against `@atomichub/antelope-ship-utils`'s, which switches to `objectifyNumericFloats` at 2.0.0) rather than to the live responses alone, and states that the change reaches new writes only, with a repair pass for rows already stored. `reference/sdk/atomicmarket.md` and `reference/atomicassets/serialization.md` change alongside it: a typed table row is a declared shape, not a runtime conversion, and a native ABI float field decodes independently of a serialized attribute's own codec.
+- `reference/validation.md` pins `@atomichub/atomicassets` 2.2.0 for attribute decoding, `@atomichub/antelope-ship-utils` 1.0.1 and 2.0.0 for the decode call site that changed between them, `AntelopeIO/spring` v1.2.2 for the nodeos serialization source, and a `@wharfkit/antelope` 2.x commit for the `Float32` string-form change. The two SDK pages keep the `atomicassets-sdk` `v2.1.1` pin.
+
 ## 2026.08.3
 
 ### Corrected

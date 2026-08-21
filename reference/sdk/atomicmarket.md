@@ -308,9 +308,9 @@ Source: atomicmarket-sdk (v2.4.1, 437300b) src/Actions/Delphi.ts:15-20 (`DelphiP
 
 ## Typed table rows ship alongside the API types
 
-`src/Tables.ts` exports the `get_table_rows` shapes for the v2 contract tables, so a chain-side read deserializes into a named type instead of `any`. Field widths follow the on-chain ABI: `uint64` and `name` fields arrive as strings, and `int32`/`uint32`/`uint8`/`float64` fields arrive as numbers. Use these when reading the market's tables directly rather than through the indexer.
+`src/Tables.ts` exports the `get_table_rows` shapes for the v2 contract tables as TypeScript interfaces, so a chain-side read deserializes into a named type instead of `any`. An interface declares a shape; it converts nothing at runtime, and annotating a raw `get_table_rows` row with one does not change the value the row actually holds. Field widths follow the on-chain ABI in what they declare: `uint64` and `name` fields are typed as strings, and `int32`/`uint32`/`uint8`/`float64` fields are typed as numbers. Neither declaration is a runtime guarantee: a live read of the `sales` table answers `"collection_fee":"0.05000000000000000"`, a quoted decimal string, for the `float64` field this section types as `number`, and nodeos answers a `uint64` at or below `0xffffffff` as a bare JSON number (`"sale_id":173949337` on that same row), not the string this section types it as (see [Numeric values in JSON](../numeric-values-in-json.md)). A caller who trusts either declared type without checking the actual value still holds whatever the wire sent. Use these types for the shape they document, and convert a `uint64` or `float64` field explicitly before treating it as the type declared, when reading the market's tables directly rather than through the indexer.
 
-Source: atomicmarket-sdk (v2.4.1, 437300b) src/Tables.ts:1-46 (row interfaces and the field-width rule), src/index.ts:27-28 (root re-export)
+Source: atomicmarket-sdk (v2.4.1, 437300b) src/Tables.ts:1-46 (row interfaces and the field-width rule), src/index.ts:27-28 (root re-export); the `sales` table live read is cited in full on [Numeric values in JSON](../numeric-values-in-json.md)
 
 ## Network factory carries AtomicHub's public hosts
 
