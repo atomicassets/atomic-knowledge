@@ -41,7 +41,7 @@ WAX mainnet still runs the V1 `atomicassets` and `atomicmarket` contracts while 
 
 | Directory | Contents |
 | --- | --- |
-| `reference/` | Facts: `atomicassets/`, `atomicmarket/`, `atomictools/`, and `sdk/` directories with per-topic pages (structure, actions, tables, fees, serialization, SDK surfaces), plus one file each for the indexer, API, API streaming, media conventions, chain, and client libraries |
+| `reference/` | Facts: `atomicassets/`, `atomicmarket/`, `atomictools/`, and `sdk/` directories with per-topic pages (structure, actions, tables, fees, serialization, SDK surfaces), plus one file each for the indexer, API, API streaming, media conventions, numeric JSON types, chain, and client libraries |
 | `guides/` | End-to-end workflows: asset lifecycle, offers, sales, auctions, buyoffers, deposits, claim links, notification integration, contract testing with VeRT, and querying the API |
 | `learning/` | The unverified tier: claims that have not been checked yet, and the gate they pass before promotion |
 | `skills/` | Agent skills. `atomic-integration` routes a coding agent to the reference file its task needs. `report` writes a sanitized report about these docs into the consuming project, and never edits this repository |

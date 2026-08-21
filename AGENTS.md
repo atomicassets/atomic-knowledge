@@ -34,6 +34,7 @@ Start here. Find the outcome you are working toward below, read the file on that
 | Choose an attribute type, or find out why a value was rejected | `reference/atomicassets/custom-types.md` |
 | Decode an attribute blob read straight from a chain table | `reference/atomicassets/serialization.md` |
 | Decide which layer an attribute value comes from when template and asset disagree | `reference/atomicassets/data-precedence.md` |
+| Tell a JSON number from the quoted decimal the chain prints for the same value | `reference/numeric-values-in-json.md` |
 | Find out whether a chain runs V2 yet, and what V2 added | `reference/atomicassets/v2-upgrade.md` |
 | Handle a token-backed asset minted before backing was deprecated | `reference/atomicassets/backing-tokens.md` |
 | List an asset for sale and settle the purchase, oracle-priced sales included | `guides/sales.md` |
