@@ -208,7 +208,7 @@ jobs:
               run: node .github/scripts/strip-code.mjs "${RUNNER_TEMP}/stripped"
 
             - name: No misspelling in prose
-              uses: crate-ci/typos@8a48f81b6c64dcfea44b3633223084c4be58ac5f # v1.49.0
+              uses: crate-ci/typos@7f9d0819ca1c008ade73f4b41fa9d258d48f605b # v1.51.1
               with:
                   files: ${{ runner.temp }}/stripped
                   config: ./_typos.toml
